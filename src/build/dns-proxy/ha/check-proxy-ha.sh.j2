@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+DNS_SERVER="{{ FRONT_IP }}"
+TEST_ZONE="{{ PROXY_HA_HEALTHCHECK_ZONE }}"
+
+systemctl is-active named >/dev/null 2>&1
+
+rndc status >/dev/null 2>&1
+
+dig @"${DNS_SERVER}" "${TEST_ZONE}" SOA +time=2 +tries=1 >/dev/null 2>&1

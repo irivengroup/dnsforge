@@ -1,0 +1,86 @@
+logging {
+
+        channel default_log {
+                file "/var/log/named/default.log" versions 30 size 100m;
+                severity info;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+
+        channel security_log {
+                file "/var/log/named/security.log" versions 30 size 100m;
+                severity dynamic;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+
+        channel transfer_log {
+                file "/var/log/named/transfer.log" versions 30 size 100m;
+                severity info;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+
+        channel resolver_log {
+                file "/var/log/named/resolver.log" versions 30 size 100m;
+                severity info;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+
+        channel rpz_log {
+                file "/var/log/named/rpz.log" versions 30 size 100m;
+                severity info;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+
+        channel dnssec_log {
+                file "/var/log/named/dnssec.log" versions 30 size 100m;
+                severity info;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+
+        category default {
+                default_log;
+        };
+
+        category security {
+                security_log;
+        };
+
+        category xfer-in {
+                transfer_log;
+        };
+
+        category xfer-out {
+                transfer_log;
+        };
+
+        category resolver {
+                resolver_log;
+        };
+
+        category rpz {
+                rpz_log;
+        };
+
+        category dnssec {
+                dnssec_log;
+        };
+
+        category lame-servers {
+                null;
+        };
+
+        category queries {
+                null;
+        };
+};

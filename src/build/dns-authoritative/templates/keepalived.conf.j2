@@ -1,0 +1,27 @@
+global_defs {
+
+        enable_script_security
+}
+
+
+vrrp_instance VI_DNS_AUTH {
+
+        state {{ KEEPALIVED_STATE }}
+
+        interface {{ KEEPALIVED_INTERFACE }}
+
+        virtual_router_id {{ KEEPALIVED_VRID }}
+
+        priority {{ KEEPALIVED_PRIORITY }}
+
+        advert_int 1
+
+        authentication {
+                auth_type PASS
+                auth_pass {{ KEEPALIVED_AUTH_PASS }}
+        }
+
+        virtual_ipaddress {
+                {{ VIP_BACK_IP }}
+        }
+}

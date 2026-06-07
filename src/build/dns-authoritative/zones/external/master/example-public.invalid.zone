@@ -1,0 +1,15 @@
+$TTL 3600
+
+@       IN SOA  ns.example-public.invalid. hostmaster.example-public.invalid. (
+
+                2026060601 ; serial
+                3600       ; refresh
+                900        ; retry
+                1209600    ; expire
+                300        ; negative cache ttl
+)
+
+        IN NS   ns.example-public.invalid.
+
+ns      IN A    192.0.2.10
+www     IN A    192.0.2.20

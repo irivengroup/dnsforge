@@ -1,0 +1,20 @@
+acl "front_allowed_clients" {
+        {{ FRONT_ALLOWED_CLIENTS }};
+};
+
+acl "recursive_clients" {
+        {{ BACK_RECURSIVE_CLIENTS }};
+};
+
+acl "admin_clients" {
+        {{ ADM_ALLOWED_CLIENTS }};
+};
+
+acl "transfer_clients" {
+        {{ PROXY_TRANSFER_CLIENTS }};
+};
+
+
+acl partner_clients {
+        {{ PARTNER_ALLOWED_CLIENTS }}
+};

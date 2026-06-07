@@ -1,0 +1,10 @@
+zone "{{ ZONE_NAME }}" {
+
+        type forward;
+
+        forward {{ DNS_FORWARD_POLICY }};
+
+        forwarders {
+                {{ AUTHORITATIVE_BACK_IP_BIND_LIST }}
+        };
+};

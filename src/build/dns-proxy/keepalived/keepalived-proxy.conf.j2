@@ -1,0 +1,42 @@
+vrrp_script chk_binddns_proxy {
+
+        script "/opt/binddns/proxy-ha/check-proxy-ha.sh"
+
+        interval 2
+
+        timeout 2
+
+        fall 3
+
+        rise 2
+}
+
+vrrp_instance VI_BINDDNS_PROXY {
+
+        state {{ PROXY_KEEPALIVED_STATE }}
+
+        interface {{ PROXY_KEEPALIVED_INTERFACE }}
+
+        virtual_router_id {{ PROXY_KEEPALIVED_VRID }}
+
+        priority {{ PROXY_KEEPALIVED_PRIORITY }}
+
+        advert_int 1
+
+        authentication {
+
+                auth_type PASS
+
+                auth_pass {{ PROXY_KEEPALIVED_AUTH_PASS }}
+        }
+
+        virtual_ipaddress {
+
+                {{ PROXY_VIP_FRONT_IP }}
+        }
+
+        track_script {
+
+                chk_binddns_proxy
+        }
+}

@@ -1,0 +1,27 @@
+dnssec-policy "{{ DNSSEC_POLICY_NAME }}" {
+
+        keys {
+
+                ksk lifetime unlimited algorithm ecdsap256sha256;
+
+                zsk lifetime P90D algorithm ecdsap256sha256;
+        };
+
+        signatures-refresh P5D;
+
+        signatures-validity P14D;
+
+        signatures-validity-dnskey P14D;
+
+        max-zone-ttl 1D;
+
+        parent-ds-ttl 1D;
+
+        parent-propagation-delay PT1H;
+
+        publish-safety PT1H;
+
+        retire-safety PT1H;
+
+        purge-keys P90D;
+};

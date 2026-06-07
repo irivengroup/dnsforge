@@ -1,0 +1,10 @@
+controls {
+
+        inet {{ ADM_IP }} port 953
+        allow {
+                admin_clients;
+        }
+        keys {
+                "{{ RNDC_KEY_NAME }}";
+        };
+};

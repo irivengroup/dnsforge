@@ -1,0 +1,37 @@
+# BindDNS Enterprise central zone catalog.
+# The current generator supports the enterprise examples below and defines
+# the structure expected for future catalogue-driven generation.
+
+zones:
+
+  - name: split-example.invalid
+    type: master
+    views:
+      - external
+      - internal
+      - partner
+    dnssec: required
+    acl:
+      external: any;
+      internal: recursive_clients;
+      partner: partner_clients;
+
+  - name: catalog-secondary-a.invalid
+    type: secondary
+    cluster: A
+    views:
+      - external
+      - internal
+    acl:
+      external: any;
+      internal: recursive_clients;
+
+  - name: catalog-forward-b.invalid
+    type: forward
+    cluster: B
+    views:
+      - internal
+      - partner
+    acl:
+      internal: recursive_clients;
+      partner: partner_clients;
