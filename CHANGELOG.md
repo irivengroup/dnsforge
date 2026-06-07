@@ -1,3 +1,12 @@
+## v8.0
+
+- README réécrit comme document de présentation produit.
+- Documentation opérationnelle recentrée dans `docs/`.
+- `docs/index.md` restructuré par contexte : Présentation, Déploiement, Exploitation, Sécurité, Référence.
+- Image d'architecture explicitement référencée dans le README.
+- Renommage documentaire `Zone Lifecycle` vers `Gestion des Zones`.
+- Références alignées sur `zone-manager.sh`.
+
 ## v7.3
 
 - Ajout de `docs/images/zoneforge-dnsaas-architecture.png`.

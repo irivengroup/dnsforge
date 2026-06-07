@@ -1,270 +1,159 @@
-ZoneForge DNSaaS
-Plateforme de Déploiement et de Configuration DNS as a Service
+# ZoneForge DNSaaS
 
+> Plateforme de Déploiement et de Configuration DNS as a Service
 
-# BindDNS Enterprise Red Hat
-
-BindDNS Enterprise fournit un socle de déploiement et d'exploitation DNS pour environnements Red Hat / RHEL-like.
-
-Le projet couvre deux rôles :
-
-- **dns-proxy** : nœuds DNS consommés par les clients, sans VIP, configurables en DNS1/DNS2.
-- **dns-authoritative** : nœuds DNS autoritaires globaux avec VIP interne, non exposés directement aux clients externes.
-
-## Documentation
-
-Le point d'entrée documentaire est :
-
-- [docs/index.md](docs/index.md)
-
-## Commandes rapides
-
-```bash
-cd /opt/binddns-enterprise
-
-./src/dnsProxyDeploy.sh <node> --dry-run
-sudo ./src/dnsProxyDeploy.sh <node>
-
-./src/dnsAuthoritativeDeploy.sh <node> --dry-run
-sudo ./src/dnsAuthoritativeDeploy.sh <node>
-```
-
-## Validation rapide
-
-```bash
-named-checkconf -z /etc/named.conf
-rndc status
-systemctl status named --no-pager
-```
-
-Consulter `docs/DEPLOYMENT.md`, `docs/OPERATIONS.md` et `docs/PRODUCTION-CHECKLIST.md` pour les procédures complètes.
-
-## Sécurité intégrée
-
-- TSIG
-- RNDC limité ADM
-- RPZ côté proxy
-- RRL
-- DNSSEC validation
-- SELinux
-- firewalld conditionnel
-
-## Version courante
-
-`v3.9`
-
-## v3.9.1
-
-Correction importante : les DNS Proxy peuvent aussi être autoritaires pour certaines zones.
-
-Ajouts :
-
-- `src/build/dns-proxy/zones/external/master/`
-- `src/build/dns-proxy/zones/internal/master/`
-- génération automatique des index master proxy ;
-- copie automatique des fichiers `.zone` proxy master ;
-- documentation et runbooks mis à jour.
-
-## v4.0
-
-La v4.0 ajoute une suite de validation complète :
-
-```bash
-./tests/run-all.sh
-```
-
-Voir :
-
-- [Validation complète](docs/VALIDATION.md)
-- [Runbook validation](docs/RUNBOOKS/RUN-VALIDATION.md)
-
-## v4.1
-
-La v4.1 ajoute l'outillage TSIG :
-
-```bash
-./src/tools/generate-tsig.sh xfr-shared-key
-./src/tools/check-secrets.sh
-```
-
-## v4.2
-
-La v4.2 corrige la cohérence RPZ :
-
-- `50-rpz.conf.j2` est désormais rendu et inclus dans la vue récursive interne ;
-- ajout de tests de cohérence projet ;
-- ajout du document `docs/PROJECT-COHERENCE.md`.
-
-## v4.3
-
-La v4.3 ajoute l'audit de rendu :
-
-```bash
-./tests/render/check-render-settings.sh
-./tests/run-all.sh
-```
-
-Voir [Audit de rendu](docs/RENDER-AUDIT.md).
-
-## v4.4
-
-La v4.4 ajoute les artefacts de supervision :
-
-```bash
-./tests/monitoring/check-monitoring-templates.sh
-./tests/monitoring/check-rendered-monitoring.sh
-```
-
-Voir [Monitoring](docs/MONITORING.md).
-
-## v4.5
-
-La v4.5 formalise la haute disponibilité DNS Proxy sans VIP :
-
-```bash
-./tests/proxy-ha/check-proxy-ha-design.sh
-DNS1=<DNS1_IP> DNS2=<DNS2_IP> TEST_ZONE=<ZONE> ./tests/proxy-ha/check-proxy-pair-smoke.sh
-```
-
-Voir [HA DNS Proxy sans VIP](docs/DNS-PROXY-HA.md).
-
-## v4.6
-
-La v4.6 ajoute le durcissement Red Hat/BIND :
-
-```bash
-./tests/security/check-hardening-source.sh
-./tests/security/check-file-permissions-policy.sh
-```
-
-Voir [Durcissement](docs/HARDENING.md).
-
-
-## v4.8
-
-La v4.8 retire la génération HTML du cycle actif et ajoute un socle DNSSEC Enterprise optionnel :
-
-```bash
-./tests/dnssec/check-dnssec-templates.sh
-./tests/dnssec/check-dnssec-render.sh
-```
-
-Voir [DNSSEC](docs/DNSSEC.md).
-
-## v4.9
-
-La v4.9 ajoute l'outillage sauvegarde/restauration :
-
-```bash
-sudo ./src/tools/backup-binddns.sh
-sudo ./src/tools/list-backups.sh
-sudo ./src/tools/restore-binddns.sh /var/backups/binddns/<timestamp>.tar.gz
-```
-
-Voir [Backup / Restore](docs/BACKUP-RESTORE.md).
-
-## v5.0
-
-La v5.0 aligne les inventaires avec le code et ajoute le support multi-VIP authoritative :
-
-```bash
-AUTHORITATIVE_BACK_IP=("192.0.2.10" "192.0.2.20")
-```
-
-Voir [Inventaires](docs/INVENTORIES.md).
-
-## v5.1
-
-Tests d'intégration multi-VIP authoritative côté proxy.
-
-## v5.2
-
-Routing DNS par zone vers clusters authoritative nommés.
-
-## v5.3
-
-ACL par vue et par zone, avec vue partenaire optionnelle.
-
-## v5.5
-
-Catalogue central des zones avec génération split-horizon.
-
-## v5.6
-
-DNSSEC Enterprise renforcé pour les zones publiques du catalogue.
-
-## v5.7
-
-Monitoring natif BindDNS : healthcheck, rndc stats, export métriques texte et timer systemd.
-
-## v5.8
-
-HA DNS Proxy optionnelle avec VIP, mode DNS1/DNS2 sans VIP conservé par défaut.
-
-## v5.9
-
-Production Gate : preflight, diff, backup obligatoire et rollback latest.
-
-## v6.0
-
-Renommage structurel :
-
-```text
-src/inventories/ -> src/settings/
-tests/fixtures/inventories/ -> tests/fixtures/settings/
-```
-
-Les scripts, tests, docs et runbooks sont alignés sur `settings`.
-
-## v6.1
-
-Normalisation universelle des listes : `AUTHORITATIVE_BACK_IP="ip1 ; ip2, ip3 ip4"`.
-
-## v6.2
-
-Validation stricte des settings avant rendu/déploiement.
-
-## v6.3
-
-Outil de gestion du cycle de vie des zones : CRUD, disable/enable, delete.
-
-## v6.4
-
-Durcissement du cycle de vie des zones : `zone-manager.sh` 100% shell/awk, sans dépendance Python.
-
-## v6.5
-
-Gestion automatique du RNDC secret : `RNDC_KEY_NAME=rndc-key` par défaut, `RNDC_SECRET` généré si absent.
-
+[Documentation](./docs/index.md) · [Architecture](#architecture) · [Fonctionnalités](#fonctionnalités) · [Sécurité](#sécurité) · [Exploitation](#exploitation)
 
 ---
 
-Copyright
-© IRIVEN Group — All Rights Reserved
+## Présentation
 
+ZoneForge DNSaaS est une plateforme de déploiement, de configuration et d'exploitation DNS destinée aux environnements entreprise.
 
-## DNS Firewall (RPZ)
+Elle permet de construire, sécuriser, automatiser et exploiter des infrastructures DNS modernes basées sur BIND 9, avec une approche orientée **DNS as a Service**, **Infrastructure as Code**, haute disponibilité, conformité et exploitation industrielle.
 
-ZoneForge DNSaaS implémente les RPZ uniquement sur les services récursifs/proxy.
+Le README présente le produit. Les procédures détaillées de déploiement, d'exploitation, de sécurité et de dépannage sont centralisées dans la [documentation](./docs/index.md).
 
-L'utilisation de RPZ sur les services autoritatifs est interdite et bloquée par la validation stricte de la plateforme.
+---
 
-## v7.1
+## Fonctionnalités
 
-- RPZ interdit sur les nœuds authoritative.
-- RPZ autorisé uniquement sur les services récursifs/proxy.
-- Tests de conformité RPZ ajoutés.
+### Services DNS
 
-## v7.2
+- DNS Authoritative basé sur BIND 9.
+- DNS Proxy / Recursive.
+- Split-Horizon DNS.
+- Multi-cluster authoritative.
+- Multi-VIP.
+- Haute disponibilité avec Keepalived.
+- Catalogue centralisé des zones.
+- Gestion des Zones via `zone-manager.sh`.
 
-Validation consolidée dans `src/libs/lib-settings-validate.sh`.
+### Sécurité DNS
 
+- DNSSEC.
+- TSIG pour les transferts de zones.
+- RNDC avec génération automatique du secret si absent.
+- RPZ / DNS Firewall sur les services récursifs.
+- Blocage de RPZ sur les nœuds authoritative.
+- Validation stricte des settings avant rendu et déploiement.
+
+### Déploiement et exploitation
+
+- Génération automatisée des configurations BIND.
+- Déploiement automatisé des rôles DNS Proxy et DNS Authoritative.
+- Production Gate : preflight, diff de configuration, sauvegarde et rollback.
+- Monitoring natif et healthchecks.
+- Tests de conformité.
+- Runbooks d'exploitation.
+
+---
 
 ## Architecture
 
 ![Architecture ZoneForge DNSaaS](docs/images/zoneforge-dnsaas-architecture.png)
 
-## v7.3
+ZoneForge DNSaaS sépare clairement les rôles DNS récursifs/proxy et autoritatifs :
 
-- Ajout de l’image d’architecture dans `docs/images/`.
-- Affichage de l’architecture dans la section README Architecture.
+| Composant | Rôle |
+|---|---|
+| `dns-proxy` | Résolution récursive, cache, RPZ, filtrage, accès clients |
+| `dns-authoritative` | Publication des zones, transferts TSIG, DNSSEC, VIP authoritative |
+| `zone-manager.sh` | Gestion des Zones : create, read, update, disable, enable, delete |
+| `settings/` | Paramètres par nœud et par rôle |
+| `catalog/zones.yml` | Source de vérité des zones DNS |
+| `tests/` | Contrôles de conformité, sécurité et rendu |
+
+Pour les détails d'architecture, consulter [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
+
+---
+
+## Cas d'utilisation
+
+ZoneForge DNSaaS est adapté aux contextes suivants :
+
+- entreprise multi-sites ;
+- datacenters privés ;
+- cloud privé ;
+- fournisseur de services managés ;
+- environnement DNS critique ;
+- plateforme interne DNS as a Service ;
+- segmentation DNS interne, externe et partenaire ;
+- exploitation standardisée de BIND 9.
+
+---
+
+## Sécurité
+
+ZoneForge DNSaaS applique une séparation stricte des responsabilités :
+
+```text
+dns-proxy         : RPZ autorisé
+dns-recursive     : RPZ autorisé
+dns-authoritative : RPZ interdit
+```
+
+Les serveurs autoritatifs publient les données de référence. Les politiques de filtrage RPZ sont réservées aux services récursifs/proxy.
+
+Voir :
+
+- [Sécurité](./docs/SECURITY.md)
+- [RPZ — DNS Firewall](./docs/SECURITY/RPZ.md)
+- [Validation stricte des settings](./docs/SETTINGS-VALIDATION.md)
+
+---
+
+## Exploitation
+
+L'exploitation détaillée est documentée dans `docs/` :
+
+- [Déploiement](./docs/DEPLOYMENT.md)
+- [Opérations](./docs/OPERATIONS.md)
+- [Production Checklist](./docs/PRODUCTION-CHECKLIST.md)
+- [Gestion des Zones](./docs/GESTION-DES-ZONES.md)
+- [RNDC](./docs/RNDC-SECRET.md)
+- [Monitoring](./docs/NATIVE-MONITORING.md)
+- [Troubleshooting](./docs/TROUBLESHOOTING.md)
+
+---
+
+## Documentation
+
+Le point d'entrée documentaire est :
+
+[docs/index.md](./docs/index.md)
+
+La documentation est organisée par contexte :
+
+- présentation ;
+- déploiement ;
+- exploitation ;
+- sécurité ;
+- référence.
+
+---
+
+## Validation
+
+Les tests de conformité sont regroupés dans :
+
+```bash
+./tests/run-all.sh
+```
+
+Des tests spécialisés sont disponibles par domaine :
+
+```text
+tests/settings/
+tests/security/
+tests/catalog/
+tests/integration/
+tests/monitoring/
+tests/deployment/
+```
+
+---
+
+## Copyright
+
+© IRIVEN Group — All Rights Reserved
