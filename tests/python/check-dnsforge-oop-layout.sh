@@ -12,12 +12,12 @@ test -d "${PROJECT_ROOT}/src/dnsforge/infrastructure"
 test -d "${PROJECT_ROOT}/src/dnsforge/interfaces/cli"
 
 PYTHONPATH="${PROJECT_ROOT}/src" python3 - <<'PY'
-from dnsforge.application.configure.configure_proxy import ConfigureProxy
+from dnsforge.application.initialize.initialize_proxy import InitializeProxy
 from dnsforge.application.validate.validate_proxy import ValidateProxy
 from dnsforge.domain.model.proxy_type import ProxyType
 from dnsforge.infrastructure.settings.env_loader import EnvSettingsLoader
 
-assert ConfigureProxy is not None
+assert InitializeProxy is not None
 assert ValidateProxy is not None
 assert EnvSettingsLoader is not None
 assert ProxyType.from_value("forwarder") is ProxyType.FORWARDER

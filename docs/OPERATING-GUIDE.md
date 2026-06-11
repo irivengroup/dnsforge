@@ -6,7 +6,7 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 ## Cycle standard
 
 ```text
-validate -> render -> configure -> zone
+validate -> render -> initialize -> zone
 ```
 
 ## Commandes
@@ -14,7 +14,7 @@ validate -> render -> configure -> zone
 ```bash
 ./bin/dnsforge validate proxy proxy01 --type forwarder
 ./bin/dnsforge render proxy proxy01 --type hybrid
-./bin/dnsforge configure proxy proxy01 --type forwarder --dry-run
+./bin/dnsforge initialize proxy proxy01 --type forwarder --dry-run
 ./bin/dnsforge zone list
 ./bin/dnsforge audit
 ```

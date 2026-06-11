@@ -21,7 +21,7 @@ La v8.7 migre `dnsforge zone` vers Python natif.
 ## Catalogue
 
 ```text
-src/dnsforge/infrastructure/build/catalog/zones.yml
+/etc/dnsforge/zones.yml
 ```
 
 

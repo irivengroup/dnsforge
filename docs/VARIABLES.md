@@ -16,7 +16,7 @@ Le projet vise des plateformes Red Hat / RHEL-like utilisant BIND, SELinux, syst
 
 ## Principes d'exploitation
 
-- Les configurations finales sont générées depuis `src/dnsforge/infrastructure/build/` et `src/settings/`.
+- Les configurations finales sont générées depuis `src/dnsforge/infrastructure/templates/` et `src/settings/`.
 - Les secrets ne doivent pas être versionnés en clair.
 - Les rendus dans `src/render/` sont des artefacts générés.
 - Les déploiements doivent être validés avant redémarrage de service.

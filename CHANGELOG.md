@@ -1,3 +1,24 @@
+# 10.5.0
+
+- Reoriented `dnsforge initialize` as a BIND configuration takeover/deployment command.
+- Removed package installation from the Python initialize/configure application service.
+- Added complete BIND configuration backup using move + tar.gz before applying rendered files.
+- Added BIND prerequisite validation: `named-checkconf`, `rndc`, `systemctl`.
+- Made `/etc/dnsforge/setup.conf` the preferred node source of truth, with legacy per-role env files only as fallback.
+- Updated initialize documentation to reflect install/ vs initialize responsibilities.
+
+## v10.4
+
+- Ajout commandes sécurité : `security history/rollback`, `acl`, `view`, `dnssec`, `rpz`, `cluster validate-security`.
+- Ajout de `docs/SECURITY-COMMANDS.md`.
+
+## v10.3
+
+- `dnsforge configure` devient `dnsforge initialize`.
+- Suppression de l'option publique `--skip-install`.
+- Installation automatique de BIND via `install/install.sh` si absent.
+- Ajout de `LinuxDistribution`, `OsReleaseReader`, `PackageManager`.
+
 ## v10.2
 
 - Suppression définitive de `src/libs`.
@@ -83,10 +104,10 @@
 
 ## v9.2
 
-- Intégration du dossier `build` dans `src/dnsforge/infrastructure/build`.
-- Déplacement du catalogue vers `src/dnsforge/infrastructure/build/catalog/zones.yml`.
+- Intégration du dossier `build` dans `src/dnsforge/infrastructure/templates`.
+- Déplacement du catalogue vers `src/dnsforge/infrastructure/templates/catalog/zones.yml`.
 - Mise à jour de `ProjectPaths.build_root` et `ProjectPaths.catalog_file`.
-- Suppression de l'ancien dossier `src/build`.
+- Suppression de l'ancien dossier `src/dnsforge/infrastructure/templates`.
 - Correction du dossier racine dans l'archive ZIP : `ZoneForge-DNSaaS-v9.2`.
 
 ## v9.1
@@ -109,7 +130,7 @@
 
 ## v8.9
 
-- `dnsforge configure` devient natif Python.
+- `dnsforge initialize` devient natif Python.
 - Ajout de `ConfigureService`.
 - Ajout de `PackageInstaller`, `FileInstaller`, `FirewalldManager`, `SELinuxManager`, `SystemdManager`.
 - `configure` n'appelle plus les scripts Bash historiques.
@@ -120,8 +141,8 @@
 
 - Ajout de `ConfigurePlan` et `ConfigureStep`.
 - Ajout de `ConfigurePlanner`.
-- Ajout de l'option `--dry-run` à `dnsforge configure`.
-- `dnsforge configure --dry-run` produit un plan Python sans exécuter le moteur Bash.
+- Ajout de l'option `--dry-run` à `dnsforge initialize`.
+- `dnsforge initialize --dry-run` produit un plan Python sans exécuter le moteur Bash.
 - Documentation `PYTHON-CONFIGURE-PLAN.md`.
 
 ## v8.7
@@ -274,7 +295,7 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 
 ## v5.5
 
-- Ajout de `src/dnsforge/infrastructure/build/catalog/zones.yml`.
+- Ajout de `src/dnsforge/infrastructure/templates/catalog/zones.yml`.
 - Ajout du générateur de catalogue de zones.
 - Génération split-horizon master/secondary/forward.
 - Tests catalog generate/render.
@@ -419,7 +440,7 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 - Templates BIND formatés et lisibles.
 - Inventaires séparés par rôle.
 - Tests smoke, validation, style et documentation.
-- Mode `--skip-install`.
+- Mode ``.
 - Modes `--dry-run`, `--render-only`, `--validate-only`, `--audit`, `--rollback latest`.
 
 
@@ -427,3 +448,14 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 
 Copyright
 © IRIVEN Group — All Rights Reserved
+
+## v10.5.4 - Native BIND layout ownership
+
+- Aligned DNSForge initialize with the product model: BIND deployment and complete BIND configuration management.
+- Added OS-aware native BIND layout detection for Red Hat family, Debian/Ubuntu and SUSE.
+- Removed runtime dependency on `/etc/dnsforge/generated/` and `/var/lib/dnsforge/`.
+- Rendered modular BIND configuration into native layout paths: `/etc/named`, `/etc/bind`, `/var/named`, `/var/lib/bind`, `/var/lib/named`.
+- Backup now moves the detected native BIND configuration and data paths before creating the tar.gz archive.
+- Validation now targets the detected native `named.conf`.
+- Systemd operations now use `named` or `bind9` according to the detected platform.
+- Added native BIND layout tests.

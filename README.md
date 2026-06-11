@@ -82,16 +82,6 @@ ZoneForge DNSaaS est adapté aux contextes suivants :
 
 ---
 
-## Installation système
-
-```bash
-sudo ./install/install.sh --profile proxy-forwarder
-sudo ./install/install.sh --profile proxy-hybrid
-sudo ./install/install.sh --profile authoritative
-```
-
----
-
 ## Sécurité
 
 ZoneForge DNSaaS applique une séparation stricte des responsabilités :
@@ -139,3 +129,14 @@ Project Initiator — IRIVEN Group
 ## Copyright
 
 © IRIVEN Group — All Rights Reserved
+
+
+## Installation système
+
+```bash
+sudo ./install/install.sh --profile proxy-forwarder
+sudo ./install/install.sh --profile proxy-hybrid
+sudo ./install/install.sh --profile authoritative
+```
+
+Voir `docs/INSTALLATION.md`.

@@ -8,8 +8,8 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 ## Cas 1 — Ajouter une zone globale authoritative
 
 ```bash
-vi src/dnsforge/infrastructure/build/dns-authoritative/zones/external/master/example.net.conf
-vi src/dnsforge/infrastructure/build/dns-authoritative/zones/external/master/example.net.zone
+vi native BIND view directories managed by DNSForgeexternal/master/example.net.conf
+vi native BIND view directories managed by DNSForgeexternal/master/example.net.zone
 
 ./src/dnsAuthoritativeDeploy.sh <node> --render-only
 sudo ./src/dnsAuthoritativeDeploy.sh <node>
@@ -18,7 +18,7 @@ sudo ./src/dnsAuthoritativeDeploy.sh <node>
 Ajouter la zone secondary côté proxy :
 
 ```bash
-vi src/dnsforge/infrastructure/build/dns-proxy/zones/external/secondary/example.net.conf
+vi native BIND view directories managed by DNSForgeexternal/secondary/example.net.conf
 
 ./src/dnsProxyDeploy.sh <node> --render-only
 sudo ./src/dnsProxyDeploy.sh <node>
@@ -34,8 +34,8 @@ dig @<PROXY_FRONT_IP> example.net SOA
 ## Cas 2 — Ajouter une zone master locale sur proxy
 
 ```bash
-vi src/dnsforge/infrastructure/build/dns-proxy/zones/external/master/example-edge-public.conf
-vi src/dnsforge/infrastructure/build/dns-proxy/zones/external/master/example-edge-public.invalid.zone
+vi native BIND view directories managed by DNSForgeexternal/master/example-edge-public.conf
+vi native BIND view directories managed by DNSForgeexternal/master/example-edge-public.invalid.zone
 
 ./src/dnsProxyDeploy.sh <node> --render-only
 
@@ -53,8 +53,8 @@ dig @<PROXY_FRONT_IP> example-edge-public.invalid SOA
 ## Cas 3 — Ajouter une zone master interne sur proxy
 
 ```bash
-vi src/dnsforge/infrastructure/build/dns-proxy/zones/internal/master/example-edge-internal.conf
-vi src/dnsforge/infrastructure/build/dns-proxy/zones/internal/master/example-edge-internal.invalid.zone
+vi native BIND view directories managed by DNSForgeinternal/master/example-edge-internal.conf
+vi native BIND view directories managed by DNSForgeinternal/master/example-edge-internal.invalid.zone
 
 ./src/dnsProxyDeploy.sh <node> --render-only
 sudo ./src/dnsProxyDeploy.sh <node>

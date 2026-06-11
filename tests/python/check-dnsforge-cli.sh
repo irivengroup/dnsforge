@@ -16,10 +16,10 @@ parser.parse_args(["validate", "proxy", "proxy01", "--type", "hybrid"])
 parser.parse_args(["validate", "authoritative", "auth01"])
 parser.parse_args(["render", "proxy", "proxy01", "--type", "forwarder"])
 parser.parse_args(["render", "authoritative", "auth01"])
-parser.parse_args(["configure", "proxy", "proxy01", "--type", "forwarder", "--render-only"])
-parser.parse_args(["configure", "proxy", "proxy01", "--type", "forwarder", "--dry-run"])
-parser.parse_args(["configure", "authoritative", "auth01", "--render-only"])
-parser.parse_args(["configure", "authoritative", "auth01", "--dry-run"])
+parser.parse_args(["initialize", "proxy", "proxy01", "--type", "forwarder", "--render-only"])
+parser.parse_args(["initialize", "proxy", "proxy01", "--type", "forwarder", "--dry-run"])
+parser.parse_args(["initialize", "authoritative", "auth01", "--render-only"])
+parser.parse_args(["initialize", "authoritative", "auth01", "--dry-run"])
 parser.parse_args(["zone", "list"])
 parser.parse_args(["zone", "get", "--name", "example.com"])
 parser.parse_args(["zone", "create", "--name", "example.com", "--type", "master", "--views", "external,internal"])
@@ -27,12 +27,7 @@ parser.parse_args(["zone", "disable", "--name", "example.com"])
 parser.parse_args(["zone", "enable", "--name", "example.com"])
 parser.parse_args(["zone", "delete", "--name", "example.com"])
 
-try:
-    parser.parse_args(["configure", "proxy", "proxy01"])
-except SystemExit as exc:
-    assert exc.code != 0
-else:
-    raise SystemExit("proxy type must be mandatory")
+parser.parse_args(["initialize", "proxy", "proxy01"])
 
 assert ProxyType.choices() == ["forwarder", "hybrid"]
 PY

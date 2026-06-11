@@ -12,7 +12,7 @@ La v9.0 finalise la bascule du point d'entrée produit vers Python.
 ```text
 validate
 render
-configure
+initialize
 zone
 ```
 
@@ -33,7 +33,7 @@ Ils ne sont plus appelés par le package Python `dnsforge`.
 ```bash
 ./bin/dnsforge validate proxy proxy01 --type forwarder
 ./bin/dnsforge render proxy proxy01 --type hybrid
-./bin/dnsforge configure proxy proxy01 --type forwarder --dry-run
+./bin/dnsforge initialize proxy proxy01 --type forwarder --dry-run
 ./bin/dnsforge zone list
 ```
 

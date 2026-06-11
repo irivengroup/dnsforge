@@ -99,9 +99,9 @@ run_test "tests/python/check-dnsforge-render.sh"
 
 run_test "tests/python/check-dnsforge-zone-manager.sh"
 
-run_test "tests/python/check-dnsforge-configure-plan.sh"
+run_test "tests/python/check-dnsforge-initialize-plan.sh"
 
-run_test "tests/python/check-dnsforge-configure-native.sh"
+run_test "tests/python/check-dnsforge-initialize-native.sh"
 
 run_test "tests/python/check-dnsforge-product-python.sh"
 

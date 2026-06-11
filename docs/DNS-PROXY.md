@@ -23,7 +23,7 @@ Un proxy peut porter :
 ## Arborescence des zones proxy
 
 ```text
-src/dnsforge/infrastructure/build/dns-proxy/zones/
+native BIND view directories managed by DNSForge
 ├── external/
 │   ├── master/
 │   ├── secondary/
@@ -39,8 +39,8 @@ src/dnsforge/infrastructure/build/dns-proxy/zones/
 ## Ajouter une zone master externe locale
 
 ```bash
-vi src/dnsforge/infrastructure/build/dns-proxy/zones/external/master/example-edge-public.conf
-vi src/dnsforge/infrastructure/build/dns-proxy/zones/external/master/example-edge-public.invalid.zone
+vi native BIND view directories managed by DNSForgeexternal/master/example-edge-public.conf
+vi native BIND view directories managed by DNSForgeexternal/master/example-edge-public.invalid.zone
 
 ./src/dnsProxyDeploy.sh <node> --render-only
 
@@ -55,8 +55,8 @@ dig @<PROXY_FRONT_IP> example-edge-public.invalid SOA
 ## Ajouter une zone master interne locale
 
 ```bash
-vi src/dnsforge/infrastructure/build/dns-proxy/zones/internal/master/example-edge-internal.conf
-vi src/dnsforge/infrastructure/build/dns-proxy/zones/internal/master/example-edge-internal.invalid.zone
+vi native BIND view directories managed by DNSForgeinternal/master/example-edge-internal.conf
+vi native BIND view directories managed by DNSForgeinternal/master/example-edge-internal.invalid.zone
 
 ./src/dnsProxyDeploy.sh <node> --render-only
 sudo ./src/dnsProxyDeploy.sh <node>

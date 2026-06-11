@@ -75,9 +75,9 @@ Copyright
 
 - [Gestion des Zones Python native](./PYTHON-ZONE-MANAGER.md)
 
-- [Plan de configuration Python](./PYTHON-CONFIGURE-PLAN.md)
+- [Plan d’initialisation Python](./PYTHON-INITIALIZE-PLAN.md)
 
-- [Configuration Python native](./PYTHON-CONFIGURE-NATIVE.md)
+- [Initialisation Python native](./PYTHON-INITIALIZE-NATIVE.md)
 
 - [Produit Python v9.0](./PYTHON-PRODUCT-V9.md)
 

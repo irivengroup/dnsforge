@@ -1,22 +1,15 @@
 #!/usr/bin/env bash
-set -o errexit
-set -o nounset
-set -o pipefail
-
+set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-
-test ! -d "${PROJECT_ROOT}/src/build"
-test -d "${PROJECT_ROOT}/src/dnsforge/infrastructure/build"
-test -f "${PROJECT_ROOT}/src/dnsforge/infrastructure/build/catalog/zones.yml"
-
-PYTHONPATH="${PROJECT_ROOT}/src" python3 - <<'PY'
-from pathlib import Path
+export PYTHONPATH="${PROJECT_ROOT}/src"
+cd "${PROJECT_ROOT}"
+test ! -d "${PROJECT_ROOT}/src/dnsforge/infrastructure/build"
+test -d "${PROJECT_ROOT}/src/dnsforge/infrastructure/templates"
+python3 - <<'PY'
 from dnsforge.infrastructure.filesystem.paths import ProjectPaths
-
-paths = ProjectPaths(Path.cwd())
-assert str(paths.build_root).endswith("src/dnsforge/infrastructure/build")
-assert str(paths.catalog_file).endswith("src/dnsforge/infrastructure/build/catalog/zones.yml")
-assert paths.catalog_file.exists()
+from dnsforge.infrastructure.templates import TemplateRegistry
+paths = ProjectPaths()
+assert str(paths.catalog_file).endswith('/etc/dnsforge/zones.yml'), paths.catalog_file
+assert 'named.conf' in TemplateRegistry.keys()
+assert 'views' in TemplateRegistry.keys()
 PY
-
-echo "dnsforge build context validation OK"

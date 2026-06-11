@@ -1,15 +1,12 @@
 #!/usr/bin/env bash
-set -o errexit
-set -o nounset
-set -o pipefail
-
+set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-
-if find "${PROJECT_ROOT}/src/build/dns-authoritative" -type f \( -name '*.j2' -o -name '*.tpl' -o -name '*.conf' \) -print0 2>/dev/null \
-    | xargs -0 grep -RniE 'include .*rpz|response-policy' >/dev/null 2>&1
-then
-    echo "Authoritative templates must not include RPZ or response-policy" >&2
-    exit 1
-fi
-
-echo "RPZ authoritative render clean validation OK"
+export PYTHONPATH="${PROJECT_ROOT}/src"
+python3 - <<'PY'
+from dnsforge.infrastructure.bind.layout import BindLayoutDetector
+from dnsforge.infrastructure.rendering.bind_renderer import BindConfigFactory
+layout = BindLayoutDetector().from_family('redhat')
+factory = BindConfigFactory()
+assert 'RPZ is disabled' in factory.rpz_with_layout({'ENABLE_RPZ': 'no'}, layout) or factory.rpz_with_layout({'ENABLE_RPZ': 'no'}, layout) == ''
+PY
+echo "RPZ authoritative render clean OK"

@@ -12,7 +12,7 @@ La v5.6 renforce DNSSEC pour les zones publiques issues du catalogue.
 ## Politique enterprise
 
 ```text
-src/dnsforge/infrastructure/build/common/dnssec/dnssec-policy-enterprise.conf.j2
+TemplateRegistry + BindConfigFactory DNSSEC generation
 ```
 
 Elle inclut :

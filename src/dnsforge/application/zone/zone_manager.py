@@ -16,7 +16,7 @@ class ZoneManager:
         self.parser = DnsRecordExpressionParser()
         self.history = ZoneHistoryService(
             self.catalog,
-            FilesystemHistoryRepository(paths.project_root / "var/lib/dnsforge/history"),
+            FilesystemHistoryRepository(),
         )
 
     def list(self):

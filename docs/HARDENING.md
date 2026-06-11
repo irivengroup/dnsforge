@@ -30,7 +30,7 @@ Le projet génère un exemple non appliqué automatiquement :
 Il provient de :
 
 ```text
-src/dnsforge/infrastructure/build/common/systemd/named.service.d-hardening.conf.tpl
+BindLayout.systemd_override_dir + Python hardening generation
 ```
 
 ## Pourquoi non appliqué automatiquement

@@ -37,8 +37,8 @@ Puis :
 ```bash
 dnsforge validate proxy proxy01 --type forwarder
 dnsforge render proxy proxy01 --type forwarder
-dnsforge configure proxy proxy01 --type forwarder --dry-run
-dnsforge configure proxy proxy01 --type forwarder
+dnsforge initialize proxy proxy01 --type forwarder --dry-run
+dnsforge initialize proxy proxy01 --type forwarder
 ```
 
 ---

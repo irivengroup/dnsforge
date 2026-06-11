@@ -17,9 +17,6 @@ class BackupService:
         with tarfile.open(archive, "w:gz") as tar:
             if setup_file.exists():
                 tar.add(setup_file, arcname="etc/dnsforge/setup.conf")
-            catalog = project_root / "src/dnsforge/infrastructure/build/catalog/zones.yml"
-            if catalog.exists():
-                tar.add(catalog, arcname="catalog/zones.yml")
             render = project_root / "src/render"
             if render.exists():
                 tar.add(render, arcname="render")

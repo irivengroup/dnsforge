@@ -12,9 +12,9 @@ La v4.8 ajoute un socle DNSSEC optionnel orienté entreprise.
 Le projet fournit :
 
 ```text
-src/dnsforge/infrastructure/build/common/dnssec/dnssec-policy.conf.j2
-src/dnsforge/infrastructure/build/common/dnssec/dnssec-options.conf.j2
-src/dnsforge/infrastructure/build/dns-authoritative/templates/master-zone-dnssec.conf.tpl
+TemplateRegistry + BindConfigFactory DNSSEC generation
+TemplateRegistry + BindConfigFactory DNSSEC generation
+BindConfigFactory.master_template()
 ```
 
 DNSSEC est prévu principalement pour les zones master portées par les nœuds authoritative. Les proxys continuent d'assurer la validation récursive via :
@@ -51,7 +51,7 @@ ls -ld src/render/dns-authoritative/<node>/var/named/dnssec
 Utiliser le template :
 
 ```text
-src/dnsforge/infrastructure/build/dns-authoritative/templates/master-zone-dnssec.conf.tpl
+BindConfigFactory.master_template()
 ```
 
 La déclaration de zone doit contenir :

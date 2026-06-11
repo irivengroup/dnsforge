@@ -95,7 +95,7 @@ sudo ./src/dnsProxyDeploy.sh srv02
 Déploiement sans installation de paquets :
 
 ```bash
-sudo ./src/dnsProxyDeploy.sh srv02 --skip-install
+sudo ./src/dnsProxyDeploy.sh srv02 
 ```
 
 ## 3. Déploiement DNS Authoritative
@@ -127,7 +127,7 @@ sudo ./src/dnsAuthoritativeDeploy.sh svr01a
 Sans installation de paquets :
 
 ```bash
-sudo ./src/dnsAuthoritativeDeploy.sh svr01a --skip-install
+sudo ./src/dnsAuthoritativeDeploy.sh svr01a 
 ```
 
 ## 4. Vérifications post-déploiement

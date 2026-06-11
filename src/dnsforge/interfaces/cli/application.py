@@ -7,8 +7,8 @@ from pathlib import Path
 
 from dnsforge.application.audit.product_auditor import ProductAuditor
 from dnsforge.application.cluster.cluster_service import ClusterService
-from dnsforge.application.configure.configure_authoritative import ConfigureAuthoritative
-from dnsforge.application.configure.configure_proxy import ConfigureProxy
+from dnsforge.application.initialize.initialize_authoritative import InitializeAuthoritative
+from dnsforge.application.initialize.initialize_proxy import InitializeProxy
 from dnsforge.application.doctor.doctor_service import DoctorService
 from dnsforge.application.health.health_service import HealthService
 from dnsforge.application.migration.migration_service import MigrationService
@@ -16,14 +16,21 @@ from dnsforge.application.profile.profile_auditor import ProfileAuditor
 from dnsforge.application.render.render_authoritative import RenderAuthoritative
 from dnsforge.application.render.render_proxy import RenderProxy
 from dnsforge.application.security.security_service import SecurityService
+from dnsforge.application.security.rpz.rpz_service import RpzService
+from dnsforge.application.security.dnssec.dnssec_service import DnssecService
+from dnsforge.application.security.view.view_service import ViewService
+from dnsforge.application.security.acl.acl_service import AclService
+from dnsforge.application.security.security_history_service import SecurityHistoryService
 from dnsforge.application.status.status_service import StatusService
 from dnsforge.application.validate.validate_authoritative import ValidateAuthoritative
 from dnsforge.application.validate.validate_proxy import ValidateProxy
 from dnsforge.application.zone.zone_manager import ZoneManager
 from dnsforge.domain.migration.model import MigrationTarget
 from dnsforge.domain.model.proxy_type import ProxyType
+from dnsforge.domain.model.roles import DnsRole
 from dnsforge.infrastructure.backup.backup_service import BackupService
 from dnsforge.infrastructure.filesystem.paths import ProjectPaths
+from dnsforge.infrastructure.settings.env_loader import EnvSettingsLoader
 from dnsforge.shared.errors import DnsForgeError
 
 
@@ -35,7 +42,7 @@ class DnsForgeArgumentParserFactory:
 
         self._add_validate(sub)
         self._add_render(sub)
-        self._add_configure(sub)
+        self._add_initialize(sub)
         self._add_zone(sub)
         self._add_audit(sub)
         self._add_profile(sub)
@@ -47,6 +54,10 @@ class DnsForgeArgumentParserFactory:
         self._add_restore(sub)
         self._add_migrate(sub)
         self._add_cluster(sub)
+        self._add_acl(sub)
+        self._add_view(sub)
+        self._add_dnssec(sub)
+        self._add_rpz(sub)
 
         return parser
 
@@ -68,22 +79,22 @@ class DnsForgeArgumentParserFactory:
         a = inner.add_parser("authoritative")
         a.add_argument("node", nargs="?")
 
-    def _add_configure(self, sub) -> None:
-        root = sub.add_parser("configure", help="Configure server")
+    def _add_initialize(self, sub) -> None:
+        root = sub.add_parser("initialize", help="Initialize local DNSForge node")
         inner = root.add_subparsers(dest="role", required=False)
         p = inner.add_parser("proxy")
         p.add_argument("node", nargs="?")
         p.add_argument("--type", choices=ProxyType.choices(), dest="proxy_type")
         p.add_argument("--render-only", action="store_true")
-        p.add_argument("--skip-install", action="store_true")
+        p.add_argument("--apply", action="store_true", help="Apply a previously rendered DNSForge BIND configuration")
         p.add_argument("--dry-run", action="store_true")
         a = inner.add_parser("authoritative")
         a.add_argument("node", nargs="?")
         a.add_argument("--render-only", action="store_true")
-        a.add_argument("--skip-install", action="store_true")
+        a.add_argument("--apply", action="store_true", help="Apply a previously rendered DNSForge BIND configuration")
         a.add_argument("--dry-run", action="store_true")
         root.add_argument("--render-only", action="store_true")
-        root.add_argument("--skip-install", action="store_true")
+        root.add_argument("--apply", action="store_true", help="Apply a previously rendered DNSForge BIND configuration")
         root.add_argument("--dry-run", action="store_true")
 
     def _add_zone(self, sub) -> None:
@@ -136,6 +147,10 @@ class DnsForgeArgumentParserFactory:
         inner = security.add_subparsers(dest="action", required=True)
         inner.add_parser("show")
         inner.add_parser("audit")
+        inner.add_parser("history")
+        rollback = inner.add_parser("rollback")
+        rollback.add_argument("--version")
+
 
     def _add_status(self, sub) -> None:
         p = sub.add_parser("status", help="Show local DNSForge status")
@@ -178,16 +193,52 @@ class DnsForgeArgumentParserFactory:
         init = inner.add_parser("init")
         init.add_argument("--setup-file", default=None)
         init.add_argument("--dry-run", action="store_true")
-
         status = inner.add_parser("status")
         status.add_argument("--setup-file", default=None)
-
         validate = inner.add_parser("validate")
         validate.add_argument("--setup-file", default=None)
-
+        validate_security = inner.add_parser("validate-security")
+        validate_security.add_argument("--setup-file", default=None)
         sync = inner.add_parser("sync")
         sync.add_argument("--setup-file", default=None)
         sync.add_argument("--dry-run", action="store_true")
+
+    def _add_acl(self, sub) -> None:
+        acl = sub.add_parser("acl", help="Manage DNS ACLs")
+        acl.add_argument("--state-file", default="/etc/dnsforge/acls.json")
+        inner = acl.add_subparsers(dest="action", required=True)
+        inner.add_parser("list")
+        show = inner.add_parser("show"); show.add_argument("name")
+        create = inner.add_parser("create"); create.add_argument("name")
+        delete = inner.add_parser("delete"); delete.add_argument("name")
+        add = inner.add_parser("add-network"); add.add_argument("name"); add.add_argument("network")
+        rm = inner.add_parser("remove-network"); rm.add_argument("name"); rm.add_argument("network")
+
+    def _add_view(self, sub) -> None:
+        view = sub.add_parser("view", help="Manage DNS views")
+        view.add_argument("--state-file", default="/etc/dnsforge/views.json")
+        inner = view.add_subparsers(dest="action", required=True)
+        inner.add_parser("list")
+        create = inner.add_parser("create"); create.add_argument("name")
+        delete = inner.add_parser("delete"); delete.add_argument("name")
+        attach = inner.add_parser("attach-zone"); attach.add_argument("name"); attach.add_argument("zone")
+
+    def _add_dnssec(self, sub) -> None:
+        dnssec = sub.add_parser("dnssec", help="Manage DNSSEC controls")
+        dnssec.add_argument("--setup-file", default="/etc/dnsforge/setup.conf")
+        inner = dnssec.add_subparsers(dest="action", required=True)
+        for action in ("status", "validate", "rotate-ksk", "rotate-zsk", "check-expiry"):
+            inner.add_parser(action)
+
+    def _add_rpz(self, sub) -> None:
+        rpz = sub.add_parser("rpz", help="Manage RPZ DNS firewall")
+        rpz.add_argument("--setup-file", default="/etc/dnsforge/setup.conf")
+        inner = rpz.add_subparsers(dest="action", required=True)
+        for action in ("status", "enable", "update"):
+            inner.add_parser(action)
+        test = inner.add_parser("test")
+        test.add_argument("domain")
+
 
 
 class DnsForgeCommandDispatcher:
@@ -210,21 +261,42 @@ class DnsForgeCommandDispatcher:
                 RenderAuthoritative(paths).execute(args.node or "local")
             return 0
 
-        if args.command == "configure":
-            if args.role == "proxy":
-                ConfigureProxy(paths).execute(
-                    args.node or "local",
-                    ProxyType.from_value(args.proxy_type or "forwarder"),
+        if args.command == "initialize":
+            if getattr(args, "render_only", False) and getattr(args, "apply", False):
+                print("ERROR: --render-only and --apply are mutually exclusive", file=sys.stderr)
+                return 2
+
+            role = args.role
+            node = args.node or "local"
+            proxy_type = args.proxy_type
+
+            if role is None:
+                settings = EnvSettingsLoader().load(paths.setup_file)
+                role_value = settings.get("ROLE", "").strip()
+                node = settings.get("NODE_NAME", node) or node
+                if role_value == DnsRole.PROXY.value:
+                    role = "proxy"
+                    proxy_type = settings.get("PROXY_TYPE", proxy_type or "forwarder")
+                elif role_value == DnsRole.AUTHORITATIVE.value:
+                    role = "authoritative"
+                else:
+                    print(f"ERROR: unsupported ROLE in {paths.setup_file}: {role_value or '<missing>'}", file=sys.stderr)
+                    return 2
+
+            if role == "proxy":
+                InitializeProxy(paths).execute(
+                    node,
+                    ProxyType.from_value(proxy_type or "forwarder"),
                     render_only=args.render_only,
-                    skip_install=args.skip_install,
                     dry_run=args.dry_run,
+                    apply_only=args.apply,
                 )
-            elif args.role == "authoritative":
-                ConfigureAuthoritative(paths).execute(
-                    args.node or "local",
+            elif role == "authoritative":
+                InitializeAuthoritative(paths).execute(
+                    node,
                     render_only=args.render_only,
-                    skip_install=args.skip_install,
                     dry_run=args.dry_run,
+                    apply_only=args.apply,
                 )
             return 0
 
@@ -319,6 +391,12 @@ class DnsForgeCommandDispatcher:
                 ok, output = service.audit(setup_file)
                 print(output)
                 return 0 if ok else 1
+            if args.action == "history":
+                print(SecurityHistoryService().history())
+                return 0
+            if args.action == "rollback":
+                print(SecurityHistoryService().rollback(args.version))
+                return 0
             return 2
 
         if args.command == "status":
@@ -368,9 +446,47 @@ class DnsForgeCommandDispatcher:
             if args.action == "validate":
                 print(service.validate(setup_file))
                 return 0
+            if args.action == "validate-security":
+                print(service.validate_security(setup_file))
+                return 0
             if args.action == "sync":
                 print(service.sync(setup_file, dry_run=args.dry_run))
                 return 0
+            return 2
+
+        if args.command == "acl":
+            service = AclService(Path(args.state_file))
+            if args.action == "list": print(service.list()); return 0
+            if args.action == "show": print(service.show(args.name)); return 0
+            if args.action == "create": print(service.create(args.name)); return 0
+            if args.action == "delete": print(service.delete(args.name)); return 0
+            if args.action == "add-network": print(service.add_network(args.name, args.network)); return 0
+            if args.action == "remove-network": print(service.remove_network(args.name, args.network)); return 0
+            return 2
+
+        if args.command == "view":
+            service = ViewService(Path(args.state_file))
+            if args.action == "list": print(service.list()); return 0
+            if args.action == "create": print(service.create(args.name)); return 0
+            if args.action == "delete": print(service.delete(args.name)); return 0
+            if args.action == "attach-zone": print(service.attach_zone(args.name, args.zone)); return 0
+            return 2
+
+        if args.command == "dnssec":
+            service = DnssecService(); setup_file = Path(args.setup_file)
+            if args.action == "status": print(service.status(setup_file)); return 0
+            if args.action == "validate": print(service.validate(setup_file)); return 0
+            if args.action == "rotate-ksk": print(service.rotate_ksk()); return 0
+            if args.action == "rotate-zsk": print(service.rotate_zsk()); return 0
+            if args.action == "check-expiry": print(service.check_expiry()); return 0
+            return 2
+
+        if args.command == "rpz":
+            service = RpzService(); setup_file = Path(args.setup_file)
+            if args.action == "status": print(service.status(setup_file)); return 0
+            if args.action == "enable": print(service.enable(setup_file)); return 0
+            if args.action == "update": print(service.update()); return 0
+            if args.action == "test": print(service.test(args.domain)); return 0
             return 2
 
         return 2

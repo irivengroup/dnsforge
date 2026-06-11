@@ -9,7 +9,7 @@ class SettingsError(DnsForgeError):
     pass
 
 
-class ConfigureError(DnsForgeError):
+class InitializeError(DnsForgeError):
     pass
 
 

@@ -36,7 +36,7 @@ view "partner" {
 ## Arborescence
 
 ```text
-src/dnsforge/infrastructure/build/dns-proxy/zones/partner/
+native BIND view directories managed by DNSForgepartner/
 ├── master/
 ├── secondary/
 └── forward/

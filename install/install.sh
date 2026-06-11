@@ -9,6 +9,37 @@ BIN_LINK="/usr/local/bin/dnsforge"
 PROFILE=""
 FORCE="no"
 
+detect_os_family() {
+  if [[ ! -f /etc/os-release ]]; then echo "unknown"; return; fi
+  . /etc/os-release
+  local values="${ID:-} ${ID_LIKE:-}"
+  case "${values,,}" in
+    *rhel*|*fedora*|*rocky*|*almalinux*|*centos*) echo "redhat" ;;
+    *debian*|*ubuntu*) echo "debian" ;;
+    *suse*|*sles*|*opensuse*) echo "suse" ;;
+    *) echo "unknown" ;;
+  esac
+}
+bind_is_installed() {
+  command -v named >/dev/null 2>&1 &&
+  command -v named-checkconf >/dev/null 2>&1 &&
+  command -v named-checkzone >/dev/null 2>&1 &&
+  command -v rndc >/dev/null 2>&1
+}
+install_bind_if_missing() {
+  if bind_is_installed; then echo "BIND already installed."; return; fi
+  local family; family="$(detect_os_family)"
+  echo "BIND not found. Installing BIND for OS family: ${family}"
+  case "${family}" in
+    redhat) dnf install -y bind bind-utils ;;
+    debian) apt-get update; apt-get install -y bind9 bind9-utils dnsutils ;;
+    suse) zypper --non-interactive install bind bind-utils ;;
+    *) echo "ERROR: unsupported Linux distribution for automatic BIND installation." >&2; exit 1 ;;
+  esac
+  bind_is_installed || { echo "ERROR: BIND installation validation failed." >&2; exit 1; }
+}
+
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -56,6 +87,8 @@ if [[ ! -f "${TEMPLATE}" ]]; then
   echo "ERROR: template not found: ${TEMPLATE}" >&2
   exit 1
 fi
+
+install_bind_if_missing
 
 mkdir -p "${INSTALL_ROOT}" "${CONFIG_ROOT}/dns-proxy" "${CONFIG_ROOT}/dns-authoritative"
 
@@ -105,5 +138,5 @@ Then create the node settings file:
 
 Then run:
   dnsforge profile audit
-  dnsforge validate/render/configure.
+  dnsforge validate/render/initialize.
 EOF

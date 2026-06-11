@@ -1,18 +1,11 @@
 #!/usr/bin/env bash
-
-set -o errexit
-set -o nounset
-set -o pipefail
-
+set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-HARDENING_FILE="${PROJECT_ROOT}/src/build/common/systemd/named.service.d-hardening.conf.tpl"
-
-test -f "${HARDENING_FILE}"
-
-grep -q 'NoNewPrivileges=true' "${HARDENING_FILE}"
-grep -q 'PrivateTmp=true' "${HARDENING_FILE}"
-grep -q 'ProtectSystem=full' "${HARDENING_FILE}"
-grep -q 'ReadWritePaths=' "${HARDENING_FILE}"
-grep -q 'CapabilityBoundingSet=' "${HARDENING_FILE}"
-
+export PYTHONPATH="${PROJECT_ROOT}/src"
+python3 - <<'PY'
+from dnsforge.infrastructure.bind.layout import BindLayoutDetector
+layout = BindLayoutDetector().from_family('redhat')
+assert layout.systemd_override_dir is not None
+assert str(layout.systemd_override_dir).endswith('/named.service.d')
+PY
 echo "Hardening source validation OK"

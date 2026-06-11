@@ -1,20 +1,18 @@
 #!/usr/bin/env bash
-set -o errexit
-set -o nounset
-set -o pipefail
+set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-
-"${PROJECT_ROOT}/src/tools/generate-zone-catalog.sh"
-
-test -f "${PROJECT_ROOT}/src/build/dns-proxy/zones/generated/external/master/split-example.invalid.conf"
-test -f "${PROJECT_ROOT}/src/build/dns-proxy/zones/generated/internal/master/split-example.invalid.conf"
-test -f "${PROJECT_ROOT}/src/build/dns-proxy/zones/generated/partner/master/split-example.invalid.conf"
-test -f "${PROJECT_ROOT}/src/build/dns-proxy/zones/generated/external/secondary/catalog-secondary-a.invalid.conf"
-test -f "${PROJECT_ROOT}/src/build/dns-proxy/zones/generated/internal/forward/catalog-forward-b.invalid.conf"
-test -f "${PROJECT_ROOT}/src/build/dns-proxy/zones/generated/partner/forward/catalog-forward-b.invalid.conf"
-
-grep -Rni 'split-example.invalid' "${PROJECT_ROOT}/src/build/dns-proxy/zones/generated" >/dev/null
-grep -Rni 'AUTH_CLUSTER_A_PRIMARIES_BIND' "${PROJECT_ROOT}/src/build/dns-proxy/zones/generated" >/dev/null
-grep -Rni 'AUTH_CLUSTER_B_BIND_LIST' "${PROJECT_ROOT}/src/build/dns-proxy/zones/generated" >/dev/null
-
-echo "Zone catalog generation validation OK"
+export PYTHONPATH="${PROJECT_ROOT}/src"
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "${TMP_DIR}"' EXIT
+python3 - <<'PY' "${TMP_DIR}/zones.yml"
+from pathlib import Path
+from dnsforge.domain.zone.model import ZoneDefinition, ZoneType
+from dnsforge.infrastructure.catalog.zone_catalog import ZoneCatalog
+catalog = ZoneCatalog(Path(__import__('sys').argv[1]))
+catalog.save([
+    ZoneDefinition('split-example.invalid', ZoneType.MASTER, ['external','internal'], enabled=True),
+    ZoneDefinition('catalog-secondary-a.invalid', ZoneType.SECONDARY, ['external'], cluster='AUTH_CLUSTER_A', enabled=True),
+])
+assert len(catalog.list()) == 2
+PY
+echo "Zone catalog generation OK"

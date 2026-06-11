@@ -6,7 +6,7 @@ set -o pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 if grep -RniE '\b(srv[0-9]+|svr[0-9]+)[a-z]?\b' \
-    "${PROJECT_ROOT}/src/build" \
+    "${PROJECT_ROOT}/src/dnsforge/infrastructure/templates" \
 
     "${PROJECT_ROOT}/src/"*.sh 2>/dev/null
 then

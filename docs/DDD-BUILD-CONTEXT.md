@@ -1,45 +1,46 @@
-ZoneForge DNSaaS
-Plateforme de Déploiement et de Configuration DNS as a Service
+DNSForge
+Plateforme Enterprise de déploiement et de configuration BIND
 
-# Contexte Build dans le coeur DNSForge
+# Contexte Templates dans le coeur DNSForge
 
 ## Changement
 
 Le dossier historique :
 
 ```text
-src/build/
+src/dnsforge/infrastructure/build/
 ```
 
-est remplacé par :
+est supprimé et remplacé par :
 
 ```text
-src/dnsforge/infrastructure/build/
+src/dnsforge/infrastructure/templates/
 ```
 
 ## Emplacement canonique du catalogue
 
 ```text
-src/dnsforge/infrastructure/build/catalog/zones.yml
+/etc/dnsforge/zones.yml
 ```
 
 ## Justification DDD
 
-Les artefacts `build`, le catalogue et les fichiers générés appartiennent au contexte infrastructure.
+La génération BIND appartient au contexte infrastructure. Le service `TemplateService` adapte dynamiquement les chemins contenus dans les rendus selon le layout natif détecté : Red Hat/Rocky/Alma, Debian/Ubuntu ou SUSE/SLES. Aucun corpus statique `.j2` ou `.tpl` inutilisé ne doit être conservé sous `infrastructure/templates`; les artefacts générés sont déclarés dans `TemplateRegistry`.
 
 ```text
 src/dnsforge/
 ├── domain/
 ├── application/
 ├── infrastructure/
-│   └── build/
+│   ├── bind/
+│   ├── rendering/
+│   └── templates/
 └── interfaces/
 ```
 
-
+Le dossier `build/` ne doit plus réapparaître dans `src/dnsforge/infrastructure`.
 
 ---
 
 Copyright
 © IRIVEN Group — All Rights Reserved
-

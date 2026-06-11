@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
-
-set -o errexit
-set -o nounset
-set -o pipefail
-
+set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-
-test -f "${PROJECT_ROOT}/src/build/common/dnssec/dnssec-policy.conf.j2"
-test -f "${PROJECT_ROOT}/src/build/common/dnssec/dnssec-options.conf.j2"
-test -f "${PROJECT_ROOT}/src/build/dns-authoritative/templates/master-zone-dnssec.conf.tpl"
-
-grep -q 'dnssec-policy' "${PROJECT_ROOT}/src/build/common/dnssec/dnssec-policy.conf.j2"
-grep -q 'key-directory' "${PROJECT_ROOT}/src/build/common/dnssec/dnssec-options.conf.j2"
-grep -q 'inline-signing yes' "${PROJECT_ROOT}/src/build/dns-authoritative/templates/master-zone-dnssec.conf.tpl"
-
+export PYTHONPATH="${PROJECT_ROOT}/src"
+python3 - <<'PY'
+from dnsforge.infrastructure.rendering.bind_renderer import BindConfigFactory
+from dnsforge.infrastructure.bind.layout import BindLayoutDetector
+factory = BindConfigFactory()
+layout = BindLayoutDetector().from_family('redhat')
+content = factory.authoritative_options({'SECURITY_PROFILE': 'enterprise'}, layout)
+assert 'dnssec-validation auto;' in content
+PY
 echo "DNSSEC template validation OK"

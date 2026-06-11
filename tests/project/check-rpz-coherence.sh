@@ -1,26 +1,16 @@
 #!/usr/bin/env bash
-
-set -o errexit
-set -o nounset
-set -o pipefail
-
+set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-
-template="${PROJECT_ROOT}/src/build/dns-proxy/templates/50-rpz.conf.j2"
-views_template="${PROJECT_ROOT}/src/build/dns-proxy/templates/60-views.conf.j2"
-
-
-test -f "${template}"
-
-grep -q 'response-policy' "${template}"
-grep -q '/etc/named/rpz/50-rpz.conf' "${views_template}"
-grep -q '50-rpz.conf.j2' "${render_lib}"
-grep -q '/etc/named/rpz/50-rpz.conf' "${render_lib}"
-
-if grep -q '/etc/named/conf.d/50-rpz.conf' "${PROJECT_ROOT}/src/build/dns-proxy/templates/named.conf.j2"
-then
-    echo "RPZ must not be included globally from named.conf; it belongs to the recursive view." >&2
-    exit 1
-fi
-
-echo "RPZ coherence validation OK"
+export PYTHONPATH="${PROJECT_ROOT}/src"
+python3 - <<'PY'
+from dnsforge.infrastructure.bind.layout import BindLayoutDetector
+from dnsforge.infrastructure.rendering.bind_renderer import BindConfigFactory
+layout = BindLayoutDetector().from_family('redhat')
+factory = BindConfigFactory()
+rpz = factory.rpz_with_layout({'ENABLE_RPZ': 'yes', 'RPZ_ZONE_NAME': 'rpz.local'}, layout)
+views = factory.views(layout)
+assert '/var/named/rpz/rpz.local.zone' in rpz
+assert 'zones.index.conf' in views
+assert '/etc/named/conf.d/50-rpz.conf' not in factory.named_conf(layout, False, True)
+PY
+echo "RPZ coherence OK"

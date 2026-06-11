@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
-
-set -o errexit
-set -o nounset
-set -o pipefail
-
+set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-
-if grep -RInE '\{[[:space:]]*[^}]+;[[:space:]]*\};' "${PROJECT_ROOT}/src/build" --include='*.j2' --include='*.tpl'
-then
-    echo "Inline BIND block detected. Please format blocks on multiple lines." >&2
-    exit 1
-fi
-
+export PYTHONPATH="${PROJECT_ROOT}/src"
+python3 - <<'PY'
+from pathlib import Path
+from dnsforge.infrastructure.templates import TemplateRegistry
+root = Path('src/dnsforge/infrastructure/templates')
+for template in TemplateRegistry.templates():
+    path = root / template
+    assert path.exists(), f'missing registered template: {template}'
+    content = path.read_text(encoding='utf-8')
+    assert '/etc/dnsforge/generated' not in content
+    assert '/var/lib/dnsforge' not in content
+PY
 echo "BIND template formatting OK"

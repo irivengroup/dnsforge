@@ -9,7 +9,7 @@ from dnsforge.shared.errors import ZoneError
 
 
 class FilesystemHistoryRepository:
-    def __init__(self, root: Path = Path("/var/lib/dnsforge/history")) -> None:
+    def __init__(self, root: Path = Path("/var/backups/dnsforge/history")) -> None:
         self.root = root
 
     def zone_dir(self, zone: str) -> Path:

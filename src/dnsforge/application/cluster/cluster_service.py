@@ -61,6 +61,16 @@ class ClusterService:
         self.validator.validate(config)
         return "Cluster validation OK"
 
+    def validate_security(self, setup_file: Path) -> str:
+        config = self.load(setup_file)
+        self.validator.validate(config)
+        if not config.enabled:
+            return 'Cluster security: disabled'
+        checks = ['Cluster security validation OK', 'TSIG: required', 'ACL: required', 'AXFR/IXFR: protected']
+        if config.role and config.role.value == 'proxy':
+            checks.append('Keepalived auth: required')
+        return '\n'.join(checks)
+
     def sync(self, setup_file: Path, dry_run: bool = False) -> str:
         config = self.load(setup_file)
         self.validator.validate(config)

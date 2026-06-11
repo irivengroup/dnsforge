@@ -1,0 +1,18 @@
+// DNSForge managed global options.
+// Security controls include minimal-responses and rate-limit when enabled by the model.
+options {
+    directory "{{ DATA_DIR }}";
+    dump-file "{{ DUMP_FILE }}";
+    statistics-file "{{ STATISTICS_FILE }}";
+    memstatistics-file "{{ MEMSTATISTICS_FILE }}";
+    recursion {{ RECURSION }};
+    allow-recursion { {{ ALLOW_RECURSION }} };
+    allow-query-cache { {{ ALLOW_QUERY_CACHE }} };
+    {{ AUTHORITATIVE_POLICY }}
+    dnssec-validation auto;
+    listen-on port 53 { any; };
+    listen-on-v6 { none; };
+{{ SECURITY_OPTIONS }}
+};
+{{ RRL_OPTIONS }}
+{{ FORWARDERS_BLOCK }}

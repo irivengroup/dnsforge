@@ -32,15 +32,15 @@ Validation proxy :
 Configuration proxy :
 
 ```bash
-./bin/dnsforge configure proxy <node> --type forwarder
-./bin/dnsforge configure proxy <node> --type hybrid --render-only
+./bin/dnsforge initialize proxy <node> --type forwarder
+./bin/dnsforge initialize proxy <node> --type hybrid --render-only
 ```
 
 Authoritative :
 
 ```bash
 ./bin/dnsforge validate authoritative <node>
-./bin/dnsforge configure authoritative <node> --render-only
+./bin/dnsforge initialize authoritative <node> --render-only
 ```
 
 Zones :

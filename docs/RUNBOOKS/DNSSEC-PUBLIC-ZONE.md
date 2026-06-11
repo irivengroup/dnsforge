@@ -14,7 +14,7 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 ## 2. Contrôler la déclaration
 
 ```bash
-grep -Rni 'dnssec-policy\|inline-signing' src/dnsforge/infrastructure/build/dns-proxy/zones/generated/external/master
+grep -Rni 'dnssec-policy\|inline-signing' native BIND view directories managed by DNSForgegenerated/external/master
 ```
 
 ## 3. Déployer

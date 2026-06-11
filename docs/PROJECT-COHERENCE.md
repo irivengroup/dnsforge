@@ -9,7 +9,7 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 
 Ce document décrit les contrôles ajoutés pour éviter les écarts entre :
 
-- les templates présents dans `src/dnsforge/infrastructure/build/` ;
+- les templates présents dans `src/dnsforge/infrastructure/templates/` ;
 
 - les fichiers effectivement inclus dans BIND ;
 - la documentation d'exploitation.
@@ -46,7 +46,7 @@ Les fichiers `.tpl` sont considérés comme des modèles réutilisables pour les
 Le contrôle vérifie que :
 
 ```text
-src/dnsforge/infrastructure/build/dns-proxy/templates/50-rpz.conf.j2
+BindConfigFactory.rpz_with_layout()
 ```
 
 est bien rendu vers :
