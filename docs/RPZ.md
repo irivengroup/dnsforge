@@ -17,7 +17,7 @@ La RPZ est implémentée côté DNS Proxy uniquement.
 Le fragment :
 
 ```text
-src/build/dns-proxy/templates/50-rpz.conf.j2
+src/dnsforge/infrastructure/build/dns-proxy/templates/50-rpz.conf.j2
 ```
 
 est rendu vers :
@@ -38,8 +38,8 @@ include "/etc/named/rpz/rpz-zone.conf";
 Sources :
 
 ```text
-src/build/dns-proxy/templates/rpz-zone.conf.j2
-src/build/dns-proxy/templates/rpz.local.zone.j2
+src/dnsforge/infrastructure/build/dns-proxy/templates/rpz-zone.conf.j2
+src/dnsforge/infrastructure/build/dns-proxy/templates/rpz.local.zone.j2
 ```
 
 Rendu :

@@ -36,7 +36,7 @@ view "partner" {
 ## Arborescence
 
 ```text
-src/build/dns-proxy/zones/partner/
+src/dnsforge/infrastructure/build/dns-proxy/zones/partner/
 ├── master/
 ├── secondary/
 └── forward/

@@ -12,7 +12,7 @@ La v3.9.1 industrialise aussi les zones `master` locales côté DNS Proxy.
 ## DNS Proxy
 
 ```text
-src/build/dns-proxy/zones/
+src/dnsforge/infrastructure/build/dns-proxy/zones/
 ├── external/
 │   ├── master/
 │   ├── secondary/
@@ -28,7 +28,7 @@ src/build/dns-proxy/zones/
 ## DNS Authoritative
 
 ```text
-src/build/dns-authoritative/zones/
+src/dnsforge/infrastructure/build/dns-authoritative/zones/
 ├── external/
 │   └── master/
 ├── internal/

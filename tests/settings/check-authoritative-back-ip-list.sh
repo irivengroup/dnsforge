@@ -3,9 +3,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-source "${PROJECT_ROOT}/src/libs/lib-logging.sh"
-source "${PROJECT_ROOT}/src/libs/lib-network.sh"
-source "${PROJECT_ROOT}/src/libs/lib-inventory.sh"
+
+
+
 
 TSIG_KEY_NAME="xfr-shared-key"
 AUTHORITATIVE_BACK_IP="192.0.2.10 ; 192.0.2.20,192.0.2.30"

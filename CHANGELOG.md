@@ -1,3 +1,170 @@
+## v10.2
+
+- Suppression définitive de `src/libs`.
+- Portage des responsabilités Bash vers modules Python natifs.
+- Ajout de `BooleanSetting`, `AddressListParser`, `CommandRunner`, `AtomicFileWriter`, `BackupFile`, `ServiceManager`, `BindTools`.
+- Ajout de `docs/BASH-LIBS-MIGRATION.md`.
+
+## v10.1
+
+- `dnsforge zone show <zone>` affiche explicitement la version active courante.
+- `dnsforge zone show --zone <zone> --version N` affiche une version historique.
+- `dnsforge zone history <zone>` indique la version courante.
+- Suppression définitive de `src/settings` du livrable.
+- Configuration opérateur déportée vers `/etc/dnsforge/setup.conf`.
+- Les modèles restent dans `install/templates/`.
+
+## v10.0
+
+- Ajout Zone History / Diff / Rollback.
+- Snapshots filesystem automatiques avant modification des zones.
+- Commandes `zone history`, `zone show --version`, `zone diff`, `zone rollback`.
+
+## v9.9
+
+- Ajout du domaine `cluster`.
+- Ajout de `dnsforge cluster init/status/validate/sync`.
+- Support proxy cluster avec VIP Keepalived.
+- Support authoritative cluster en modèle Primary/Secondary.
+- Ajout des variables cluster dans les templates `setup.conf`.
+- Ajout de `docs/CLUSTER.md`.
+
+## v9.8
+
+- Ajout de `dnsforge status`.
+- Ajout de `dnsforge health`.
+- Ajout de `dnsforge doctor`.
+- Ajout de `dnsforge backup create/list`.
+- Ajout de `dnsforge restore`.
+- Ajout de `dnsforge migrate --to proxy-forwarder|proxy-hybrid`.
+- Migration lourde proxy <-> authoritative interdite.
+
+## v9.7
+
+- Ajout du domaine `security`.
+- Ajout des profils `standard`, `hardened`, `enterprise`, `paranoid`.
+- Ajout de `dnsforge security show` et `dnsforge security audit`.
+- Injection des options BIND de sécurité : DNS Cookies, RRL, minimal responses, qname minimization, serve-stale.
+- Ajout de `docs/SECURITY.md`.
+
+## v9.6
+
+- Ajout de `dnsforge zone show`.
+- Ajout de `dnsforge zone edit` avec `--add`, `--update`, `--delete`.
+- Ajout du modèle `DnsRecord`.
+- Extension du catalogue avec `records`.
+
+## v9.5
+
+- Ajout du modèle `ConfigurationProfile`.
+- Ajout de `ProfileSettingsValidator`.
+- Ajout de `ProfileAuditor`.
+- Ajout de la commande `dnsforge profile audit`.
+- Durcissement des règles par profil : authoritative, proxy-forwarder, proxy-hybrid.
+- Ajout de `docs/CONFIGURATION-PROFILES.md`.
+
+## v9.4
+
+- Intégration des variables présentes dans `src/settings` dans les templates `setup.conf`.
+- Modèles complets par profil : authoritative, proxy-forwarder, proxy-hybrid.
+- Ajout du manifeste `install/templates/VARIABLE-COVERAGE.md`.
+- Ajout de `docs/SETUP-CONF-TEMPLATES.md`.
+
+## v9.3
+
+- Ajout de `install/install.sh`.
+- Installation sous `/opt/dnsforge`.
+- Création de `/etc/dnsforge`.
+- Création des liens `/opt/dnsforge/settings` et `/opt/dnsforge/src/settings` vers `/etc/dnsforge`.
+- Exposition globale de `/usr/local/bin/dnsforge`.
+- Ajout des templates `setup.conf` par profil.
+- Ajout de `install/create-node-settings.sh`.
+- Ajout de `docs/INSTALLATION.md`.
+
+## v9.2
+
+- Intégration du dossier `build` dans `src/dnsforge/infrastructure/build`.
+- Déplacement du catalogue vers `src/dnsforge/infrastructure/build/catalog/zones.yml`.
+- Mise à jour de `ProjectPaths.build_root` et `ProjectPaths.catalog_file`.
+- Suppression de l'ancien dossier `src/build`.
+- Correction du dossier racine dans l'archive ZIP : `ZoneForge-DNSaaS-v9.2`.
+
+## v9.1
+
+- Suppression du répertoire legacy du livrable produit.
+- Suppression des derniers helpers legacy du package Python.
+- Ajout de la commande `dnsforge audit`.
+- Ajout de `ProductAuditor` et `ProductAuditReport`.
+- Ajout du guide d'exploitation `docs/OPERATING-GUIDE.md`.
+- Durcissement de la cohérence produit Python.
+
+## v9.0
+
+- Finalisation de la bascule produit vers Python.
+- Suppression des références Python vers les anciens entrypoints Bash.
+- Archivage des anciens scripts Bash sous `legacy/bash/`.
+- Nettoyage de `ProjectPaths` pour retirer les helpers legacy.
+- Ajout du test `check-dnsforge-product-python.sh`.
+- Ajout de la documentation `PYTHON-PRODUCT-V9.md`.
+
+## v8.9
+
+- `dnsforge configure` devient natif Python.
+- Ajout de `ConfigureService`.
+- Ajout de `PackageInstaller`, `FileInstaller`, `FirewalldManager`, `SELinuxManager`, `SystemdManager`.
+- `configure` n'appelle plus les scripts Bash historiques.
+- Les scripts Bash historiques sont déplacés vers `legacy/bash/`.
+- Ajout de la documentation `PYTHON-CONFIGURE-NATIVE.md`.
+
+## v8.8
+
+- Ajout de `ConfigurePlan` et `ConfigureStep`.
+- Ajout de `ConfigurePlanner`.
+- Ajout de l'option `--dry-run` à `dnsforge configure`.
+- `dnsforge configure --dry-run` produit un plan Python sans exécuter le moteur Bash.
+- Documentation `PYTHON-CONFIGURE-PLAN.md`.
+
+## v8.7
+
+- Migration de `dnsforge zone` vers Python natif.
+- Ajout du modèle `ZoneDefinition` et `ZoneType`.
+- Ajout de l'adaptateur `ZoneCatalog`.
+- Ajout des commandes `zone list/get/create/disable/enable/delete`.
+- Ajout de la documentation `PYTHON-ZONE-MANAGER.md`.
+
+## v8.6
+
+- Ajout du rendu Python natif via `dnsforge render`.
+- Ajout de `BindRenderTree` et `BindConfigFactory`.
+- Ajout du modèle `ProxyRenderProfile`.
+- Support natif des sorties `forwarder` et `hybrid`.
+- Conservation du moteur Bash historique pour `configure`.
+
+## v8.5
+
+- Ajout d'un vrai package Python `src/dnsforge`.
+- Ajout du point d'entrée `bin/dnsforge` et du script Python `dnsforge`.
+- Ajout du modèle domaine `DnsRole`, `ProxyType`, `ProxySettings`, `AuthoritativeSettings`.
+- Ajout de la validation Python des settings proxy/authoritative.
+- Ajout de la commande `configure` en remplacement conceptuel de `deploy`.
+- Conservation du moteur Bash existant via une couche legacy contrôlée.
+- Ajout de la documentation `docs/PYTHON-MIGRATION.md`.
+
+## v8.2
+
+- README restauré comme document de présentation produit.
+- Suppression des sections `Exploitation` et `Validation` du README.
+- Ajout de la section `Authors`.
+- Maintien du lien vers `docs/index.md` et de l'image d'architecture.
+
+## v8.1
+
+- Ajout des tests qualité documentaire.
+- Validation des liens Markdown locaux.
+- Validation des en-têtes et pieds de page de la documentation.
+- Validation du périmètre produit du README.
+- Validation de la structure contextuelle de `docs/index.md`.
+
 ## v8.0
 
 - README réécrit comme document de présentation produit.
@@ -14,7 +181,7 @@
 
 ## v7.2
 
-- Fusion de la logique utile dans `src/libs/lib-settings-validate.sh`.
+
 - Suppression de l'ancienne bibliothèque de validation séparée.
 - Réalignement des scripts et tests sur `lib-settings-validate.sh`.
 - Ajout du test `check-validation-library-consolidation.sh`.
@@ -33,7 +200,7 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 
 ## v6.5
 
-- Ajout de `src/libs/lib-rndc.sh`.
+
 - Ajout de `src/tools/rndc-secret.sh`.
 - `RNDC_KEY_NAME` vaut `rndc-key` par défaut.
 - `RNDC_SECRET` est généré automatiquement si absent.
@@ -55,13 +222,13 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 
 ## v6.2
 
-- Ajout de `src/libs/lib-settings-validate.sh`.
+
 - Validation stricte proxy et authoritative.
 - Tests positifs et négatifs de validation.
 
 ## v6.1
 
-- Ajout de `src/libs/lib-network.sh`.
+
 - Normalisation universelle des listes.
 - `AUTHORITATIVE_BACK_IP` et `AUTH_CLUSTER_*_BACK_IP` acceptent espace, virgule et point-virgule.
 - Abandon du format tableau Bash pour les listes IP.
@@ -107,7 +274,7 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 
 ## v5.5
 
-- Ajout de `src/build/catalog/zones.yml`.
+- Ajout de `src/dnsforge/infrastructure/build/catalog/zones.yml`.
 - Ajout du générateur de catalogue de zones.
 - Génération split-horizon master/secondary/forward.
 - Tests catalog generate/render.

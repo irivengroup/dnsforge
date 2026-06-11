@@ -3,8 +3,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-source "${PROJECT_ROOT}/src/libs/lib-logging.sh"
-source "${PROJECT_ROOT}/src/libs/lib-rndc.sh"
+
+
 ROLE="dns-proxy"; NODE_NAME="rndc-test"
 unset RNDC_KEY_NAME || true
 unset RNDC_SECRET || true

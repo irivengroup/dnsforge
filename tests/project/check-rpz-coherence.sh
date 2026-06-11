@@ -8,7 +8,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 template="${PROJECT_ROOT}/src/build/dns-proxy/templates/50-rpz.conf.j2"
 views_template="${PROJECT_ROOT}/src/build/dns-proxy/templates/60-views.conf.j2"
-render_lib="${PROJECT_ROOT}/src/libs/lib-render.sh"
+
 
 test -f "${template}"
 

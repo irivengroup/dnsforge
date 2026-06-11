@@ -1,0 +1,391 @@
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+from dnsforge.application.audit.product_auditor import ProductAuditor
+from dnsforge.application.cluster.cluster_service import ClusterService
+from dnsforge.application.configure.configure_authoritative import ConfigureAuthoritative
+from dnsforge.application.configure.configure_proxy import ConfigureProxy
+from dnsforge.application.doctor.doctor_service import DoctorService
+from dnsforge.application.health.health_service import HealthService
+from dnsforge.application.migration.migration_service import MigrationService
+from dnsforge.application.profile.profile_auditor import ProfileAuditor
+from dnsforge.application.render.render_authoritative import RenderAuthoritative
+from dnsforge.application.render.render_proxy import RenderProxy
+from dnsforge.application.security.security_service import SecurityService
+from dnsforge.application.status.status_service import StatusService
+from dnsforge.application.validate.validate_authoritative import ValidateAuthoritative
+from dnsforge.application.validate.validate_proxy import ValidateProxy
+from dnsforge.application.zone.zone_manager import ZoneManager
+from dnsforge.domain.migration.model import MigrationTarget
+from dnsforge.domain.model.proxy_type import ProxyType
+from dnsforge.infrastructure.backup.backup_service import BackupService
+from dnsforge.infrastructure.filesystem.paths import ProjectPaths
+from dnsforge.shared.errors import DnsForgeError
+
+
+class DnsForgeArgumentParserFactory:
+    def build(self) -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(prog="dnsforge", description="ZoneForge DNSaaS")
+        parser.add_argument("--project-root", default=".", help="Project root")
+        sub = parser.add_subparsers(dest="command", required=True)
+
+        self._add_validate(sub)
+        self._add_render(sub)
+        self._add_configure(sub)
+        self._add_zone(sub)
+        self._add_audit(sub)
+        self._add_profile(sub)
+        self._add_security(sub)
+        self._add_status(sub)
+        self._add_health(sub)
+        self._add_doctor(sub)
+        self._add_backup(sub)
+        self._add_restore(sub)
+        self._add_migrate(sub)
+        self._add_cluster(sub)
+
+        return parser
+
+    def _add_validate(self, sub) -> None:
+        root = sub.add_parser("validate", help="Validate settings")
+        inner = root.add_subparsers(dest="role", required=False)
+        p = inner.add_parser("proxy")
+        p.add_argument("node", nargs="?")
+        p.add_argument("--type", choices=ProxyType.choices(), dest="proxy_type")
+        a = inner.add_parser("authoritative")
+        a.add_argument("node", nargs="?")
+
+    def _add_render(self, sub) -> None:
+        root = sub.add_parser("render", help="Render configuration")
+        inner = root.add_subparsers(dest="role", required=False)
+        p = inner.add_parser("proxy")
+        p.add_argument("node", nargs="?")
+        p.add_argument("--type", choices=ProxyType.choices(), dest="proxy_type")
+        a = inner.add_parser("authoritative")
+        a.add_argument("node", nargs="?")
+
+    def _add_configure(self, sub) -> None:
+        root = sub.add_parser("configure", help="Configure server")
+        inner = root.add_subparsers(dest="role", required=False)
+        p = inner.add_parser("proxy")
+        p.add_argument("node", nargs="?")
+        p.add_argument("--type", choices=ProxyType.choices(), dest="proxy_type")
+        p.add_argument("--render-only", action="store_true")
+        p.add_argument("--skip-install", action="store_true")
+        p.add_argument("--dry-run", action="store_true")
+        a = inner.add_parser("authoritative")
+        a.add_argument("node", nargs="?")
+        a.add_argument("--render-only", action="store_true")
+        a.add_argument("--skip-install", action="store_true")
+        a.add_argument("--dry-run", action="store_true")
+        root.add_argument("--render-only", action="store_true")
+        root.add_argument("--skip-install", action="store_true")
+        root.add_argument("--dry-run", action="store_true")
+
+    def _add_zone(self, sub) -> None:
+        zone = sub.add_parser("zone", help="Manage DNS zones")
+        inner = zone.add_subparsers(dest="action", required=True)
+        inner.add_parser("list")
+        history = inner.add_parser("history")
+        history.add_argument("name")
+        get = inner.add_parser("get")
+        get.add_argument("--name", required=True)
+        show = inner.add_parser("show")
+        show.add_argument("name", nargs="?")
+        show.add_argument("--zone", dest="zone_name")
+        show.add_argument("--version", type=int)
+        diff = inner.add_parser("diff")
+        diff.add_argument("--zone", required=True)
+        diff.add_argument("--from", required=True, type=int, dest="from_version")
+        diff.add_argument("--to", required=True, type=int, dest="to_version")
+        rollback = inner.add_parser("rollback")
+        rollback.add_argument("--zone", required=True)
+        rollback.add_argument("--version", required=True, type=int)
+        create = inner.add_parser("create")
+        create.add_argument("--name", required=True)
+        create.add_argument("--type", required=True, choices=["master", "secondary", "forward"], dest="zone_type")
+        create.add_argument("--views", required=True)
+        create.add_argument("--cluster")
+        create.add_argument("--disabled", action="store_true")
+        edit = inner.add_parser("edit")
+        edit.add_argument("name")
+        edit.add_argument("--add", dest="add_record")
+        edit.add_argument("--update", dest="update_record")
+        edit.add_argument("--delete", dest="delete_record")
+        edit.add_argument("--ttl", type=int)
+        for action in ("disable", "enable", "delete"):
+            parser = inner.add_parser(action)
+            parser.add_argument("--name", required=True)
+
+    def _add_audit(self, sub) -> None:
+        audit = sub.add_parser("audit", help="Audit product consistency")
+        audit.add_argument("--strict", action="store_true")
+
+    def _add_profile(self, sub) -> None:
+        profile = sub.add_parser("profile", help="Audit configuration profiles")
+        inner = profile.add_subparsers(dest="action", required=True)
+        inner.add_parser("audit")
+
+    def _add_security(self, sub) -> None:
+        security = sub.add_parser("security", help="Show or audit DNS security controls")
+        security.add_argument("--setup-file", default="/etc/dnsforge/setup.conf")
+        inner = security.add_subparsers(dest="action", required=True)
+        inner.add_parser("show")
+        inner.add_parser("audit")
+
+    def _add_status(self, sub) -> None:
+        p = sub.add_parser("status", help="Show local DNSForge status")
+        p.add_argument("--setup-file", default="/etc/dnsforge/setup.conf")
+
+    def _add_health(self, sub) -> None:
+        p = sub.add_parser("health", help="Run local health checks")
+        p.add_argument("--setup-file", default="/etc/dnsforge/setup.conf")
+
+    def _add_doctor(self, sub) -> None:
+        p = sub.add_parser("doctor", help="Show recommendations")
+        p.add_argument("--setup-file", default="/etc/dnsforge/setup.conf")
+
+    def _add_backup(self, sub) -> None:
+        root = sub.add_parser("backup", help="Manage backups")
+        root.add_argument("--backup-root", default="/var/backups/dnsforge")
+        inner = root.add_subparsers(dest="action", required=True)
+        create = inner.add_parser("create")
+        create.add_argument("--setup-file", default="/etc/dnsforge/setup.conf")
+        create.add_argument("--dry-run", action="store_true")
+        inner.add_parser("list")
+
+    def _add_restore(self, sub) -> None:
+        p = sub.add_parser("restore", help="Restore a backup")
+        p.add_argument("--backup", required=True)
+        p.add_argument("--target-root", default="/")
+        p.add_argument("--dry-run", action="store_true")
+
+    def _add_migrate(self, sub) -> None:
+        p = sub.add_parser("migrate", help="Migrate proxy-forwarder <-> proxy-hybrid")
+        p.add_argument("--to", required=True, choices=["proxy-forwarder", "proxy-hybrid"], dest="target")
+        p.add_argument("--setup-file", default="/etc/dnsforge/setup.conf")
+        p.add_argument("--dry-run", action="store_true")
+
+    def _add_cluster(self, sub) -> None:
+        cluster = sub.add_parser("cluster", help="Manage DNSForge cluster")
+        cluster.add_argument("--setup-file", default="/etc/dnsforge/setup.conf")
+        inner = cluster.add_subparsers(dest="action", required=True)
+
+        init = inner.add_parser("init")
+        init.add_argument("--setup-file", default=None)
+        init.add_argument("--dry-run", action="store_true")
+
+        status = inner.add_parser("status")
+        status.add_argument("--setup-file", default=None)
+
+        validate = inner.add_parser("validate")
+        validate.add_argument("--setup-file", default=None)
+
+        sync = inner.add_parser("sync")
+        sync.add_argument("--setup-file", default=None)
+        sync.add_argument("--dry-run", action="store_true")
+
+
+class DnsForgeCommandDispatcher:
+    def dispatch(self, args: argparse.Namespace) -> int:
+        paths = ProjectPaths(Path(args.project_root).resolve())
+
+        if args.command == "validate":
+            if args.role == "proxy":
+                node = args.node or "local"
+                proxy_type = ProxyType.from_value(args.proxy_type or "forwarder")
+                ValidateProxy(paths).execute(node, proxy_type)
+            elif args.role == "authoritative":
+                ValidateAuthoritative(paths).execute(args.node or "local")
+            return 0
+
+        if args.command == "render":
+            if args.role == "proxy":
+                RenderProxy(paths).execute(args.node or "local", ProxyType.from_value(args.proxy_type or "forwarder"))
+            elif args.role == "authoritative":
+                RenderAuthoritative(paths).execute(args.node or "local")
+            return 0
+
+        if args.command == "configure":
+            if args.role == "proxy":
+                ConfigureProxy(paths).execute(
+                    args.node or "local",
+                    ProxyType.from_value(args.proxy_type or "forwarder"),
+                    render_only=args.render_only,
+                    skip_install=args.skip_install,
+                    dry_run=args.dry_run,
+                )
+            elif args.role == "authoritative":
+                ConfigureAuthoritative(paths).execute(
+                    args.node or "local",
+                    render_only=args.render_only,
+                    skip_install=args.skip_install,
+                    dry_run=args.dry_run,
+                )
+            return 0
+
+        if args.command == "zone":
+            manager = ZoneManager(paths)
+            if args.action == "list":
+                for zone in manager.list():
+                    print(f"{zone.name}\t{zone.zone_type.value}\t{'enabled' if zone.enabled else 'disabled'}")
+                return 0
+            if args.action == "get":
+                zone = manager.get(args.name)
+                print(f"name={zone.name}")
+                print(f"type={zone.zone_type.value}")
+                print(f"enabled={'yes' if zone.enabled else 'no'}")
+                print(f"views={','.join(zone.views)}")
+                if zone.cluster:
+                    print(f"cluster={zone.cluster}")
+                return 0
+            if args.action == "history":
+                print(manager.history_list(args.name))
+                return 0
+            if args.action == "show":
+                zone_name = getattr(args, "zone_name", None) or getattr(args, "name", None)
+                if not zone_name:
+                    print("ERROR: zone show requires a zone name", file=sys.stderr)
+                    return 2
+                if getattr(args, "version", None):
+                    print(manager.show_version(zone_name, args.version))
+                else:
+                    print(manager.show(zone_name))
+                return 0
+            if args.action == "diff":
+                print(manager.history_diff(args.zone, args.from_version, args.to_version))
+                return 0
+            if args.action == "rollback":
+                print(manager.rollback(args.zone, args.version))
+                return 0
+            if args.action == "create":
+                views = [i.strip() for i in args.views.replace(";", ",").split(",") if i.strip()]
+                manager.create(args.name, args.zone_type, views, cluster=args.cluster, enabled=not args.disabled)
+                return 0
+            if args.action == "edit":
+                ops = [args.add_record, args.update_record, args.delete_record]
+                if sum(1 for item in ops if item) != 1:
+                    print("ERROR: zone edit requires exactly one of --add, --update or --delete", file=sys.stderr)
+                    return 2
+                if args.add_record:
+                    manager.add_record(args.name, args.add_record, ttl=args.ttl)
+                if args.update_record:
+                    manager.update_record(args.name, args.update_record, ttl=args.ttl)
+                if args.delete_record:
+                    manager.delete_record(args.name, args.delete_record)
+                return 0
+            if args.action == "disable":
+                manager.disable(args.name)
+                return 0
+            if args.action == "enable":
+                manager.enable(args.name)
+                return 0
+            if args.action == "delete":
+                manager.delete(args.name)
+                return 0
+            return 2
+
+        if args.command == "audit":
+            report = ProductAuditor().audit(paths.project_root)
+            print(report.render())
+            if not report.ok:
+                return 1
+            if args.strict and report.findings:
+                return 1
+            return 0
+
+        if args.command == "profile":
+            if args.action == "audit":
+                errors = ProfileAuditor().audit_templates(paths.project_root)
+                if errors:
+                    for error in errors:
+                        print(f"ERROR: {error}")
+                    return 1
+                print("Profile audit OK")
+                return 0
+            return 2
+
+        if args.command == "security":
+            service = SecurityService()
+            setup_file = Path(args.setup_file)
+            if args.action == "show":
+                print(service.show(setup_file))
+                return 0
+            if args.action == "audit":
+                ok, output = service.audit(setup_file)
+                print(output)
+                return 0 if ok else 1
+            return 2
+
+        if args.command == "status":
+            print(StatusService().show(Path(args.setup_file)))
+            return 0
+
+        if args.command == "health":
+            report = HealthService().check(Path(args.setup_file), paths.project_root)
+            print(report.render())
+            return 0 if report.ok else 1
+
+        if args.command == "doctor":
+            print(DoctorService().diagnose(Path(args.setup_file)))
+            return 0
+
+        if args.command == "backup":
+            service = BackupService(Path(args.backup_root))
+            if args.action == "create":
+                archive = service.create(paths.project_root, Path(args.setup_file), dry_run=args.dry_run)
+                print(archive)
+                return 0
+            if args.action == "list":
+                for item in service.list():
+                    print(item)
+                return 0
+            return 2
+
+        if args.command == "restore":
+            BackupService().restore(Path(args.backup), Path(args.target_root), dry_run=args.dry_run)
+            print("Restore completed" if not args.dry_run else "Restore dry-run OK")
+            return 0
+
+        if args.command == "migrate":
+            result = MigrationService().migrate(Path(args.setup_file), MigrationTarget.from_value(args.target), dry_run=args.dry_run)
+            print(result)
+            return 0
+
+        if args.command == "cluster":
+            service = ClusterService()
+            setup_file = Path(args.setup_file or "/etc/dnsforge/setup.conf")
+            if args.action == "init":
+                print(service.init(setup_file, paths.project_root, dry_run=args.dry_run))
+                return 0
+            if args.action == "status":
+                print(service.status(setup_file))
+                return 0
+            if args.action == "validate":
+                print(service.validate(setup_file))
+                return 0
+            if args.action == "sync":
+                print(service.sync(setup_file, dry_run=args.dry_run))
+                return 0
+            return 2
+
+        return 2
+
+
+class DnsForgeCli:
+    def __init__(self, parser_factory: DnsForgeArgumentParserFactory | None = None, dispatcher: DnsForgeCommandDispatcher | None = None) -> None:
+        self.parser_factory = parser_factory or DnsForgeArgumentParserFactory()
+        self.dispatcher = dispatcher or DnsForgeCommandDispatcher()
+
+    def run(self, argv: list[str] | None = None) -> int:
+        parser = self.parser_factory.build()
+        args = parser.parse_args(argv)
+        try:
+            return self.dispatcher.dispatch(args)
+        except DnsForgeError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1

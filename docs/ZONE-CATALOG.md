@@ -10,7 +10,7 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 La v5.5 ajoute un catalogue central des zones :
 
 ```text
-src/build/catalog/zones.yml
+src/dnsforge/infrastructure/build/catalog/zones.yml
 ```
 
 Il permet de générer des zones proxy `master`, `secondary` et `forward`, y compris en split-horizon sur plusieurs vues.
@@ -33,7 +33,7 @@ Il permet de générer des zones proxy `master`, `secondary` et `forward`, y com
 Le catalogue génère dans :
 
 ```text
-src/build/dns-proxy/zones/generated/<view>/<type>/
+src/dnsforge/infrastructure/build/dns-proxy/zones/generated/<view>/<type>/
 ```
 
 puis le moteur existant crée :

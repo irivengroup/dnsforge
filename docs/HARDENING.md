@@ -30,7 +30,7 @@ Le projet génère un exemple non appliqué automatiquement :
 Il provient de :
 
 ```text
-src/build/common/systemd/named.service.d-hardening.conf.tpl
+src/dnsforge/infrastructure/build/common/systemd/named.service.d-hardening.conf.tpl
 ```
 
 ## Pourquoi non appliqué automatiquement

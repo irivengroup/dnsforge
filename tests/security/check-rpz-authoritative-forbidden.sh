@@ -5,10 +5,10 @@ set -o pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-source "${PROJECT_ROOT}/src/libs/lib-logging.sh" 2>/dev/null || true
-source "${PROJECT_ROOT}/src/libs/lib-network.sh" 2>/dev/null || true
-source "${PROJECT_ROOT}/src/libs/lib-rndc.sh" 2>/dev/null || true
-source "${PROJECT_ROOT}/src/libs/lib-settings-validate.sh"
+
+
+
+
 
 ROLE="dns-authoritative"
 NODE_NAME="rpz-negative"

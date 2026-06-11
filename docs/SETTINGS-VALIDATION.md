@@ -12,7 +12,7 @@ La v6.2 ajoute une validation stricte des settings avant rendu/déploiement.
 ## Bibliothèque
 
 ```text
-src/libs/lib-settings-validate.sh
+
 ```
 
 ## Contrôles principaux

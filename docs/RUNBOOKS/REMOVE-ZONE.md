@@ -8,7 +8,7 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 ## 1. Identifier les fichiers source
 
 ```bash
-find src/build -path '*/zones/*' -type f | grep '<ZONE>'
+find src/dnsforge/infrastructure/build -path '*/zones/*' -type f | grep '<ZONE>'
 ```
 
 ## 2. Archiver les fichiers

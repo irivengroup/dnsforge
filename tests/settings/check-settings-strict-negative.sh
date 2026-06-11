@@ -3,11 +3,11 @@ set -o errexit
 set -o nounset
 set -o pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-source "${PROJECT_ROOT}/src/libs/lib-logging.sh"
-source "${PROJECT_ROOT}/src/libs/lib-network.sh"
-source "${PROJECT_ROOT}/src/libs/lib-inventory.sh"
-source "${PROJECT_ROOT}/src/libs/lib-rndc.sh"
-source "${PROJECT_ROOT}/src/libs/lib-settings-validate.sh"
+
+
+
+
+
 
 ROLE="dns-proxy"
 NODE_NAME="bad"

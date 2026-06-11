@@ -3,9 +3,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-LIB_DIR="${PROJECT_ROOT}/src/libs"
-source "${LIB_DIR}/lib-logging.sh"
-source "${LIB_DIR}/lib-rndc.sh"
+
+
+
 usage(){ cat <<'EOF'
 Usage:
   rndc-secret.sh show   --role <dns-proxy|dns-authoritative> --node <node>

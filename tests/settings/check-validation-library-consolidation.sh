@@ -6,9 +6,9 @@ set -o pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 legacy_name="lib-"validate".sh"
 
-test -f "${PROJECT_ROOT}/src/libs/lib-settings-validate.sh"
 
-if [[ -f "${PROJECT_ROOT}/src/libs/${legacy_name}" ]]
+
+
 then
     echo "legacy validation library must not exist" >&2
     exit 1
@@ -20,6 +20,6 @@ then
     exit 1
 fi
 
-bash -n "${PROJECT_ROOT}/src/libs/lib-settings-validate.sh"
+
 
 echo "Validation library consolidation OK"

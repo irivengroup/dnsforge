@@ -30,7 +30,7 @@ AUTH_CLUSTER_B_BACK_IP="192.0.2.20, 192.0.2.21"
 ## Fonctions
 
 ```text
-src/libs/lib-network.sh
+
 ```
 
 ```bash

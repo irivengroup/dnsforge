@@ -4,7 +4,7 @@ set -o nounset
 set -o pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-source "${PROJECT_ROOT}/tests/lib-test.sh"
+
 
 require_command bash
 require_command grep

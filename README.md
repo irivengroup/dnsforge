@@ -2,7 +2,7 @@
 
 > Plateforme de Déploiement et de Configuration DNS as a Service
 
-[Documentation](./docs/index.md) · [Architecture](#architecture) · [Fonctionnalités](#fonctionnalités) · [Sécurité](#sécurité) · [Exploitation](#exploitation)
+[Documentation](./docs/index.md) · [Architecture](#architecture) · [Fonctionnalités](#fonctionnalités) · [Sécurité](#sécurité)
 
 ---
 
@@ -10,9 +10,9 @@
 
 ZoneForge DNSaaS est une plateforme de déploiement, de configuration et d'exploitation DNS destinée aux environnements entreprise.
 
-Elle permet de construire, sécuriser, automatiser et exploiter des infrastructures DNS modernes basées sur BIND 9, avec une approche orientée **DNS as a Service**, **Infrastructure as Code**, haute disponibilité, conformité et exploitation industrielle.
+Elle permet de construire, sécuriser, automatiser et exploiter des infrastructures DNS modernes basées sur BIND 9, avec une approche orientée **DNS as a Service**, **Infrastructure as Code**, haute disponibilité, conformité et gouvernance DNS.
 
-Le README présente le produit. Les procédures détaillées de déploiement, d'exploitation, de sécurité et de dépannage sont centralisées dans la [documentation](./docs/index.md).
+Le README présente le produit. La documentation détaillée de déploiement, d'exploitation, de sécurité, de troubleshooting et de référence est centralisée dans [docs/index.md](./docs/index.md).
 
 ---
 
@@ -38,14 +38,13 @@ Le README présente le produit. Les procédures détaillées de déploiement, d'
 - Blocage de RPZ sur les nœuds authoritative.
 - Validation stricte des settings avant rendu et déploiement.
 
-### Déploiement et exploitation
+### Automatisation
 
 - Génération automatisée des configurations BIND.
 - Déploiement automatisé des rôles DNS Proxy et DNS Authoritative.
-- Production Gate : preflight, diff de configuration, sauvegarde et rollback.
+- Production Gate.
 - Monitoring natif et healthchecks.
 - Tests de conformité.
-- Runbooks d'exploitation.
 
 ---
 
@@ -83,6 +82,16 @@ ZoneForge DNSaaS est adapté aux contextes suivants :
 
 ---
 
+## Installation système
+
+```bash
+sudo ./install/install.sh --profile proxy-forwarder
+sudo ./install/install.sh --profile proxy-hybrid
+sudo ./install/install.sh --profile authoritative
+```
+
+---
+
 ## Sécurité
 
 ZoneForge DNSaaS applique une séparation stricte des responsabilités :
@@ -103,20 +112,6 @@ Voir :
 
 ---
 
-## Exploitation
-
-L'exploitation détaillée est documentée dans `docs/` :
-
-- [Déploiement](./docs/DEPLOYMENT.md)
-- [Opérations](./docs/OPERATIONS.md)
-- [Production Checklist](./docs/PRODUCTION-CHECKLIST.md)
-- [Gestion des Zones](./docs/GESTION-DES-ZONES.md)
-- [RNDC](./docs/RNDC-SECRET.md)
-- [Monitoring](./docs/NATIVE-MONITORING.md)
-- [Troubleshooting](./docs/TROUBLESHOOTING.md)
-
----
-
 ## Documentation
 
 Le point d'entrée documentaire est :
@@ -133,24 +128,11 @@ La documentation est organisée par contexte :
 
 ---
 
-## Validation
+## Authors
 
-Les tests de conformité sont regroupés dans :
+Alfred TCHONDJO
 
-```bash
-./tests/run-all.sh
-```
-
-Des tests spécialisés sont disponibles par domaine :
-
-```text
-tests/settings/
-tests/security/
-tests/catalog/
-tests/integration/
-tests/monitoring/
-tests/deployment/
-```
+Project Initiator — IRIVEN Group
 
 ---
 

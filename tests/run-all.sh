@@ -82,3 +82,45 @@ run_test "tests/catalog/check-zone-manager-negative.sh"
 
 run_test "tests/security/check-rpz-authoritative-forbidden.sh"
 run_test "tests/security/check-rpz-authoritative-render-clean.sh"
+
+run_test "tests/documentation/check-doc-links.sh"
+
+run_test "tests/documentation/check-doc-headers-footers.sh"
+
+run_test "tests/documentation/check-readme-product-scope.sh"
+
+run_test "tests/documentation/check-docs-index-contexts.sh"
+
+run_test "tests/python/check-dnsforge-cli.sh"
+
+run_test "tests/python/check-dnsforge-oop-layout.sh"
+
+run_test "tests/python/check-dnsforge-render.sh"
+
+run_test "tests/python/check-dnsforge-zone-manager.sh"
+
+run_test "tests/python/check-dnsforge-configure-plan.sh"
+
+run_test "tests/python/check-dnsforge-configure-native.sh"
+
+run_test "tests/python/check-dnsforge-product-python.sh"
+
+run_test "tests/python/check-dnsforge-product-audit.sh"
+
+run_test "tests/python/check-dnsforge-build-context.sh"
+
+run_test "tests/python/check-dnsforge-install-layout.sh"
+
+run_test "tests/python/check-dnsforge-setup-template-coverage.sh"
+
+run_test "tests/python/check-dnsforge-profile-best-practices.sh"
+
+run_test "tests/python/check-dnsforge-zone-records.sh"
+
+run_test "tests/python/check-dnsforge-security.sh"
+
+run_test "tests/python/check-dnsforge-operations.sh"
+
+run_test "tests/python/check-dnsforge-cluster.sh"
+
+run_test "tests/python/check-dnsforge-zone-show-and-settings.sh"

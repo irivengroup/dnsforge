@@ -8,7 +8,7 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 Depuis la v7.2, ZoneForge DNSaaS utilise un point d'entrée unique pour la validation :
 
 ```text
-src/libs/lib-settings-validate.sh
+
 ```
 
 L'ancienne bibliothèque de validation séparée a été supprimée afin d'éviter les doublons.
