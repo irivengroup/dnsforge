@@ -3,24 +3,28 @@ from dnsforge.domain.security.model import SecurityControls
 
 class BindSecurityOptionsRenderer:
     def render_options(self, controls: SecurityControls) -> str:
+        """Render supplemental options not already present in the Enterprise template.
+
+        The baseline template intentionally contains the safest defaults as
+        first-class options. This renderer is kept for profile-driven extension
+        without producing duplicate BIND directives.
+        """
         lines: list[str] = []
-        if controls.hide_version:
-            lines.append('    version "not disclosed";')
-        if controls.minimal_responses:
-            lines.append('    minimal-responses yes;')
-        if controls.minimal_any:
-            lines.append('    minimal-any yes;')
-        if controls.dns_cookies:
-            lines.append('    answer-cookie yes;')
-        if controls.dnssec_validation:
-            lines.append('    dnssec-validation auto;')
-        if controls.qname_minimization:
-            lines.append('    qname-minimization yes;')
-        if controls.serve_stale:
-            lines.append('    stale-answer-enable yes;')
         return '\n'.join(lines)
 
     def render_rrl(self, controls: SecurityControls) -> str:
         if not controls.rrl:
             return ''
-        return 'rate-limit {\n    responses-per-second 10;\n    window 15;\n};\n'
+        return '\n'.join([
+            '    rate-limit {',
+            '        responses-per-second 10;',
+            '        referrals-per-second 5;',
+            '        nodata-per-second 5;',
+            '        nxdomains-per-second 5;',
+            '        errors-per-second 5;',
+            '        all-per-second 50;',
+            '        window 15;',
+            '        slip 2;',
+            '    };',
+            '',
+        ])

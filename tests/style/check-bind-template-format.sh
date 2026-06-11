@@ -4,8 +4,8 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 export PYTHONPATH="${PROJECT_ROOT}/src"
 python3 - <<'PY'
 from pathlib import Path
-from dnsforge.infrastructure.templates import TemplateRegistry
-root = Path('src/dnsforge/infrastructure/templates')
+from dnsforge.infrastructure.bind.rendering import TemplateRegistry
+root = Path('src/dnsforge/infrastructure/bind/resources')
 for template in TemplateRegistry.templates():
     path = root / template
     assert path.exists(), f'missing registered template: {template}'

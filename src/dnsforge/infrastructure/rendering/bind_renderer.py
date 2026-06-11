@@ -9,7 +9,7 @@ from dnsforge.domain.render.profile import ProxyRenderProfile
 from dnsforge.domain.security.model import SecurityControls, SecurityProfile
 from dnsforge.infrastructure.bind.layout import BindLayout, BindLayoutDetector
 from dnsforge.infrastructure.security.bind_security import BindSecurityOptionsRenderer
-from dnsforge.infrastructure.templates.service import TemplateService
+from dnsforge.infrastructure.bind.rendering.template_service import TemplateService
 
 
 @dataclass(frozen=True)
@@ -73,39 +73,64 @@ class BindConfigFactory:
             layout.conf_d / "30-logging.conf",
             layout.conf_d / "40-controls.conf",
             layout.conf_d / "45-statistics.conf",
+            layout.conf_d / "55-catalog.conf",
         ]
         if include_rpz:
             includes.append(layout.conf_d / "50-rpz.conf")
         if include_views:
             includes.append(layout.conf_d / "60-views.conf")
         include_block = "\n".join(f'include "{path}";' for path in includes)
-        return self._render("bind/named.conf.j2", {"INCLUDES": include_block}, layout)
+        return self._render("named.conf.j2", {"INCLUDES": include_block}, layout)
 
     def acl(self, settings: dict[str, str], layout: BindLayout | None = None) -> str:
         layout = layout or self.template_service.layout
         return self._render(
-            "bind/00-acl.conf.j2",
+            "00-acl.conf.j2",
             {
                 "RECURSIVE_CLIENTS": settings.get("BACK_RECURSIVE_CLIENTS", "localnets; localhost;"),
                 "ADMIN_CLIENTS": settings.get("ADM_ALLOWED_CLIENTS", "localhost;"),
                 "ZONE_TRANSFER_CLIENTS": settings.get("XFR_ALLOWED_CLIENTS", "none;"),
+                "BLACKHOLE_CLIENTS": settings.get("DNS_BLACKHOLE_CLIENTS", "none;"),
+                "MONITORING_CLIENTS": settings.get("DNS_MONITORING_CLIENTS", "localhost;"),
             },
             layout,
         )
 
     def _options(self, settings: dict[str, str], layout: BindLayout, proxy: bool) -> str:
         controls = self.security_controls(settings)
+        recursion_acl = "recursive_clients; localhost;" if proxy else "none;"
         return self._render(
-            "bind/20-options.conf.j2",
+            "20-options.conf.j2",
             {
                 "DATA_DIR": layout.data_dir,
+                "DYNAMIC_DIR": layout.dynamic_data_dir,
+                "PID_FILE": layout.run_dir / "named.pid",
+                "SESSION_KEY_FILE": layout.run_dir / "session.key",
                 "DUMP_FILE": layout.statistics_data_dir / "named_dump.db",
                 "STATISTICS_FILE": layout.statistics_data_dir / "named_stats.txt",
                 "MEMSTATISTICS_FILE": layout.statistics_data_dir / "named.memstats",
+                "LISTEN_ON": settings.get("DNS_LISTEN_ON", "any;"),
+                "LISTEN_ON_V6": settings.get("DNS_LISTEN_ON_V6", "none;"),
                 "RECURSION": "yes" if proxy else "no",
-                "ALLOW_RECURSION": "recursive_clients; localhost;" if proxy else "none;",
-                "ALLOW_QUERY_CACHE": "recursive_clients; localhost;" if proxy else "none;",
-                "AUTHORITATIVE_POLICY": "" if proxy else "allow-query { any; };\n    allow-transfer { zone_transfer_clients; };",
+                "ALLOW_RECURSION": recursion_acl,
+                "ALLOW_QUERY_CACHE": recursion_acl,
+                "ALLOW_QUERY": settings.get("DNS_ALLOW_QUERY", "any;"),
+                "ALLOW_TRANSFER": settings.get("XFR_ALLOWED_CLIENTS", "zone_transfer_clients;"),
+                "RPZ_RESPONSE_POLICY": self.rpz_response_policy(settings) if settings.get("ENABLE_RPZ", "no") == "yes" else "",
+                "TCP_CLIENTS": settings.get("DNS_TCP_CLIENTS", "1000"),
+                "RECURSIVE_CLIENTS_LIMIT": settings.get("DNS_RECURSIVE_CLIENTS_LIMIT", "10000" if proxy else "1000"),
+                "CLIENTS_PER_QUERY": settings.get("DNS_CLIENTS_PER_QUERY", "10"),
+                "MAX_CLIENTS_PER_QUERY": settings.get("DNS_MAX_CLIENTS_PER_QUERY", "100"),
+                "MAX_CACHE_SIZE": settings.get("DNS_MAX_CACHE_SIZE", "512M" if proxy else "128M"),
+                "MAX_CACHE_TTL": settings.get("DNS_MAX_CACHE_TTL", "86400"),
+                "MAX_NCACHE_TTL": settings.get("DNS_MAX_NCACHE_TTL", "3600"),
+                "MAX_RECURSION_DEPTH": settings.get("DNS_MAX_RECURSION_DEPTH", "7"),
+                "MAX_RECURSION_QUERIES": settings.get("DNS_MAX_RECURSION_QUERIES", "100"),
+                "FETCHES_PER_SERVER": settings.get("DNS_FETCHES_PER_SERVER", "100"),
+                "FETCHES_PER_ZONE": settings.get("DNS_FETCHES_PER_ZONE", "500"),
+                "QNAME_MINIMIZATION": settings.get("DNS_QNAME_MINIMIZATION", "yes"),
+                "SERVE_STALE": settings.get("DNS_SERVE_STALE", "yes" if proxy else "no"),
+                "STALE_ANSWER_TTL": settings.get("DNS_STALE_ANSWER_TTL", "30"),
                 "SECURITY_OPTIONS": self.security_renderer.render_options(controls),
                 "RRL_OPTIONS": self.security_renderer.render_rrl(controls),
                 "FORWARDERS_BLOCK": self.forwarders(settings) if proxy else "",
@@ -140,14 +165,24 @@ class BindConfigFactory:
                 f'    secret "{xfr_secret}";',
                 "};",
             ]))
-        return self._render("bind/10-keys.conf.j2", {"KEY_BLOCKS": "\n\n".join(blocks)}, layout)
+        return self._render("10-keys.conf.j2", {"KEY_BLOCKS": "\n\n".join(blocks)}, layout)
 
     def controls(self, settings: dict[str, str], layout: BindLayout | None = None) -> str:
         layout = layout or self.template_service.layout
-        return self._render("bind/40-controls.conf.j2", {"RNDC_KEY_NAME": settings.get("RNDC_KEY_NAME", "rndc-key")}, layout)
+        return self._render("40-controls.conf.j2", {"RNDC_KEY_NAME": settings.get("RNDC_KEY_NAME", "rndc-key")}, layout)
 
     def forwarders(self, settings: dict[str, str]) -> str:
-        return "\n".join(["forwarders {", f'    {settings.get("DNS_FORWARDERS", "8.8.8.8; 1.1.1.1;")}', "};", ""])
+        policy = settings.get("DNS_FORWARD_POLICY", "first")
+        servers = settings.get("DNS_FORWARDERS", "8.8.8.8; 1.1.1.1;")
+        return "\n".join([f"    forward {policy};", "    forwarders {", f"        {servers}", "    };", ""])
+
+    def rpz_response_policy(self, settings: dict[str, str]) -> str:
+        zone = settings.get("RPZ_ZONE_NAME", "rpz.local")
+        return "\n".join([
+            "    response-policy {",
+            f'        zone "{zone}" policy given;',
+            "    } break-dnssec yes max-policy-ttl 300;",
+        ])
 
     def rpz(self, settings: dict[str, str]) -> str:
         return self.rpz_with_layout(settings, self.template_service.layout)
@@ -157,29 +192,28 @@ class BindConfigFactory:
             return ""
         zone = settings.get("RPZ_ZONE_NAME", "rpz.local")
         block = "\n".join([
-            "response-policy {",
-            f'    zone "{zone}";',
-            "};",
-            "",
             f'zone "{zone}" {{',
             "    type master;",
             f'    file "{layout.rpz_data_dir / "rpz.local.zone"}";',
             "    allow-query { localhost; admin_clients; };",
+            "    allow-transfer { none; };",
+            "    allow-update { none; };",
+            "    notify no;",
             "};",
             "",
         ])
-        return self._render("bind/50-rpz.conf.j2", {"RPZ_BLOCK": block}, layout)
+        return self._render("50-rpz.conf.j2", {"RPZ_BLOCK": block}, layout)
 
     def logging(self, layout: BindLayout) -> str:
-        return self._render("bind/30-logging.conf.j2", {"LOG_DIR": layout.log_dir}, layout)
+        return self._render("30-logging.conf.j2", {"LOG_DIR": layout.log_dir}, layout)
 
     def statistics(self, layout: BindLayout | None = None) -> str:
         layout = layout or self.template_service.layout
-        return self._render("bind/45-statistics.conf.j2", {}, layout)
+        return self._render("45-statistics.conf.j2", {"STATISTICS_PORT": "8053"}, layout)
 
     def views(self, layout: BindLayout) -> str:
         return self._render(
-            "bind/60-views.conf.j2",
+            "60-views.conf.j2",
             {
                 "INTERNAL_ZONE_INDEX": layout.zones_enabled_dir("internal") / "zones.index.conf",
                 "EXTERNAL_ZONE_INDEX": layout.zones_enabled_dir("external") / "zones.index.conf",
@@ -192,29 +226,41 @@ class BindConfigFactory:
 
     def master_template(self, layout: BindLayout, view: str) -> str:
         return self._render(
-            "bind/master-zone.conf.tpl",
-            {"MASTER_ZONE_FILE": f"{layout.master_view_data_dir(view)}/{{{{ zone_file }}}}"},
+            "master-zone.conf.tpl",
+            {
+                "MASTER_ZONE_FILE": f"{layout.master_view_data_dir(view)}/{{{{ zone_file }}}}",
+                "ALSO_NOTIFY": "none;",
+                "UPDATE_KEY_NAME": "rndc-key",
+            },
             layout,
         )
 
     def secondary_template(self, layout: BindLayout) -> str:
         return self._render(
-            "bind/secondary-zone.conf.tpl",
+            "secondary-zone.conf.tpl",
             {"SECONDARY_ZONE_FILE": f"{layout.secondary_data_dir}/{{{{ zone_file }}}}"},
             layout,
         )
 
     def forward_template(self, layout: BindLayout | None = None) -> str:
         layout = layout or self.template_service.layout
-        return self._render("bind/forward-zone.conf.tpl", {}, layout)
+        return self._render("forward-zone.conf.tpl", {"FORWARD_POLICY": "only"}, layout)
+
+    def catalog_conf(self, layout: BindLayout | None = None) -> str:
+        layout = layout or self.template_service.layout
+        return self._render(
+            "55-catalog.conf.j2",
+            {"CATALOG_ZONE_NAME": "catalog.dnsforge", "CATALOG_ZONE_FILE": layout.catalog_zone_file},
+            layout,
+        )
 
     def catalog_zone(self, layout: BindLayout | None = None) -> str:
         layout = layout or self.template_service.layout
-        return self._render("bind/catalog.zone.j2", {}, layout)
+        return self._render("catalog.zone.j2", {}, layout)
 
     def rpz_local_zone(self, layout: BindLayout | None = None) -> str:
         layout = layout or self.template_service.layout
-        return self._render("bind/rpz.local.zone.j2", {}, layout)
+        return self._render("rpz.local.zone.j2", {}, layout)
 
 
 class BindRenderTree:
@@ -300,9 +346,10 @@ class BindRenderTree:
         for path in directories:
             self._mkdir_native(destination, path)
 
-        for log_file in ("default.log", "security.log", "transfer.log", "rpz.log", "resolver.log"):
+        for log_file in ("default.log", "security.log", "transfer.log", "rpz.log", "resolver.log", "query-errors.log"):
             self._write_native(destination, layout.log_dir / log_file, "")
 
+        self._write_native(destination, layout.conf_d / "55-catalog.conf", self.config_factory.catalog_conf(layout))
         self._write_native(destination, layout.catalog_zone_file, self.config_factory.catalog_zone(layout))
         self._write_native(destination, layout.dynamic_data_dir / "managed-keys.bind", "")
         self._write_native(destination, layout.statistics_data_dir / "named_stats.txt", "")

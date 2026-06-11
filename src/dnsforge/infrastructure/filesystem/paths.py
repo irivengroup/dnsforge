@@ -34,7 +34,7 @@ class ProjectPaths:
     @property
     def build_root(self) -> Path:
         # Backward-compatible property name. The physical build/ tree was removed;
-        # template assets now live in infrastructure/templates.
+        # template assets now live in infrastructure/bind/rendering.
         return self.template_root
 
     @property

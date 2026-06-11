@@ -124,3 +124,5 @@ run_test "tests/python/check-dnsforge-operations.sh"
 run_test "tests/python/check-dnsforge-cluster.sh"
 
 run_test "tests/python/check-dnsforge-zone-show-and-settings.sh"
+
+run_test "tests/python/check-dnsforge-enterprise-bind-rendering.sh"

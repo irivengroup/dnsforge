@@ -14,7 +14,7 @@ src/dnsforge/infrastructure/build/
 est supprimé et remplacé par :
 
 ```text
-src/dnsforge/infrastructure/templates/
+src/dnsforge/infrastructure/bind/resources/
 ```
 
 ## Emplacement canonique du catalogue
@@ -25,7 +25,7 @@ src/dnsforge/infrastructure/templates/
 
 ## Justification DDD
 
-La génération BIND appartient au contexte infrastructure. Le service `TemplateService` adapte dynamiquement les chemins contenus dans les rendus selon le layout natif détecté : Red Hat/Rocky/Alma, Debian/Ubuntu ou SUSE/SLES. Aucun corpus statique `.j2` ou `.tpl` inutilisé ne doit être conservé sous `infrastructure/templates`; les artefacts générés sont déclarés dans `TemplateRegistry`.
+La génération BIND appartient au contexte infrastructure. Le service `TemplateService` adapte dynamiquement les chemins contenus dans les rendus selon le layout natif détecté : Red Hat/Rocky/Alma, Debian/Ubuntu ou SUSE/SLES. Aucun corpus statique `.j2` ou `.tpl` inutilisé ne doit être conservé sous `infrastructure/bind/resources`; les artefacts générés sont déclarés dans `TemplateRegistry`.
 
 ```text
 src/dnsforge/

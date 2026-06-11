@@ -9,7 +9,7 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 
 Ce document décrit les contrôles ajoutés pour éviter les écarts entre :
 
-- les templates présents dans `src/dnsforge/infrastructure/templates/` ;
+- les templates présents dans `src/dnsforge/infrastructure/bind/resources/` ;
 
 - les fichiers effectivement inclus dans BIND ;
 - la documentation d'exploitation.

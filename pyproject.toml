@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "zoneforge-dnsaas"
-version = "10.5.6"
-description = "ZoneForge DNSaaS - Plateforme de Déploiement et de Configuration DNS as a Service"
+name = "dnsforge"
+version = "10.5.12"
+description = "DNSForge - Enterprise BIND deployment and configuration platform"
 requires-python = ">=3.9"
 readme = "README.md"
 authors = [

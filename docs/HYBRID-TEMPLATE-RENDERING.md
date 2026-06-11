@@ -12,6 +12,6 @@ Rules:
 - `/etc/dnsforge` contains only DNSForge node configuration.
 - BIND configuration and data are deployed into native BIND paths.
 - `infrastructure/build/` is forbidden.
-- `infrastructure/templates/templates/` is forbidden.
-- every template under `infrastructure/templates/bind/` must be registered.
+- `infrastructure/bind/resources/templates/` is forbidden.
+- every template under `infrastructure/bind/resources/` must be registered.
 - no unregistered template may remain in the repository.

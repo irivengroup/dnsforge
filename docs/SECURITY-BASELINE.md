@@ -20,7 +20,7 @@ grep -R 'TSIG_SECRET=.*CHANGE_ME\|RNDC_SECRET=.*CHANGE_ME' src/settings
 ## 2. TSIG obligatoire pour transferts
 
 ```bash
-grep -Rni 'key "{{ TSIG_KEY_NAME }}"\|allow-transfer' src/dnsforge/infrastructure/templates src/render
+grep -Rni 'key "{{ TSIG_KEY_NAME }}"\|allow-transfer' src/dnsforge/infrastructure/bind/resources src/render
 ```
 
 Test :

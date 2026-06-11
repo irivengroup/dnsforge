@@ -6,7 +6,7 @@ cd "${PROJECT_ROOT}"
 python3 - <<'PY'
 from pathlib import Path
 from dnsforge.infrastructure.bind.layout import BindLayoutDetector
-from dnsforge.infrastructure.templates import TemplateRegistry, TemplateService
+from dnsforge.infrastructure.bind.rendering import TemplateRegistry, TemplateService
 
 for family in ("redhat", "debian", "suse"):
     layout = BindLayoutDetector().from_family(family)
@@ -18,7 +18,7 @@ for family in ("redhat", "debian", "suse"):
     assert svc.destination_for("/var/named/rpz/rpz.local.zone") == layout.rpz_data_dir / "rpz.local.zone"
     assert layout.named_conf in TemplateRegistry.destinations(layout)
 
-root = Path("src/dnsforge/infrastructure/templates")
+root = Path("src/dnsforge/infrastructure/bind/resources")
 assert not (root / "templates").exists()
 actual = {p.relative_to(root) for p in root.rglob('*') if p.suffix in {'.j2', '.tpl'}}
 assert actual == set(TemplateRegistry.templates()), actual
