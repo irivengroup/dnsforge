@@ -9,6 +9,7 @@ from dnsforge.domain.zone.policy_validator import ServerProfile, ZonePolicyValid
 from dnsforge.domain.zone.record import DnsRecord, DnsRecordExpressionParser, DnsRecordType
 from dnsforge.domain.zone.reverse import is_reverse_zone_name, reverse_mapping_for_address
 from dnsforge.infrastructure.catalog.zone_catalog import ZoneCatalog
+from dnsforge.application.zone.zone_transaction import ZoneChangePlan, ZoneTransactionEngine
 from dnsforge.infrastructure.filesystem.paths import ProjectPaths
 from dnsforge.infrastructure.history.filesystem_repository import FilesystemHistoryRepository
 from dnsforge.shared.errors import ZoneError
@@ -16,7 +17,10 @@ from dnsforge.shared.errors import ZoneError
 
 class ZoneManager:
     def __init__(
-        self, paths: ProjectPaths, catalog: ZoneCatalog | None = None, profile: ServerProfile = ServerProfile.AUTHORITATIVE
+        self,
+        paths: ProjectPaths,
+        catalog: ZoneCatalog | None = None,
+        profile: ServerProfile = ServerProfile.AUTHORITATIVE,
     ) -> None:
         self.paths = paths
         self.profile = profile
@@ -26,6 +30,7 @@ class ZoneManager:
             self.catalog,
             FilesystemHistoryRepository(paths.history_root),
         )
+        self.transactions = ZoneTransactionEngine(self.catalog, self.profile)
 
     def list(self) -> list[ZoneDefinition]:
         return self.catalog.list()
@@ -58,37 +63,59 @@ class ZoneManager:
         cluster: str | None = None,
         enabled: bool = True,
     ) -> None:
+        plan = self.transactions.plan()
         zone = ZoneDefinition(name, ZoneType.from_value(zone_type), views, cluster, enabled)
-        ZonePolicyValidator.validate_zone(zone, self.profile)
-        self.catalog.create(zone)
+        plan.create(zone)
+        self.transactions.commit(plan)
         self.history.snapshot_current(name, "create")
 
     def disable(self, name: str) -> None:
-        self.catalog.disable(name)
+        zone = self.get(name)
+        plan = self.transactions.plan()
+        plan.update(
+            ZoneDefinition(
+                zone.name, zone.zone_type, zone.views, zone.cluster, False, zone.acl, zone.records, zone.managed_reverse
+            )
+        )
+        self.transactions.commit(plan)
         self.history.snapshot_current(name, "disable")
 
     def enable(self, name: str) -> None:
-        self.catalog.enable(name)
+        zone = self.get(name)
+        plan = self.transactions.plan()
+        plan.update(
+            ZoneDefinition(
+                zone.name, zone.zone_type, zone.views, zone.cluster, True, zone.acl, zone.records, zone.managed_reverse
+            )
+        )
+        self.transactions.commit(plan)
         self.history.snapshot_current(name, "enable")
 
     def delete(self, name: str) -> None:
         zone = self.get(name)
         self.history.snapshot_current(name, "pre-delete")
-        for record in zone.records:
-            self._apply_reverse_delete(zone, record)
-        self.catalog.delete(name)
+        plan = self.transactions.plan()
+        working_zone = plan.get(name)
+        for record in working_zone.records:
+            self._apply_reverse_delete(plan, working_zone, record)
+        plan.delete(name)
+        self.transactions.commit(plan)
 
     def add_record(self, zone_name: str, expr: str, ttl: int | None = None) -> None:
-        zone = self.get(zone_name)
+        plan = self.transactions.plan()
+        zone = plan.get(zone_name)
         record = self.parser.parse_add(expr, ttl)
         if record in zone.records:
             raise ZoneError("record already exists")
-        self._save(zone, [*zone.records, record])
-        self._apply_reverse_add(zone, record)
-        self.history.snapshot_current(zone_name, "add-record")
+        updated_zone = self._replace_records(zone, [*zone.records, record])
+        plan.update(updated_zone)
+        self._apply_reverse_add(plan, updated_zone, record)
+        self.transactions.commit(plan)
+        self._snapshot_changes(zone_name, "add-record", plan)
 
     def update_record(self, zone_name: str, expr: str, ttl: int | None = None) -> None:
-        zone = self.get(zone_name)
+        plan = self.transactions.plan()
+        zone = plan.get(zone_name)
         new_record, old_value = self.parser.parse_update(expr, ttl)
         found = False
         records = []
@@ -107,13 +134,16 @@ class ZoneManager:
                 records.append(record)
         if not found or old_record is None:
             raise ZoneError("record to update not found")
-        self._save(zone, records)
-        self._apply_reverse_delete(zone, old_record)
-        self._apply_reverse_add(zone, new_record)
-        self.history.snapshot_current(zone_name, "update-record")
+        updated_zone = self._replace_records(zone, records)
+        plan.update(updated_zone)
+        self._apply_reverse_delete(plan, updated_zone, old_record)
+        self._apply_reverse_add(plan, updated_zone, new_record)
+        self.transactions.commit(plan)
+        self._snapshot_changes(zone_name, "update-record", plan)
 
     def delete_record(self, zone_name: str, expr: str) -> None:
-        zone = self.get(zone_name)
+        plan = self.transactions.plan()
+        zone = plan.get(zone_name)
         record_type, name, priority, value = self.parser.parse_delete(expr)
         found = False
         records = []
@@ -132,10 +162,12 @@ class ZoneManager:
                 records.append(record)
         if not found:
             raise ZoneError("record to delete not found")
-        self._save(zone, records)
+        updated_zone = self._replace_records(zone, records)
+        plan.update(updated_zone)
         for record in removed:
-            self._apply_reverse_delete(zone, record)
-        self.history.snapshot_current(zone_name, "delete-record")
+            self._apply_reverse_delete(plan, updated_zone, record)
+        self.transactions.commit(plan)
+        self._snapshot_changes(zone_name, "delete-record", plan)
 
     def _save(self, zone: ZoneDefinition, records: List[DnsRecord]) -> None:
         updated = ZoneDefinition(
@@ -151,30 +183,29 @@ class ZoneManager:
         ZonePolicyValidator.validate_zone(updated, self.profile)
         self.catalog.update(updated)
 
-    def _apply_reverse_add(self, zone: ZoneDefinition, record: DnsRecord) -> None:
+    def _apply_reverse_add(self, plan: ZoneChangePlan, zone: ZoneDefinition, record: DnsRecord) -> None:
         mapping_record = self._reverse_record_for(zone, record)
         if mapping_record is None:
             return
         reverse_name, ptr_record = mapping_record
-        reverse_zone = self._get_or_create_reverse_zone(reverse_name, zone)
+        reverse_zone = self._get_or_create_reverse_zone(plan, reverse_name, zone)
         if ptr_record not in reverse_zone.records:
-            self.catalog.update(self._replace_records(reverse_zone, [*reverse_zone.records, ptr_record]))
-            self.history.snapshot_current(reverse_name, "sync-reverse-add")
+            plan.update(self._replace_records(reverse_zone, [*reverse_zone.records, ptr_record]))
 
-    def _apply_reverse_delete(self, zone: ZoneDefinition, record: DnsRecord) -> None:
+    def _apply_reverse_delete(self, plan: ZoneChangePlan, zone: ZoneDefinition, record: DnsRecord) -> None:
         mapping_record = self._reverse_record_for(zone, record)
         if mapping_record is None:
             return
         reverse_name, ptr_record = mapping_record
         try:
-            reverse_zone = self.get(reverse_name)
+            reverse_zone = plan.get(reverse_name)
         except ZoneError:
             return
         records = [item for item in reverse_zone.records if item != ptr_record]
-        self.catalog.update(self._replace_records(reverse_zone, records))
-        self.history.snapshot_current(reverse_name, "sync-reverse-delete")
         if reverse_zone.managed_reverse and not records:
-            self.catalog.delete(reverse_name)
+            plan.delete(reverse_name)
+        else:
+            plan.update(self._replace_records(reverse_zone, records))
 
     def _reverse_record_for(self, zone: ZoneDefinition, record: DnsRecord) -> tuple[str, DnsRecord] | None:
         if zone.managed_reverse or is_reverse_zone_name(zone.name):
@@ -189,9 +220,11 @@ class ZoneManager:
         mapping = reverse_mapping_for_address(record.value, target)
         return mapping.zone_name, DnsRecord(DnsRecordType.PTR, mapping.ptr_owner, mapping.ptr_target, ttl=record.ttl)
 
-    def _get_or_create_reverse_zone(self, reverse_name: str, source_zone: ZoneDefinition) -> ZoneDefinition:
+    def _get_or_create_reverse_zone(
+        self, plan: ZoneChangePlan, reverse_name: str, source_zone: ZoneDefinition
+    ) -> ZoneDefinition:
         try:
-            return self.get(reverse_name)
+            return plan.get(reverse_name)
         except ZoneError:
             reverse_zone = ZoneDefinition(
                 name=reverse_name,
@@ -203,8 +236,7 @@ class ZoneManager:
                 records=[],
                 managed_reverse=True,
             )
-            self.catalog.create(reverse_zone)
-            self.history.snapshot_current(reverse_name, "create-managed-reverse")
+            plan.create(reverse_zone)
             return reverse_zone
 
     def _replace_records(self, zone: ZoneDefinition, records: List[DnsRecord]) -> ZoneDefinition:
@@ -227,6 +259,18 @@ class ZoneManager:
         if record_name.endswith("."):
             return record_name
         return f"{record_name}.{zone_name.rstrip('.')}."
+
+
+    def _snapshot_changes(self, primary_zone: str, action: str, plan: ZoneChangePlan) -> None:
+        for zone_name in plan.affected_zones():
+            if zone_name == primary_zone:
+                self.history.snapshot_current(zone_name, action)
+            elif zone_name in plan.deleted_zones:
+                # Deleted managed reverse zones are intentionally not snapshotted
+                # after commit because they are no longer present in the catalog.
+                continue
+            else:
+                self.history.snapshot_current(zone_name, f"sync-reverse-{action}")
 
     def history_list(self, zone_name: str) -> str:
         return self.history.history(zone_name)

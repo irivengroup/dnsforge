@@ -1,3 +1,11 @@
+
+## 10.6.4 - Zone Transaction Engine
+
+- Added atomic zone change planning for forward/reverse mutations.
+- Added rollback-on-persistence-failure for zone catalog commits.
+- Added post-commit history snapshots only after successful catalog writes.
+- Added transaction regression tests for failed commits and forward/reverse consistency.
+
 # 10.6.0
 
 - Split render and deploy as first-class application commands.
