@@ -270,11 +270,11 @@ CLI_COMMANDS: list[list[str]] = [
     ["deploy", "--dry-run"],
     ["deploy", "proxy", "proxy01", "--type", "forwarder", "--target-root", "/tmp", "--dry-run"],
     ["deploy", "authoritative", "auth01", "--target-root", "/tmp", "--dry-run"],
-    ["initialize", "--render-only"],
-    ["initialize", "--apply", "--dry-run"],
-    ["initialize", "proxy", "proxy01", "--type", "forwarder", "--render-only"],
-    ["initialize", "proxy", "proxy01", "--type", "hybrid", "--dry-run"],
-    ["initialize", "authoritative", "auth01", "--render-only"],
+    ["authoritative", "initialize", "--render-only"],
+    ["authoritative", "initialize", "--apply", "--dry-run"],
+    ["proxy", "initialize", "proxy01", "--type", "forwarder", "--render-only"],
+    ["proxy", "initialize", "proxy01", "--type", "hybrid", "--dry-run"],
+    ["authoritative", "initialize", "auth01", "--render-only"],
     ["zone", "list"],
     ["zone", "get", "--name", "example.com"],
     ["zone", "show", "example.com"],
@@ -341,5 +341,7 @@ def test_every_exposed_cli_form_is_parsed_and_dispatched(argv: list[str], tmp_pa
 
 def test_initialize_render_only_and_apply_are_mutually_exclusive(tmp_path: Path) -> None:
     parser = DnsForgeArgumentParserFactory().build()
-    args = parser.parse_args(["--project-root", str(tmp_path), "initialize", "--render-only", "--apply"])
+    args = parser.parse_args(
+        ["--project-root", str(tmp_path), "authoritative", "initialize", "--render-only", "--apply"]
+    )
     assert DnsForgeCommandDispatcher().dispatch(args) == 2

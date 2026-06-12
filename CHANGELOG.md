@@ -54,7 +54,7 @@
 - `dnsforge zone history <zone>` indique la version courante.
 - Suppression définitive de `src/settings` du livrable.
 - Configuration opérateur déportée vers `/etc/dnsforge/setup.conf`.
-- Les modèles restent dans `install/templates/`.
+- Les modèles restent dans `src/dnsforge/infrastructure/profile/resources/`.
 
 ## v10.0
 
@@ -109,7 +109,7 @@
 
 - Intégration des variables présentes dans `src/settings` dans les templates `setup.conf`.
 - Modèles complets par profil : authoritative, proxy-forwarder, proxy-hybrid.
-- Ajout du manifeste `install/templates/VARIABLE-COVERAGE.md`.
+- Ajout du manifeste `src/dnsforge/infrastructure/profile/resources/VARIABLE-COVERAGE.md`.
 - Ajout de `docs/SETUP-CONF-TEMPLATES.md`.
 
 ## v9.3

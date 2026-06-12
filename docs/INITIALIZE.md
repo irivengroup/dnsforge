@@ -1,18 +1,18 @@
 [Documentation index](./index.md)
 
-# dnsforge initialize
+# Profile-driven initialization
 
-`dnsforge initialize` prend en main la configuration locale d'un BIND déjà installé par le composant `install/`.
+`dnsforge authoritative initialize` et `dnsforge proxy initialize` prennent en main le serveur BIND local selon le profil DNS choisi.
 
-La commande ne fait **aucune installation de paquet système**. Elle ne remplace pas l'installateur.
+Le wheel installe le package Python et la commande `dnsforge`. Le premier chemin privilégié `initialize` installe automatiquement BIND si les outils BIND sont absents du système.
 
 ## Responsabilité
 
-`initialize` exécute uniquement le cycle de déploiement BIND DNSForge :
+`initialize` exécute le cycle de déploiement BIND DNSForge :
 
 1. lecture de `/etc/dnsforge/setup.conf`, source de vérité du nœud ;
 2. rendu des templates DNSForge ;
-3. contrôle des prérequis BIND (`named-checkconf`, `rndc`, `systemctl`) ;
+3. installation automatique de BIND si absent, puis contrôle des prérequis (`named-checkconf`, `rndc`, `systemctl`) ;
 4. sauvegarde complète de la configuration BIND existante par déplacement puis archive `tar.gz` ;
 5. déploiement des nouveaux fichiers BIND générés ;
 6. validation `named-checkconf` ;
@@ -23,7 +23,7 @@ La commande ne fait **aucune installation de paquet système**. Elle ne remplace
 
 ## Règle one-shot
 
-Après un déploiement effectif de la configuration BIND, toute nouvelle tentative de `dnsforge initialize` est bloquée.
+Après un déploiement effectif de la configuration BIND, toute nouvelle tentative d'initialisation est bloquée, y compris vers l'autre profil.
 
 Le verrou est écrit dans un fichier technique masqué distinct de `setup.conf` :
 
@@ -39,11 +39,8 @@ INITIALIZED_NODE=<node>
 Ce verrou interdit ensuite :
 
 ```bash
-dnsforge initialize
-dnsforge initialize --render-only
-dnsforge initialize --apply
-dnsforge initialize authoritative local
-dnsforge initialize proxy local --type forwarder
+dnsforge authoritative initialize local
+dnsforge proxy initialize local --type forwarder
 ```
 
 La suppression de ce verrou n'est pas une opération normale. Elle n'est acceptable que dans un scénario contrôlé de reconstruction complète du nœud.
@@ -73,15 +70,15 @@ Ce comportement évite les configurations hybrides entre l'ancien BIND et DNSFor
 ## Usage direct
 
 ```bash
-dnsforge initialize authoritative local
+dnsforge authoritative initialize local
 ```
 
 ```bash
-dnsforge initialize proxy local --type forwarder
+dnsforge proxy initialize local --type forwarder
 ```
 
 ```bash
-dnsforge initialize proxy local --type hybrid
+dnsforge proxy initialize local --type hybrid
 ```
 
 ## Usage en deux temps
@@ -89,31 +86,31 @@ dnsforge initialize proxy local --type hybrid
 Rendu uniquement, sans modification système et sans verrou :
 
 ```bash
-dnsforge initialize authoritative local --render-only
+dnsforge authoritative initialize local --render-only
 ```
 
 Application du rendu existant, avec backup BIND, déploiement et verrouillage :
 
 ```bash
-dnsforge initialize authoritative local --apply
+dnsforge authoritative initialize local --apply
 ```
 
 ## Dry-run
 
 ```bash
-dnsforge initialize authoritative local --dry-run
+dnsforge authoritative initialize local --dry-run
 ```
 
 Le dry-run affiche le plan, les chemins qui seraient déplacés et l'archive qui serait créée, sans modifier le système et sans poser le verrou d'initialisation.
 
 ## Hors périmètre
 
-Les actions suivantes appartiennent à `install/` :
+Les actions suivantes restent hors du rendu BIND :
 
-- installation de BIND ;
-- installation de `bind-utils` ;
-- installation de Keepalived ;
 - création des utilisateurs système ;
-- création de l'arborescence produit `/opt/dnsforge` et `/etc/dnsforge`.
+- création de l'arborescence produit `/opt/dnsforge` et `/etc/dnsforge` ;
+- configuration du service système DNSForge hors BIND.
+
+L'installation des paquets BIND est déclenchée par `initialize` si nécessaire.
 
 [Documentation index](./index.md)

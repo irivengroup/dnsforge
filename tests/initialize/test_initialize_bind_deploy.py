@@ -12,8 +12,8 @@ from dnsforge.interfaces.cli.main import build_parser
 
 def test_initialize_plan_backs_up_bind_without_installing_packages() -> None:
     parser = build_parser()
-    parser.parse_args(["initialize", "authoritative", "local", "--dry-run"])
-    parser.parse_args(["initialize", "proxy", "local", "--type", "forwarder", "--dry-run"])
+    parser.parse_args(["authoritative", "initialize", "local", "--dry-run"])
+    parser.parse_args(["proxy", "initialize", "local", "--type", "forwarder", "--dry-run"])
 
     plan = InitializePlanner().build_authoritative_plan(
         "local", Path("/tmp/render"), dry_run=True, backup_before_apply=True

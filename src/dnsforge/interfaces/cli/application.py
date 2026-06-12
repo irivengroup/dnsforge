@@ -47,7 +47,8 @@ class DnsForgeArgumentParserFactory:
         self._add_validate(sub)
         self._add_render(sub)
         self._add_deploy(sub)
-        self._add_initialize(sub)
+        self._add_authoritative_profile(sub)
+        self._add_proxy_profile(sub)
         self._add_zone(sub)
         self._add_audit(sub)
         self._add_profile(sub)
@@ -122,6 +123,27 @@ class DnsForgeArgumentParserFactory:
             "--apply", action="store_true", help="Apply a previously rendered DNSForge BIND configuration"
         )
         root.add_argument("--dry-run", action="store_true")
+
+    def _add_authoritative_profile(self, sub) -> None:
+        root = sub.add_parser("authoritative", help="Manage an authoritative DNS server profile")
+        inner = root.add_subparsers(dest="profile_action", required=True)
+        init = inner.add_parser("initialize", help="Initialize this node as authoritative")
+        init.add_argument("node", nargs="?", default="local")
+        init.add_argument("--render-only", action="store_true")
+        init.add_argument(
+            "--apply", action="store_true", help="Apply a previously rendered authoritative BIND configuration"
+        )
+        init.add_argument("--dry-run", action="store_true")
+
+    def _add_proxy_profile(self, sub) -> None:
+        root = sub.add_parser("proxy", help="Manage a proxy DNS server profile")
+        inner = root.add_subparsers(dest="profile_action", required=True)
+        init = inner.add_parser("initialize", help="Initialize this node as proxy forwarder or hybrid")
+        init.add_argument("node", nargs="?", default="local")
+        init.add_argument("--type", choices=ProxyType.choices(), dest="proxy_type", default=ProxyType.HYBRID.value)
+        init.add_argument("--render-only", action="store_true")
+        init.add_argument("--apply", action="store_true", help="Apply a previously rendered proxy BIND configuration")
+        init.add_argument("--dry-run", action="store_true")
 
     def _add_zone(self, sub) -> None:
         zone = sub.add_parser("zone", help="Manage DNS zones")
@@ -348,34 +370,34 @@ class DnsForgeCommandDispatcher:
             DeployService().deploy(render_root, target_root=target_root, dry_run=args.dry_run)
             return 0
 
-        if args.command == "initialize":
-            if getattr(args, "render_only", False) and getattr(args, "apply", False):
-                print("ERROR: --render-only and --apply are mutually exclusive", file=sys.stderr)
-                return 2
-
-            resolved = self._resolve_role_from_setup(
-                paths, args.role, getattr(args, "node", None), getattr(args, "proxy_type", None)
-            )
-            if resolved is None:
-                return 2
-            role, node, proxy_type = resolved
-
-            if role == "proxy":
-                InitializeProxy(paths).execute(
-                    node,
-                    ProxyType.from_value(proxy_type or "forwarder"),
-                    render_only=args.render_only,
-                    dry_run=args.dry_run,
-                    apply_only=args.apply,
-                )
-            elif role == "authoritative":
+        if args.command == "authoritative":
+            if args.profile_action == "initialize":
+                if getattr(args, "render_only", False) and getattr(args, "apply", False):
+                    print("ERROR: --render-only and --apply are mutually exclusive", file=sys.stderr)
+                    return 2
                 InitializeAuthoritative(paths).execute(
-                    node,
+                    args.node,
                     render_only=args.render_only,
                     dry_run=args.dry_run,
                     apply_only=args.apply,
                 )
-            return 0
+                return 0
+            return 2
+
+        if args.command == "proxy":
+            if args.profile_action == "initialize":
+                if getattr(args, "render_only", False) and getattr(args, "apply", False):
+                    print("ERROR: --render-only and --apply are mutually exclusive", file=sys.stderr)
+                    return 2
+                InitializeProxy(paths).execute(
+                    args.node,
+                    ProxyType.from_value(args.proxy_type or ProxyType.HYBRID.value),
+                    render_only=args.render_only,
+                    dry_run=args.dry_run,
+                    apply_only=args.apply,
+                )
+                return 0
+            return 2
 
         if args.command == "zone":
             manager = ZoneManager(paths)
@@ -450,7 +472,7 @@ class DnsForgeCommandDispatcher:
 
         if args.command == "profile":
             if args.action == "audit":
-                errors = ProfileAuditor().audit_templates(paths.project_root)
+                errors = ProfileAuditor().audit_templates()
                 if errors:
                     for error in errors:
                         print(f"ERROR: {error}")

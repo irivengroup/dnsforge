@@ -30,7 +30,7 @@ def test_cli_and_initialize_flow_are_python_native() -> None:
     parser = build_parser()
     parser.parse_args(["validate", "proxy", "proxy01", "--type", "forwarder"])
     parser.parse_args(["render", "proxy", "proxy01", "--type", "hybrid"])
-    parser.parse_args(["initialize", "proxy", "proxy01", "--type", "forwarder", "--dry-run"])
+    parser.parse_args(["proxy", "initialize", "proxy01", "--type", "forwarder", "--dry-run"])
     parser.parse_args(["zone", "list"])
 
     with tempfile.TemporaryDirectory() as tmp:

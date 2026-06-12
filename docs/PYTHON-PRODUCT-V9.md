@@ -33,7 +33,7 @@ Ils ne sont plus appelés par le package Python `dnsforge`.
 ```bash
 ./bin/dnsforge validate proxy proxy01 --type forwarder
 ./bin/dnsforge render proxy proxy01 --type hybrid
-./bin/dnsforge initialize proxy proxy01 --type forwarder --dry-run
+./bin/dnsforge proxy initialize proxy01 --type forwarder --dry-run
 ./bin/dnsforge zone list
 ```
 

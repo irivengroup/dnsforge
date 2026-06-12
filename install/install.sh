@@ -81,7 +81,7 @@ esac
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-TEMPLATE="${SCRIPT_DIR}/templates/${PROFILE}/setup.conf"
+TEMPLATE="${SOURCE_ROOT}/src/dnsforge/infrastructure/profile/resources/${PROFILE}/setup.conf"
 
 if [[ ! -f "${TEMPLATE}" ]]; then
   echo "ERROR: template not found: ${TEMPLATE}" >&2
@@ -138,5 +138,5 @@ Then create the node settings file:
 
 Then run:
   dnsforge profile audit
-  dnsforge validate/render/initialize.
+  dnsforge authoritative initialize or dnsforge proxy initialize --type hybrid|forwarder.
 EOF

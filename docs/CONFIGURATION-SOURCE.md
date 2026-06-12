@@ -1,5 +1,5 @@
-ZoneForge DNSaaS
-Plateforme de Déploiement et de Configuration DNS as a Service
+DNSForge
+Plateforme Enterprise de déploiement et de configuration BIND
 
 # Source de configuration
 
@@ -14,7 +14,7 @@ La configuration opérateur est portée par :
 Les modèles de configuration sont livrés dans :
 
 ```text
-install/templates/
+src/dnsforge/infrastructure/profile/resources/
 ```
 
 Le lien applicatif reste :

@@ -14,5 +14,5 @@ class BindPrerequisites:
             raise DnsForgeError(
                 "BIND is not ready on this node. Missing command(s): "
                 + ", ".join(missing)
-                + ". Run the DNSForge installer from install/ before dnsforge initialize."
+                + ". Run DNSForge initialize with sufficient privileges to bootstrap BIND automatically."
             )

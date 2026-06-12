@@ -18,17 +18,17 @@ def test_cli_parser_accepts_active_commands() -> None:
         ["render", "authoritative", "auth01"],
         ["deploy", "proxy", "proxy01", "--type", "forwarder", "--dry-run"],
         ["deploy", "authoritative", "auth01", "--dry-run"],
-        ["initialize", "proxy", "proxy01", "--type", "forwarder", "--render-only"],
-        ["initialize", "proxy", "proxy01", "--type", "forwarder", "--dry-run"],
-        ["initialize", "authoritative", "auth01", "--render-only"],
-        ["initialize", "authoritative", "auth01", "--dry-run"],
+        ["proxy", "initialize", "proxy01", "--type", "forwarder", "--render-only"],
+        ["proxy", "initialize", "proxy01", "--type", "forwarder", "--dry-run"],
+        ["authoritative", "initialize", "auth01", "--render-only"],
+        ["authoritative", "initialize", "auth01", "--dry-run"],
         ["zone", "list"],
         ["zone", "get", "--name", "example.com"],
         ["zone", "create", "--name", "example.com", "--type", "master", "--views", "external,internal"],
         ["zone", "disable", "--name", "example.com"],
         ["zone", "enable", "--name", "example.com"],
         ["zone", "delete", "--name", "example.com"],
-        ["initialize", "proxy", "proxy01"],
+        ["proxy", "initialize", "proxy01"],
     ]
     for command in commands:
         parser.parse_args(command)
@@ -37,3 +37,10 @@ def test_cli_parser_accepts_active_commands() -> None:
 
 def test_bin_dnsforge_entrypoint_exists() -> None:
     assert (PROJECT_ROOT / "bin/dnsforge").is_file()
+
+
+def test_proxy_initialize_defaults_to_hybrid() -> None:
+    parser = build_parser()
+    args = parser.parse_args(["proxy", "initialize"])
+    assert args.proxy_type == "hybrid"
+    assert args.node == "local"
