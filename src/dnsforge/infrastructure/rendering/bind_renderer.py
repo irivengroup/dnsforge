@@ -7,6 +7,8 @@ from pathlib import Path
 from dnsforge.domain.model.settings import AuthoritativeSettings, ProxySettings
 from dnsforge.domain.render.profile import ProxyRenderProfile
 from dnsforge.domain.security.model import SecurityControls, SecurityProfile
+from dnsforge.domain.zone.model import ZoneType
+from dnsforge.domain.zone.template_policy import ServerProfile, ZoneScope, ZoneTemplateKey, ZoneTemplatePolicy
 from dnsforge.infrastructure.bind.layout import BindLayout, BindLayoutDetector
 from dnsforge.infrastructure.security.bind_security import BindSecurityOptionsRenderer
 from dnsforge.infrastructure.bind.rendering.template_service import TemplateService
@@ -224,27 +226,30 @@ class BindConfigFactory:
     def zone_index(self, layout: BindLayout, view: str) -> str:
         return f"// DNSForge managed index for {view} view.\n"
 
-    def master_template(self, layout: BindLayout, view: str) -> str:
+    def zone_template(self, layout: BindLayout, profile: ServerProfile, scope: ZoneScope, zone_type: ZoneType) -> str:
+        template = ZoneTemplatePolicy.template_path(ZoneTemplateKey(profile, scope, zone_type))
+        zone_file = (layout.master_view_data_dir(scope.value) if zone_type is ZoneType.MASTER else layout.secondary_data_dir) / "{{ zone_file }}"
         return self._render(
-            "master-zone.conf.tpl",
+            str(template),
             {
-                "MASTER_ZONE_FILE": f"{layout.master_view_data_dir(view)}/{{{{ zone_file }}}}",
-                "ALSO_NOTIFY": "none;",
-                "UPDATE_KEY_NAME": "rndc-key",
+                "ZONE_FILE": zone_file,
+                "ALSO_NOTIFY": "{{ ALSO_NOTIFY }}",
+                "MASTERS": "{{ MASTERS }}",
+                "FORWARDERS": "{{ FORWARDERS }}",
+                "FORWARD_POLICY": "{{ FORWARD_POLICY }}",
             },
             layout,
         )
 
+    def master_template(self, layout: BindLayout, view: str) -> str:
+        return self.zone_template(layout, ServerProfile.AUTHORITATIVE, ZoneScope.from_value(view), ZoneType.MASTER)
+
     def secondary_template(self, layout: BindLayout) -> str:
-        return self._render(
-            "secondary-zone.conf.tpl",
-            {"SECONDARY_ZONE_FILE": f"{layout.secondary_data_dir}/{{{{ zone_file }}}}"},
-            layout,
-        )
+        return self.zone_template(layout, ServerProfile.AUTHORITATIVE, ZoneScope.INTERNAL, ZoneType.SECONDARY)
 
     def forward_template(self, layout: BindLayout | None = None) -> str:
         layout = layout or self.template_service.layout
-        return self._render("forward-zone.conf.tpl", {"FORWARD_POLICY": "only"}, layout)
+        return self.zone_template(layout, ServerProfile.PROXY_FORWARDER, ZoneScope.INTERNAL, ZoneType.FORWARD)
 
     def catalog_conf(self, layout: BindLayout | None = None) -> str:
         layout = layout or self.template_service.layout
@@ -299,7 +304,7 @@ class BindRenderTree:
             self._write_native(destination, layout.conf_d / "50-rpz.conf", "// RPZ is disabled for this authoritative profile.\n")
 
         if model.include_views:
-            self._write_views(destination)
+            self._write_views(destination, ServerProfile.PROXY_HYBRID if model.proxy else ServerProfile.AUTHORITATIVE)
 
     def _write_common_conf(self, destination: Path, env: dict[str, str], proxy: bool) -> None:
         layout = self.layout
@@ -310,14 +315,15 @@ class BindRenderTree:
         self._write_native(destination, layout.conf_d / "40-controls.conf", self.config_factory.controls(env, layout))
         self._write_native(destination, layout.conf_d / "45-statistics.conf", self.config_factory.statistics(layout))
 
-    def _write_views(self, destination: Path) -> None:
+    def _write_views(self, destination: Path, profile: ServerProfile) -> None:
         layout = self.layout
         self._write_native(destination, layout.conf_d / "60-views.conf", self.config_factory.views(layout))
         for view in ("external", "internal"):
             self._write_native(destination, layout.zones_enabled_dir(view) / "zones.index.conf", self.config_factory.zone_index(layout, view))
-            self._write_native(destination, layout.view_templates_dir(view) / "master.conf.tpl", self.config_factory.master_template(layout, view))
-            self._write_native(destination, layout.view_templates_dir(view) / "secondary.conf.tpl", self.config_factory.secondary_template(layout))
-            self._write_native(destination, layout.view_templates_dir(view) / "forward.conf.tpl", self.config_factory.forward_template(layout))
+            scope = ZoneScope.from_value(view)
+            self._write_native(destination, layout.view_templates_dir(view) / "master.conf.tpl", self.config_factory.zone_template(layout, profile, scope, ZoneType.MASTER))
+            self._write_native(destination, layout.view_templates_dir(view) / "secondary.conf.tpl", self.config_factory.zone_template(layout, profile, scope, ZoneType.SECONDARY))
+            self._write_native(destination, layout.view_templates_dir(view) / "forward.conf.tpl", self.config_factory.zone_template(layout, profile, scope, ZoneType.FORWARD))
 
     def _common_tree(self, destination: Path) -> None:
         layout = self.layout

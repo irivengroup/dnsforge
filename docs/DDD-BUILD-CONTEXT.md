@@ -8,7 +8,7 @@ Plateforme Enterprise de déploiement et de configuration BIND
 Le dossier historique :
 
 ```text
-src/dnsforge/infrastructure/build/
+src/dnsforge/infrastructure/bind/resources/
 ```
 
 est supprimé et remplacé par :
@@ -38,7 +38,7 @@ src/dnsforge/
 └── interfaces/
 ```
 
-Le dossier `build/` ne doit plus réapparaître dans `src/dnsforge/infrastructure`.
+Le dossier `build/` ne doit plus réapparaître dans `src/dnsforge/infrastructure`; les ressources de rendu BIND vivent dans `src/dnsforge/infrastructure/bind/resources`.
 
 ---
 

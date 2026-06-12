@@ -17,7 +17,7 @@ class ZoneCatalog:
             if s.startswith("- name:"):
                 if rec and current: current["records"].append(self._record(rec)); rec=None
                 if current: zones.append(self._zone(current))
-                current={"name":s.split(":",1)[1].strip(),"type":"master","views":[],"acl":{},"enabled":True,"records":[]}
+                current={"name":s.split(":",1)[1].strip(),"type":"master","views":[],"acl":{},"enabled":True,"records":[],"managed_reverse":False}
                 section=None; continue
             if current is None: continue
             if section=="records" and s.startswith("- type:"):
@@ -30,6 +30,7 @@ class ZoneCatalog:
             if s.startswith("type:"): current["type"]=s.split(":",1)[1].strip(); section=None
             elif s.startswith("cluster:"): current["cluster"]=s.split(":",1)[1].strip(); section=None
             elif s.startswith("enabled:"): current["enabled"]=s.split(":",1)[1].strip().lower() not in {"false","no","0"}; section=None
+            elif s.startswith("managed_reverse:"): current["managed_reverse"]=s.split(":",1)[1].strip().lower() in {"true","yes","1"}; section=None
             elif s=="views:": section="views"
             elif s=="acl:": section="acl"
             elif s=="records:": section="records"
@@ -67,7 +68,7 @@ class ZoneCatalog:
 
     def _enabled(self, name: str, enabled: bool) -> None:
         z=self.get(name)
-        self.update(ZoneDefinition(z.name,z.zone_type,z.views,z.cluster,enabled,z.acl,z.records))
+        self.update(ZoneDefinition(z.name,z.zone_type,z.views,z.cluster,enabled,z.acl,z.records,z.managed_reverse))
 
     def save(self, zones: list[ZoneDefinition]) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -75,6 +76,7 @@ class ZoneCatalog:
         for z in zones:
             lines += ["",f"  - name: {z.name}",f"    type: {z.zone_type.value}"]
             if z.cluster: lines.append(f"    cluster: {z.cluster}")
+            lines.append(f"    managed_reverse: {'yes' if z.managed_reverse else 'no'}")
             lines += [f"    enabled: {'yes' if z.enabled else 'no'}","    views:"]
             lines += [f"      - {v}" for v in z.views]
             lines.append("    acl:")
@@ -92,7 +94,7 @@ class ZoneCatalog:
     def _zone(self, d: dict) -> ZoneDefinition:
         return ZoneDefinition(str(d["name"]), ZoneType.from_value(str(d.get("type","master"))),
             [str(x) for x in d.get("views",[])], str(d["cluster"]) if d.get("cluster") else None,
-            bool(d.get("enabled", True)), dict(d.get("acl",{})), list(d.get("records",[])))
+            bool(d.get("enabled", True)), dict(d.get("acl",{})), list(d.get("records",[])), bool(d.get("managed_reverse", False)))
 
     def _record(self, d: dict) -> DnsRecord:
         r=DnsRecord(DnsRecordType.from_value(str(d.get("type",""))), str(d.get("name","@")),
