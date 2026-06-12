@@ -66,13 +66,32 @@ jobs:
       - name: Build package
         run: python -m build
 
+      - name: Verify distribution artifacts
+        shell: bash
+        run: |
+          test -n "$(find dist -maxdepth 1 -name '*.whl' -print -quit)"
+          test -n "$(find dist -maxdepth 1 -name '*.tar.gz' -print -quit)"
+          python -m pip install --upgrade twine
+          python -m twine check dist/*
+
       - name: Install built wheel and test dnsforge entrypoint
         shell: bash
         run: |
           python -m venv /tmp/dnsforge-wheel-test
           /tmp/dnsforge-wheel-test/bin/python -m pip install --upgrade pip
           /tmp/dnsforge-wheel-test/bin/python -m pip install dist/*.whl
+          /tmp/dnsforge-wheel-test/bin/python -c "import dnsforge; import dnsforge.interfaces.cli.main"
           /tmp/dnsforge-wheel-test/bin/dnsforge --help
+          /tmp/dnsforge-wheel-test/bin/dnsforge version
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnsforge-dist-${{ matrix.python-version }}
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+          if-no-files-found: error
 
   security:
     name: Blocking security checks

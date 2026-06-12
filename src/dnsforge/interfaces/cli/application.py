@@ -5,6 +5,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from dnsforge import __version__
 from dnsforge.application.audit.product_auditor import ProductAuditor
 from dnsforge.application.cluster.cluster_service import ClusterService
 from dnsforge.application.deploy.deploy_service import DeployService
@@ -62,8 +63,12 @@ class DnsForgeArgumentParserFactory:
         self._add_view(sub)
         self._add_dnssec(sub)
         self._add_rpz(sub)
+        self._add_version(sub)
 
         return parser
+
+    def _add_version(self, sub) -> None:
+        sub.add_parser("version", help="Show DNSForge version")
 
     def _add_validate(self, sub) -> None:
         root = sub.add_parser("validate", help="Validate settings")
@@ -294,6 +299,10 @@ class DnsForgeCommandDispatcher:
 
     def dispatch(self, args: argparse.Namespace) -> int:
         paths = ProjectPaths(Path(args.project_root).resolve())
+
+        if args.command == "version":
+            print(__version__)
+            return 0
 
         if args.command == "validate":
             resolved = self._resolve_role_from_setup(
