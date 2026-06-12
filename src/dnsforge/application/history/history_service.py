@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dnsforge.domain.zone.model import ZoneDefinition
+from dnsforge.domain.zone.record import DnsRecord
 from dnsforge.infrastructure.catalog.zone_catalog import ZoneCatalog
 from dnsforge.infrastructure.history.filesystem_repository import FilesystemHistoryRepository
 
@@ -92,7 +93,7 @@ class ZoneHistoryService:
             records=records,
         )
 
-    def _record(self, data: dict[str, str]):
+    def _record(self, data: dict[str, str]) -> DnsRecord:
         from dnsforge.domain.zone.record import DnsRecord, DnsRecordType
 
         return DnsRecord(

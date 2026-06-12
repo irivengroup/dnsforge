@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from shutil import which
 from dnsforge.infrastructure.runtime.command_runner import CommandRunner
 from dnsforge.infrastructure.system.distribution import LinuxDistribution, OsReleaseReader

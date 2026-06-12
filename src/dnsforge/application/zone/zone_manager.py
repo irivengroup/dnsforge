@@ -22,10 +22,10 @@ class ZoneManager:
             FilesystemHistoryRepository(paths.history_root),
         )
 
-    def list(self):
+    def list(self) -> list[ZoneDefinition]:
         return self.catalog.list()
 
-    def get(self, name: str):
+    def get(self, name: str) -> ZoneDefinition:
         return self.catalog.get(name)
 
     def show(self, name: str) -> str:
@@ -45,26 +45,33 @@ class ZoneManager:
             lines.extend(f"  {record.to_bind_line()}" for record in zone.records)
         return "\n".join(lines)
 
-    def create(self, name, zone_type, views, cluster=None, enabled=True):
+    def create(
+        self,
+        name: str,
+        zone_type: str,
+        views: list[str],
+        cluster: str | None = None,
+        enabled: bool = True,
+    ) -> None:
         self.catalog.create(ZoneDefinition(name, ZoneType.from_value(zone_type), views, cluster, enabled))
         self.history.snapshot_current(name, "create")
 
-    def disable(self, name):
+    def disable(self, name: str) -> None:
         self.catalog.disable(name)
         self.history.snapshot_current(name, "disable")
 
-    def enable(self, name):
+    def enable(self, name: str) -> None:
         self.catalog.enable(name)
         self.history.snapshot_current(name, "enable")
 
-    def delete(self, name):
+    def delete(self, name: str) -> None:
         zone = self.get(name)
         self.history.snapshot_current(name, "pre-delete")
         for record in zone.records:
             self._apply_reverse_delete(zone, record)
         self.catalog.delete(name)
 
-    def add_record(self, zone_name, expr, ttl=None):
+    def add_record(self, zone_name: str, expr: str, ttl: int | None = None) -> None:
         zone = self.get(zone_name)
         record = self.parser.parse_add(expr, ttl)
         if record in zone.records:
@@ -73,7 +80,7 @@ class ZoneManager:
         self._apply_reverse_add(zone, record)
         self.history.snapshot_current(zone_name, "add-record")
 
-    def update_record(self, zone_name, expr, ttl=None):
+    def update_record(self, zone_name: str, expr: str, ttl: int | None = None) -> None:
         zone = self.get(zone_name)
         new_record, old_value = self.parser.parse_update(expr, ttl)
         found = False
@@ -98,7 +105,7 @@ class ZoneManager:
         self._apply_reverse_add(zone, new_record)
         self.history.snapshot_current(zone_name, "update-record")
 
-    def delete_record(self, zone_name, expr):
+    def delete_record(self, zone_name: str, expr: str) -> None:
         zone = self.get(zone_name)
         record_type, name, priority, value = self.parser.parse_delete(expr)
         found = False
@@ -123,7 +130,7 @@ class ZoneManager:
             self._apply_reverse_delete(zone, record)
         self.history.snapshot_current(zone_name, "delete-record")
 
-    def _save(self, zone, records):
+    def _save(self, zone: ZoneDefinition, records: list[DnsRecord]) -> None:
         self.catalog.update(
             ZoneDefinition(
                 zone.name,

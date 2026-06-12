@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from pathlib import Path
+from dnsforge.domain.security.model import SecurityControls
 from dnsforge.domain.security.validator import SecuritySettingsValidator
 from dnsforge.infrastructure.settings.env_loader import EnvSettingsLoader
 
@@ -11,7 +13,7 @@ class SecurityService:
         self.loader = loader or EnvSettingsLoader()
         self.validator = validator or SecuritySettingsValidator()
 
-    def load_controls(self, setup_file: Path):
+    def load_controls(self, setup_file: Path) -> SecurityControls:
         return self.validator.validate(self.loader.load(setup_file))
 
     def show(self, setup_file: Path) -> str:

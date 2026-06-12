@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from pathlib import Path
 from dnsforge.domain.zone.model import ZoneDefinition, ZoneType
 from dnsforge.domain.zone.record import DnsRecord, DnsRecordType

@@ -35,7 +35,10 @@ class InitializePlanner:
             )
         plan.add_step(
             "apply native Enterprise BIND tree",
-            description=f"deploy {self.layout.named_conf}, {self.layout.config_dir}, {self.layout.data_dir}, {self.layout.log_dir}",
+            description=(
+                f"deploy {self.layout.named_conf}, {self.layout.config_dir}, "
+                f"{self.layout.data_dir}, {self.layout.log_dir}"
+            ),
         )
         plan.add_step(
             "apply ownership and permissions",
@@ -75,7 +78,10 @@ class InitializePlanner:
             )
         plan.add_step(
             "apply native Enterprise BIND tree",
-            description=f"deploy {self.layout.named_conf}, {self.layout.config_dir}, {self.layout.data_dir}, {self.layout.log_dir}",
+            description=(
+                f"deploy {self.layout.named_conf}, {self.layout.config_dir}, "
+                f"{self.layout.data_dir}, {self.layout.log_dir}"
+            ),
         )
         plan.add_step(
             "apply ownership and permissions",

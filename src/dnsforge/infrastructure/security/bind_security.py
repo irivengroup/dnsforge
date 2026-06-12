@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from dnsforge.domain.security.model import SecurityControls
 
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from pathlib import Path
 
 from dnsforge.domain.health.model import HealthCheck, HealthReport

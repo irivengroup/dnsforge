@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from argparse import ArgumentParser
+
 from dnsforge.interfaces.cli.application import DnsForgeArgumentParserFactory, DnsForgeCli
 
 
-def build_parser():
+def build_parser() -> ArgumentParser:
     return DnsForgeArgumentParserFactory().build()
 
 

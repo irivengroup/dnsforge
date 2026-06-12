@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from pathlib import Path
 from dnsforge.domain.cluster.model import ClusterConfig, ClusterRole
 from dnsforge.domain.cluster.validator import ClusterValidator
