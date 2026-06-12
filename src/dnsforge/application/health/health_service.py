@@ -21,9 +21,29 @@ class HealthService:
             checks.append(HealthCheck("settings parse", False, str(exc)))
 
         from dnsforge.infrastructure.filesystem.paths import ProjectPaths
+
         catalog = ProjectPaths(project_root).catalog_file
         checks.append(HealthCheck("zone catalog", catalog.exists(), "configured" if catalog.exists() else "missing"))
-        checks.append(HealthCheck("role", settings.get("ROLE", "").strip("'\"") in {"dns-proxy", "dns-authoritative"}, settings.get("ROLE", "")))
-        checks.append(HealthCheck("security profile", settings.get("SECURITY_PROFILE", "enterprise").strip("'\"") in {"standard","hardened","enterprise","paranoid"}, settings.get("SECURITY_PROFILE", "enterprise")))
-        checks.append(HealthCheck("rpz value", settings.get("ENABLE_RPZ", "no").strip("'\"") in {"yes","no"}, settings.get("ENABLE_RPZ", "no")))
+        checks.append(
+            HealthCheck(
+                "role",
+                settings.get("ROLE", "").strip("'\"") in {"dns-proxy", "dns-authoritative"},
+                settings.get("ROLE", ""),
+            )
+        )
+        checks.append(
+            HealthCheck(
+                "security profile",
+                settings.get("SECURITY_PROFILE", "enterprise").strip("'\"")
+                in {"standard", "hardened", "enterprise", "paranoid"},
+                settings.get("SECURITY_PROFILE", "enterprise"),
+            )
+        )
+        checks.append(
+            HealthCheck(
+                "rpz value",
+                settings.get("ENABLE_RPZ", "no").strip("'\"") in {"yes", "no"},
+                settings.get("ENABLE_RPZ", "no"),
+            )
+        )
         return HealthReport(checks)

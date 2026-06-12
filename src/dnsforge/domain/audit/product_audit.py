@@ -26,7 +26,6 @@ class ProductAuditReport:
         if not self.findings:
             return "Product audit OK"
         return "\n".join(
-            f"{finding.severity.upper()}: {finding.message}"
-            + (f" [{finding.path}]" if finding.path else "")
+            f"{finding.severity.upper()}: {finding.message}" + (f" [{finding.path}]" if finding.path else "")
             for finding in self.findings
         )

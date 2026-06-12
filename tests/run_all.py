@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Run the active DNSForge Python test suite."""
+
 from __future__ import annotations
 
 import subprocess

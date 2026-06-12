@@ -6,7 +6,12 @@ from dnsforge.infrastructure.rendering.bind_renderer import BindRenderTree
 
 
 class RenderAuthoritative:
-    def __init__(self, paths: ProjectPaths, factory: AuthoritativeSettingsFactory | None = None, renderer: BindRenderTree | None = None) -> None:
+    def __init__(
+        self,
+        paths: ProjectPaths,
+        factory: AuthoritativeSettingsFactory | None = None,
+        renderer: BindRenderTree | None = None,
+    ) -> None:
         self.paths = paths
         self.factory = factory or AuthoritativeSettingsFactory(paths)
         self.renderer = renderer or BindRenderTree()

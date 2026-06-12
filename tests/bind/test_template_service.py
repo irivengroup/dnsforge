@@ -13,8 +13,7 @@ def test_template_service_rewrites_paths_by_distribution() -> None:
         layout = BindLayoutDetector().from_family(family)
         service = TemplateService(layout=layout)
         rendered = service.render_text(
-            'include "/etc/named/conf.d/00-acl.conf";\n'
-            'file "/var/named/master/internal/example.zone";'
+            'include "/etc/named/conf.d/00-acl.conf";\nfile "/var/named/master/internal/example.zone";'
         )
         assert str(layout.conf_d / "00-acl.conf") in rendered
         assert str(layout.master_view_data_dir("internal") / "example.zone") in rendered

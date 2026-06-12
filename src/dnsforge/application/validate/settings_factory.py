@@ -9,7 +9,12 @@ from dnsforge.infrastructure.settings.env_loader import EnvSettingsLoader
 
 
 class ProxySettingsFactory:
-    def __init__(self, paths: ProjectPaths, loader: EnvSettingsLoader | None = None, validator: ProxySettingsValidator | None = None) -> None:
+    def __init__(
+        self,
+        paths: ProjectPaths,
+        loader: EnvSettingsLoader | None = None,
+        validator: ProxySettingsValidator | None = None,
+    ) -> None:
         self.paths = paths
         self.loader = loader or EnvSettingsLoader()
         self.validator = validator or ProxySettingsValidator()
@@ -24,7 +29,12 @@ class ProxySettingsFactory:
 
 
 class AuthoritativeSettingsFactory:
-    def __init__(self, paths: ProjectPaths, loader: EnvSettingsLoader | None = None, validator: AuthoritativeSettingsValidator | None = None) -> None:
+    def __init__(
+        self,
+        paths: ProjectPaths,
+        loader: EnvSettingsLoader | None = None,
+        validator: AuthoritativeSettingsValidator | None = None,
+    ) -> None:
         self.paths = paths
         self.loader = loader or EnvSettingsLoader()
         self.validator = validator or AuthoritativeSettingsValidator()

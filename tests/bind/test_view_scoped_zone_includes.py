@@ -28,4 +28,4 @@ def test_zone_declarations_are_view_scoped_when_views_are_enabled(tmp_path: Path
     assert 'include "/etc/bind/conf.d/50-rpz.conf";' not in named_conf
     assert 'include "/etc/bind/conf.d/55-catalog.conf";' in views_conf
     assert 'include "/etc/bind/conf.d/50-rpz.conf";' in views_conf
-    assert 'response-policy {' in views_conf
+    assert "response-policy {" in views_conf

@@ -13,7 +13,9 @@ from dnsforge.domain.model.proxy_type import ProxyType
 def test_rendered_zone_templates_are_profile_and_scope_specific() -> None:
     os.environ["DNSFORGE_BIND_LAYOUT"] = "redhat"
     root = Path(tempfile.mkdtemp())
-    settings = AuthoritativeSettings(role=DnsRole.AUTHORITATIVE, node_name="ns1", raw={"SECURITY_PROFILE": "enterprise"})
+    settings = AuthoritativeSettings(
+        role=DnsRole.AUTHORITATIVE, node_name="ns1", raw={"SECURITY_PROFILE": "enterprise"}
+    )
     BindRenderTree().render_authoritative(settings, root)
 
     internal_master = (root / "etc/named/views/internal/templates/master.conf.tpl").read_text(encoding="utf-8")
@@ -27,7 +29,9 @@ def test_rendered_zone_templates_are_profile_and_scope_specific() -> None:
 def test_proxy_hybrid_keeps_forward_zone_templates() -> None:
     os.environ["DNSFORGE_BIND_LAYOUT"] = "redhat"
     root = Path(tempfile.mkdtemp())
-    settings = ProxySettings(role=DnsRole.PROXY, node_name="px1", raw={"SECURITY_PROFILE": "enterprise"}, proxy_type=ProxyType.HYBRID)
+    settings = ProxySettings(
+        role=DnsRole.PROXY, node_name="px1", raw={"SECURITY_PROFILE": "enterprise"}, proxy_type=ProxyType.HYBRID
+    )
     BindRenderTree().render_proxy(settings, root)
 
     forward_template = (root / "etc/named/views/internal/templates/forward.conf.tpl").read_text(encoding="utf-8")

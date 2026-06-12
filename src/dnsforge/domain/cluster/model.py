@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
+
 class ClusterRole(str, Enum):
     PROXY = "proxy"
     AUTHORITATIVE = "authoritative"
@@ -14,10 +15,12 @@ class ClusterRole(str, Enum):
                 return item
         raise ValueError(f"invalid cluster role: {value}")
 
+
 class ClusterMode(str, Enum):
     DISABLED = "disabled"
     PROXY_VIP = "proxy-vip"
     AUTHORITATIVE_REPLICATION = "authoritative-replication"
+
 
 @dataclass(frozen=True)
 class ClusterConfig:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 class BooleanSetting:
     TRUE_VALUES = {"1", "true", "yes", "y", "on", "enabled"}
     FALSE_VALUES = {"0", "false", "no", "n", "off", "disabled", ""}

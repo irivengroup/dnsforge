@@ -2,27 +2,29 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
+
 class SecurityProfile(str, Enum):
-    STANDARD = 'standard'
-    HARDENED = 'hardened'
-    ENTERPRISE = 'enterprise'
-    PARANOID = 'paranoid'
+    STANDARD = "standard"
+    HARDENED = "hardened"
+    ENTERPRISE = "enterprise"
+    PARANOID = "paranoid"
 
     @classmethod
     def choices(cls) -> list[str]:
         return [item.value for item in cls]
 
     @classmethod
-    def from_value(cls, value: str | None) -> 'SecurityProfile':
-        normalized = (value or 'enterprise').strip().strip('\"\'').lower()
+    def from_value(cls, value: str | None) -> "SecurityProfile":
+        normalized = (value or "enterprise").strip().strip("\"'").lower()
         for item in cls:
             if item.value == normalized:
                 return item
-        raise ValueError(f'invalid security profile: {value}')
+        raise ValueError(f"invalid security profile: {value}")
 
     @property
     def weight(self) -> int:
         return {self.STANDARD: 1, self.HARDENED: 2, self.ENTERPRISE: 3, self.PARANOID: 4}[self]
+
 
 @dataclass(frozen=True)
 class SecurityControls:
@@ -42,9 +44,18 @@ class SecurityControls:
     selinux: bool = True
 
     @classmethod
-    def from_profile(cls, profile: SecurityProfile) -> 'SecurityControls':
+    def from_profile(cls, profile: SecurityProfile) -> "SecurityControls":
         if profile is SecurityProfile.STANDARD:
-            return cls(profile, rrl=False, qname_minimization=False, serve_stale=False, strict_acl=False, systemd_hardening=False, firewall=False, selinux=False)
+            return cls(
+                profile,
+                rrl=False,
+                qname_minimization=False,
+                serve_stale=False,
+                strict_acl=False,
+                systemd_hardening=False,
+                firewall=False,
+                selinux=False,
+            )
         if profile is SecurityProfile.HARDENED:
             return cls(profile, serve_stale=False, systemd_hardening=False)
         if profile is SecurityProfile.PARANOID:
@@ -52,7 +63,7 @@ class SecurityControls:
         return cls(profile)
 
     def enabled_controls(self) -> dict[str, bool]:
-        return {k: v for k, v in self.__dict__.items() if k != 'profile'}
+        return {k: v for k, v in self.__dict__.items() if k != "profile"}
 
     def score(self) -> int:
         values = list(self.enabled_controls().values())

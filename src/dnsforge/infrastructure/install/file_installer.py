@@ -10,7 +10,9 @@ class FileInstaller:
         stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d%H%M%S")
         return target_root / "var/backups/dnsforge" / stamp
 
-    def install_tree(self, render_root: Path, target_root: Path = Path("/"), dry_run: bool = True) -> list[tuple[Path, Path]]:
+    def install_tree(
+        self, render_root: Path, target_root: Path = Path("/"), dry_run: bool = True
+    ) -> list[tuple[Path, Path]]:
         mappings: list[tuple[Path, Path]] = []
 
         if not render_root.exists():

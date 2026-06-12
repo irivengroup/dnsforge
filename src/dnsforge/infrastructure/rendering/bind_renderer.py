@@ -45,7 +45,9 @@ class BindConfigFactory:
         self.security_renderer = security_renderer or BindSecurityOptionsRenderer()
         self.template_service = template_service or TemplateService()
 
-    def build_proxy_configuration(self, settings: dict[str, str], layout: BindLayout, include_views: bool) -> BindConfiguration:
+    def build_proxy_configuration(
+        self, settings: dict[str, str], layout: BindLayout, include_views: bool
+    ) -> BindConfiguration:
         return BindConfiguration(
             layout=layout,
             settings=settings,
@@ -181,22 +183,28 @@ class BindConfigFactory:
         key_name = settings.get("RNDC_KEY_NAME", "rndc-key")
         secret = settings.get("RNDC_SECRET", "")
         blocks = [
-            "\n".join([
-                f'key "{key_name}" {{',
-                "    algorithm hmac-sha256;",
-                f'    secret "{secret}";',
-                "};",
-            ])
+            "\n".join(
+                [
+                    f'key "{key_name}" {{',
+                    "    algorithm hmac-sha256;",
+                    f'    secret "{secret}";',
+                    "};",
+                ]
+            )
         ]
         xfr_key = settings.get("XFR_TSIG_KEY_NAME")
         xfr_secret = settings.get("XFR_TSIG_SECRET")
         if xfr_key and xfr_secret:
-            blocks.append("\n".join([
-                f'key "{xfr_key}" {{',
-                "    algorithm hmac-sha256;",
-                f'    secret "{xfr_secret}";',
-                "};",
-            ]))
+            blocks.append(
+                "\n".join(
+                    [
+                        f'key "{xfr_key}" {{',
+                        "    algorithm hmac-sha256;",
+                        f'    secret "{xfr_secret}";',
+                        "};",
+                    ]
+                )
+            )
         return self._render("10-keys.conf.j2", {"KEY_BLOCKS": "\n\n".join(blocks)}, layout)
 
     def controls(self, settings: dict[str, str], layout: BindLayout | None = None) -> str:
@@ -210,11 +218,13 @@ class BindConfigFactory:
 
     def rpz_response_policy(self, settings: dict[str, str]) -> str:
         zone = settings.get("RPZ_ZONE_NAME", "rpz.local")
-        return "\n".join([
-            "    response-policy {",
-            f'        zone "{zone}" policy given;',
-            "    } break-dnssec yes max-policy-ttl 300;",
-        ])
+        return "\n".join(
+            [
+                "    response-policy {",
+                f'        zone "{zone}" policy given;',
+                "    } break-dnssec yes max-policy-ttl 300;",
+            ]
+        )
 
     def rpz(self, settings: dict[str, str]) -> str:
         return self.rpz_with_layout(settings, self.template_service.layout)
@@ -223,17 +233,19 @@ class BindConfigFactory:
         if settings.get("ENABLE_RPZ", "no") != "yes":
             return ""
         zone = settings.get("RPZ_ZONE_NAME", "rpz.local")
-        block = "\n".join([
-            f'zone "{zone}" {{',
-            "    type master;",
-            f'    file "{layout.rpz_data_dir / "rpz.local.zone"}";',
-            "    allow-query { localhost; admin_clients; };",
-            "    allow-transfer { none; };",
-            "    allow-update { none; };",
-            "    notify no;",
-            "};",
-            "",
-        ])
+        block = "\n".join(
+            [
+                f'zone "{zone}" {{',
+                "    type master;",
+                f'    file "{layout.rpz_data_dir / "rpz.local.zone"}";',
+                "    allow-query { localhost; admin_clients; };",
+                "    allow-transfer { none; };",
+                "    allow-update { none; };",
+                "    notify no;",
+                "};",
+                "",
+            ]
+        )
         return self._render("50-rpz.conf.j2", {"RPZ_BLOCK": block}, layout)
 
     def logging(self, layout: BindLayout) -> str:
@@ -261,7 +273,9 @@ class BindConfigFactory:
 
     def zone_template(self, layout: BindLayout, profile: ServerProfile, scope: ZoneScope, zone_type: ZoneType) -> str:
         template = ZoneTemplatePolicy.template_path(ZoneTemplateKey(profile, scope, zone_type))
-        zone_file = (layout.master_view_data_dir(scope.value) if zone_type is ZoneType.MASTER else layout.secondary_data_dir) / "{{ zone_file }}"
+        zone_file = (
+            layout.master_view_data_dir(scope.value) if zone_type is ZoneType.MASTER else layout.secondary_data_dir
+        ) / "{{ zone_file }}"
         return self._render(
             str(template),
             {
@@ -322,22 +336,38 @@ class BindRenderTree:
 
         layout = model.layout
         env = model.settings
-        self._write_native(destination, layout.named_conf, self.config_factory.named_conf(layout, model.include_rpz, model.include_views))
+        self._write_native(
+            destination,
+            layout.named_conf,
+            self.config_factory.named_conf(layout, model.include_rpz, model.include_views),
+        )
         self._write_common_conf(destination, env, proxy=model.proxy)
         self._write_native(
             destination,
             layout.conf_d / "20-options.conf",
-            self.config_factory.proxy_options(env, layout) if model.proxy else self.config_factory.authoritative_options(env, layout),
+            self.config_factory.proxy_options(env, layout)
+            if model.proxy
+            else self.config_factory.authoritative_options(env, layout),
         )
 
         if model.include_rpz:
-            self._write_native(destination, layout.conf_d / "50-rpz.conf", self.config_factory.rpz_with_layout(env, layout))
-            self._write_native(destination, layout.rpz_data_dir / "rpz.local.zone", self.config_factory.rpz_local_zone(layout))
+            self._write_native(
+                destination, layout.conf_d / "50-rpz.conf", self.config_factory.rpz_with_layout(env, layout)
+            )
+            self._write_native(
+                destination, layout.rpz_data_dir / "rpz.local.zone", self.config_factory.rpz_local_zone(layout)
+            )
         elif not model.proxy:
-            self._write_native(destination, layout.conf_d / "50-rpz.conf", "// RPZ is disabled for this authoritative profile.\n")
+            self._write_native(
+                destination, layout.conf_d / "50-rpz.conf", "// RPZ is disabled for this authoritative profile.\n"
+            )
 
         if model.include_views:
-            self._write_views(destination, ServerProfile.PROXY_HYBRID if model.proxy else ServerProfile.AUTHORITATIVE, include_rpz=model.include_rpz)
+            self._write_views(
+                destination,
+                ServerProfile.PROXY_HYBRID if model.proxy else ServerProfile.AUTHORITATIVE,
+                include_rpz=model.include_rpz,
+            )
 
     def _write_common_conf(self, destination: Path, env: dict[str, str], proxy: bool) -> None:
         layout = self.layout
@@ -350,13 +380,31 @@ class BindRenderTree:
 
     def _write_views(self, destination: Path, profile: ServerProfile, include_rpz: bool = False) -> None:
         layout = self.layout
-        self._write_native(destination, layout.conf_d / "60-views.conf", self.config_factory.views(layout, include_rpz=include_rpz))
+        self._write_native(
+            destination, layout.conf_d / "60-views.conf", self.config_factory.views(layout, include_rpz=include_rpz)
+        )
         for view in ("external", "internal"):
-            self._write_native(destination, layout.zones_enabled_dir(view) / "zones.index.conf", self.config_factory.zone_index(layout, view))
+            self._write_native(
+                destination,
+                layout.zones_enabled_dir(view) / "zones.index.conf",
+                self.config_factory.zone_index(layout, view),
+            )
             scope = ZoneScope.from_value(view)
-            self._write_native(destination, layout.view_templates_dir(view) / "master.conf.tpl", self.config_factory.zone_template(layout, profile, scope, ZoneType.MASTER))
-            self._write_native(destination, layout.view_templates_dir(view) / "secondary.conf.tpl", self.config_factory.zone_template(layout, profile, scope, ZoneType.SECONDARY))
-            self._write_native(destination, layout.view_templates_dir(view) / "forward.conf.tpl", self.config_factory.zone_template(layout, profile, scope, ZoneType.FORWARD))
+            self._write_native(
+                destination,
+                layout.view_templates_dir(view) / "master.conf.tpl",
+                self.config_factory.zone_template(layout, profile, scope, ZoneType.MASTER),
+            )
+            self._write_native(
+                destination,
+                layout.view_templates_dir(view) / "secondary.conf.tpl",
+                self.config_factory.zone_template(layout, profile, scope, ZoneType.SECONDARY),
+            )
+            self._write_native(
+                destination,
+                layout.view_templates_dir(view) / "forward.conf.tpl",
+                self.config_factory.zone_template(layout, profile, scope, ZoneType.FORWARD),
+            )
 
     def _common_tree(self, destination: Path) -> None:
         layout = self.layout
@@ -381,7 +429,9 @@ class BindRenderTree:
             layout.run_dir,
         ]
         for view in ("external", "internal"):
-            directories.extend([layout.zones_available_dir(view), layout.zones_enabled_dir(view), layout.view_templates_dir(view)])
+            directories.extend(
+                [layout.zones_available_dir(view), layout.zones_enabled_dir(view), layout.view_templates_dir(view)]
+            )
         for path in directories:
             self._mkdir_native(destination, path)
 
@@ -397,7 +447,9 @@ class BindRenderTree:
         if layout.sysconfig_file is not None:
             self._write_native(destination, layout.sysconfig_file, 'OPTIONS="-4"\n')
         if layout.systemd_override_dir is not None:
-            self._write_native(destination, layout.systemd_override_dir / "override.conf", "[Service]\nLimitNOFILE=65536\n")
+            self._write_native(
+                destination, layout.systemd_override_dir / "override.conf", "[Service]\nLimitNOFILE=65536\n"
+            )
 
     def _reset(self, destination: Path) -> None:
         if destination.exists():

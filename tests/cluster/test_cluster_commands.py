@@ -13,7 +13,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 def _write_cluster_setup(path: Path) -> None:
     path.write_text(
-        '\n'.join(
+        "\n".join(
             [
                 'ROLE="dns-proxy"',
                 'PROXY_TYPE="forwarder"',
@@ -27,7 +27,8 @@ def _write_cluster_setup(path: Path) -> None:
                 'CLUSTER_PRIORITY="150"',
                 'CLUSTER_AUTH_PASS="secret"',
             ]
-        ) + '\n',
+        )
+        + "\n",
         encoding="utf-8",
     )
 

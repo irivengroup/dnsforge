@@ -38,7 +38,7 @@ from dnsforge.shared.errors import DnsForgeError
 
 class DnsForgeArgumentParserFactory:
     def build(self) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(prog="dnsforge", description="ZoneForge DNSaaS")
+        parser = argparse.ArgumentParser(prog="dnsforge", description="DNSForge")
         parser.add_argument("--project-root", default=".", help="Project root")
         sub = parser.add_subparsers(dest="command", required=True)
 
@@ -96,7 +96,9 @@ class DnsForgeArgumentParserFactory:
         a.add_argument("--apply", action="store_true", help="Apply a previously rendered DNSForge BIND configuration")
         a.add_argument("--dry-run", action="store_true")
         root.add_argument("--render-only", action="store_true")
-        root.add_argument("--apply", action="store_true", help="Apply a previously rendered DNSForge BIND configuration")
+        root.add_argument(
+            "--apply", action="store_true", help="Apply a previously rendered DNSForge BIND configuration"
+        )
         root.add_argument("--dry-run", action="store_true")
 
     def _add_zone(self, sub) -> None:
@@ -152,7 +154,6 @@ class DnsForgeArgumentParserFactory:
         inner.add_parser("history")
         rollback = inner.add_parser("rollback")
         rollback.add_argument("--version")
-
 
     def _add_status(self, sub) -> None:
         p = sub.add_parser("status", help="Show local DNSForge status")
@@ -210,20 +211,31 @@ class DnsForgeArgumentParserFactory:
         acl.add_argument("--state-file", default="/etc/dnsforge/acls.json")
         inner = acl.add_subparsers(dest="action", required=True)
         inner.add_parser("list")
-        show = inner.add_parser("show"); show.add_argument("name")
-        create = inner.add_parser("create"); create.add_argument("name")
-        delete = inner.add_parser("delete"); delete.add_argument("name")
-        add = inner.add_parser("add-network"); add.add_argument("name"); add.add_argument("network")
-        rm = inner.add_parser("remove-network"); rm.add_argument("name"); rm.add_argument("network")
+        show = inner.add_parser("show")
+        show.add_argument("name")
+        create = inner.add_parser("create")
+        create.add_argument("name")
+        delete = inner.add_parser("delete")
+        delete.add_argument("name")
+        add = inner.add_parser("add-network")
+        add.add_argument("name")
+        add.add_argument("network")
+        rm = inner.add_parser("remove-network")
+        rm.add_argument("name")
+        rm.add_argument("network")
 
     def _add_view(self, sub) -> None:
         view = sub.add_parser("view", help="Manage DNS views")
         view.add_argument("--state-file", default="/etc/dnsforge/views.json")
         inner = view.add_subparsers(dest="action", required=True)
         inner.add_parser("list")
-        create = inner.add_parser("create"); create.add_argument("name")
-        delete = inner.add_parser("delete"); delete.add_argument("name")
-        attach = inner.add_parser("attach-zone"); attach.add_argument("name"); attach.add_argument("zone")
+        create = inner.add_parser("create")
+        create.add_argument("name")
+        delete = inner.add_parser("delete")
+        delete.add_argument("name")
+        attach = inner.add_parser("attach-zone")
+        attach.add_argument("name")
+        attach.add_argument("zone")
 
     def _add_dnssec(self, sub) -> None:
         dnssec = sub.add_parser("dnssec", help="Manage DNSSEC controls")
@@ -240,7 +252,6 @@ class DnsForgeArgumentParserFactory:
             inner.add_parser(action)
         test = inner.add_parser("test")
         test.add_argument("domain")
-
 
 
 class DnsForgeCommandDispatcher:
@@ -282,7 +293,9 @@ class DnsForgeCommandDispatcher:
                 elif role_value == DnsRole.AUTHORITATIVE.value:
                     role = "authoritative"
                 else:
-                    print(f"ERROR: unsupported ROLE in {paths.setup_file}: {role_value or '<missing>'}", file=sys.stderr)
+                    print(
+                        f"ERROR: unsupported ROLE in {paths.setup_file}: {role_value or '<missing>'}", file=sys.stderr
+                    )
                     return 2
 
             if role == "proxy":
@@ -432,7 +445,9 @@ class DnsForgeCommandDispatcher:
             return 0
 
         if args.command == "migrate":
-            result = MigrationService().migrate(Path(args.setup_file), MigrationTarget.from_value(args.target), dry_run=args.dry_run)
+            result = MigrationService().migrate(
+                Path(args.setup_file), MigrationTarget.from_value(args.target), dry_run=args.dry_run
+            )
             print(result)
             return 0
 
@@ -458,44 +473,88 @@ class DnsForgeCommandDispatcher:
 
         if args.command == "acl":
             service = AclService(Path(args.state_file))
-            if args.action == "list": print(service.list()); return 0
-            if args.action == "show": print(service.show(args.name)); return 0
-            if args.action == "create": print(service.create(args.name)); return 0
-            if args.action == "delete": print(service.delete(args.name)); return 0
-            if args.action == "add-network": print(service.add_network(args.name, args.network)); return 0
-            if args.action == "remove-network": print(service.remove_network(args.name, args.network)); return 0
+            if args.action == "list":
+                print(service.list())
+                return 0
+            if args.action == "show":
+                print(service.show(args.name))
+                return 0
+            if args.action == "create":
+                print(service.create(args.name))
+                return 0
+            if args.action == "delete":
+                print(service.delete(args.name))
+                return 0
+            if args.action == "add-network":
+                print(service.add_network(args.name, args.network))
+                return 0
+            if args.action == "remove-network":
+                print(service.remove_network(args.name, args.network))
+                return 0
             return 2
 
         if args.command == "view":
             service = ViewService(Path(args.state_file))
-            if args.action == "list": print(service.list()); return 0
-            if args.action == "create": print(service.create(args.name)); return 0
-            if args.action == "delete": print(service.delete(args.name)); return 0
-            if args.action == "attach-zone": print(service.attach_zone(args.name, args.zone)); return 0
+            if args.action == "list":
+                print(service.list())
+                return 0
+            if args.action == "create":
+                print(service.create(args.name))
+                return 0
+            if args.action == "delete":
+                print(service.delete(args.name))
+                return 0
+            if args.action == "attach-zone":
+                print(service.attach_zone(args.name, args.zone))
+                return 0
             return 2
 
         if args.command == "dnssec":
-            service = DnssecService(); setup_file = Path(args.setup_file)
-            if args.action == "status": print(service.status(setup_file)); return 0
-            if args.action == "validate": print(service.validate(setup_file)); return 0
-            if args.action == "rotate-ksk": print(service.rotate_ksk()); return 0
-            if args.action == "rotate-zsk": print(service.rotate_zsk()); return 0
-            if args.action == "check-expiry": print(service.check_expiry()); return 0
+            service = DnssecService()
+            setup_file = Path(args.setup_file)
+            if args.action == "status":
+                print(service.status(setup_file))
+                return 0
+            if args.action == "validate":
+                print(service.validate(setup_file))
+                return 0
+            if args.action == "rotate-ksk":
+                print(service.rotate_ksk())
+                return 0
+            if args.action == "rotate-zsk":
+                print(service.rotate_zsk())
+                return 0
+            if args.action == "check-expiry":
+                print(service.check_expiry())
+                return 0
             return 2
 
         if args.command == "rpz":
-            service = RpzService(); setup_file = Path(args.setup_file)
-            if args.action == "status": print(service.status(setup_file)); return 0
-            if args.action == "enable": print(service.enable(setup_file)); return 0
-            if args.action == "update": print(service.update()); return 0
-            if args.action == "test": print(service.test(args.domain)); return 0
+            service = RpzService()
+            setup_file = Path(args.setup_file)
+            if args.action == "status":
+                print(service.status(setup_file))
+                return 0
+            if args.action == "enable":
+                print(service.enable(setup_file))
+                return 0
+            if args.action == "update":
+                print(service.update())
+                return 0
+            if args.action == "test":
+                print(service.test(args.domain))
+                return 0
             return 2
 
         return 2
 
 
 class DnsForgeCli:
-    def __init__(self, parser_factory: DnsForgeArgumentParserFactory | None = None, dispatcher: DnsForgeCommandDispatcher | None = None) -> None:
+    def __init__(
+        self,
+        parser_factory: DnsForgeArgumentParserFactory | None = None,
+        dispatcher: DnsForgeCommandDispatcher | None = None,
+    ) -> None:
         self.parser_factory = parser_factory or DnsForgeArgumentParserFactory()
         self.dispatcher = dispatcher or DnsForgeCommandDispatcher()
 

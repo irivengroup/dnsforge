@@ -30,7 +30,9 @@ class BindConfigurationBackup:
     no stale include, no mixed configuration tree, and an atomic audit trail.
     """
 
-    def __init__(self, backup_root: Path = Path("/var/backups/dnsforge/bind-config"), layout: BindLayout | None = None) -> None:
+    def __init__(
+        self, backup_root: Path = Path("/var/backups/dnsforge/bind-config"), layout: BindLayout | None = None
+    ) -> None:
         self.backup_root = backup_root
         self.layout = layout or BindLayoutDetector().detect()
 

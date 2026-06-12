@@ -15,7 +15,9 @@ def test_initialize_plan_backs_up_bind_without_installing_packages() -> None:
     parser.parse_args(["initialize", "authoritative", "local", "--dry-run"])
     parser.parse_args(["initialize", "proxy", "local", "--type", "forwarder", "--dry-run"])
 
-    plan = InitializePlanner().build_authoritative_plan("local", Path("/tmp/render"), dry_run=True, backup_before_apply=True)
+    plan = InitializePlanner().build_authoritative_plan(
+        "local", Path("/tmp/render"), dry_run=True, backup_before_apply=True
+    )
     assert isinstance(plan, InitializePlan)
     assert not any(step.name == "install required packages" for step in plan.steps)
     assert any(step.name == "backup existing BIND configuration" for step in plan.steps)

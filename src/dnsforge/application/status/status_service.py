@@ -7,7 +7,9 @@ from dnsforge.infrastructure.initialize.state_store import InitializeStateStore
 
 
 class StatusService:
-    def __init__(self, loader: EnvSettingsLoader | None = None, initialize_state: InitializeStateStore | None = None) -> None:
+    def __init__(
+        self, loader: EnvSettingsLoader | None = None, initialize_state: InitializeStateStore | None = None
+    ) -> None:
         self.loader = loader or EnvSettingsLoader()
         self.initialize_state = initialize_state or InitializeStateStore()
 
@@ -29,11 +31,13 @@ class StatusService:
         ]
 
         init_state = self.initialize_state.get_state(setup_file)
-        lines.extend([
-            "",
-            "Initialization:",
-            f"  Status: {'initialized' if init_state else 'not initialized'}",
-        ])
+        lines.extend(
+            [
+                "",
+                "Initialization:",
+                f"  Status: {'initialized' if init_state else 'not initialized'}",
+            ]
+        )
         if init_state:
             initialized_at = init_state.get("INITIALIZED_AT")
             initialized_role = init_state.get("INITIALIZED_ROLE")

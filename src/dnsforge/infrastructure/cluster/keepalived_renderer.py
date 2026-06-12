@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dnsforge.domain.cluster.model import ClusterConfig
 
+
 class KeepalivedRenderer:
     def render(self, config: ClusterConfig) -> str:
         auth_pass = config.auth_pass or "dnsforge"

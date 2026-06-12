@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import subprocess
 
+
 @dataclass(frozen=True)
 class CommandResult:
     command: list[str]
@@ -13,6 +14,7 @@ class CommandResult:
     @property
     def ok(self) -> bool:
         return self.returncode == 0
+
 
 class CommandRunner:
     def run(self, command: list[str], check: bool = False, timeout: int = 60) -> CommandResult:

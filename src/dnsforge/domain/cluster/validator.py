@@ -3,6 +3,7 @@ import ipaddress
 from dnsforge.domain.cluster.model import ClusterConfig, ClusterRole
 from dnsforge.shared.errors import SettingsError
 
+
 class ClusterValidator:
     def validate(self, config: ClusterConfig) -> None:
         if not config.enabled:

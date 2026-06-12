@@ -38,6 +38,8 @@ def test_cli_and_initialize_flow_are_python_native() -> None:
         (render / "etc/named").mkdir(parents=True)
         (render / "etc/named.conf").write_text("// named\n", encoding="utf-8")
         assert FileInstaller().install_tree(render, target_root=Path(tmp) / "target", dry_run=True)
-        plan = InitializePlanner().build_proxy_plan("proxy01", "forwarder", render, dry_run=True, backup_before_apply=True)
+        plan = InitializePlanner().build_proxy_plan(
+            "proxy01", "forwarder", render, dry_run=True, backup_before_apply=True
+        )
         setup_file = Path(tmp) / "etc/dnsforge/setup.conf"
         InitializeService().apply(plan, setup_file=setup_file)

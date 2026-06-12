@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from dnsforge.infrastructure.runtime.command_runner import CommandRunner, CommandResult
 
+
 class BindTools:
     def __init__(self, runner: CommandRunner | None = None) -> None:
         self.runner = runner or CommandRunner()

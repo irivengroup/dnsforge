@@ -4,6 +4,7 @@ from pathlib import Path
 import shutil
 import tempfile
 
+
 class AtomicFileWriter:
     def write_text(self, path: Path, content: str, mode: int | None = None) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -13,6 +14,7 @@ class AtomicFileWriter:
         if mode is not None:
             tmp_path.chmod(mode)
         shutil.move(str(tmp_path), str(path))
+
 
 class BackupFile:
     def create(self, path: Path, suffix: str = ".bak") -> Path | None:

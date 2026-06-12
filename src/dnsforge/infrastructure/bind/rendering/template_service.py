@@ -52,7 +52,7 @@ class TemplateService:
             if path == old:
                 return Path(new)
             if path.startswith(old.rstrip("/") + "/"):
-                return Path(new) / path[len(old.rstrip("/") + "/"):]
+                return Path(new) / path[len(old.rstrip("/") + "/") :]
         return Path(path)
 
     def render_to_destination(

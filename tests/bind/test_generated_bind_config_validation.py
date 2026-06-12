@@ -127,7 +127,9 @@ def test_ci_validates_every_registered_template_is_used() -> None:
     from dnsforge.infrastructure.bind.rendering.template_registry import TemplateRegistry
 
     resources = Path("src/dnsforge/infrastructure/bind/resources")
-    resource_templates = {path.relative_to(resources) for path in resources.rglob("*") if path.suffix in {".j2", ".tpl"}}
+    resource_templates = {
+        path.relative_to(resources) for path in resources.rglob("*") if path.suffix in {".j2", ".tpl"}
+    }
     registered = set(TemplateRegistry.templates())
 
     assert resource_templates == registered

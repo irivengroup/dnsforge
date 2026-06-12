@@ -48,7 +48,6 @@ class ProjectPaths:
         # configuration/data is deployed only to the native BIND layout.
         return self.src_root / "render"
 
-
     @property
     def backup_root(self) -> Path:
         return Path(os.environ.get("DNSFORGE_BACKUP_ROOT", str(self.project_root / "backups")))

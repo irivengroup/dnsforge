@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dnsforge.infrastructure.runtime.command_runner import CommandRunner, CommandResult
 
+
 class ServiceManager:
     def __init__(self, runner: CommandRunner | None = None) -> None:
         self.runner = runner or CommandRunner()

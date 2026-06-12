@@ -48,14 +48,17 @@ class InitializeStateStore:
         lock_file.parent.mkdir(parents=True, exist_ok=True)
         now = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
 
-        content = "\n".join(
-            [
-                "INITIALIZED=true",
-                f"INITIALIZED_AT={now}",
-                f"INITIALIZED_ROLE={role}",
-                f"INITIALIZED_NODE={node}",
-            ]
-        ) + "\n"
+        content = (
+            "\n".join(
+                [
+                    "INITIALIZED=true",
+                    f"INITIALIZED_AT={now}",
+                    f"INITIALIZED_ROLE={role}",
+                    f"INITIALIZED_NODE={node}",
+                ]
+            )
+            + "\n"
+        )
 
         tmp_file = lock_file.with_name(f".{lock_file.name}.tmp")
         tmp_file.write_text(content, encoding="utf-8")

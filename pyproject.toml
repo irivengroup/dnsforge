@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dnsforge"
-version = "10.5.17"
+version = "10.5.22"
 description = "DNSForge - Enterprise BIND deployment and configuration platform"
 requires-python = ">=3.9"
 readme = "README.md"
@@ -25,7 +25,11 @@ include = ["dnsforge*"]
 [project.optional-dependencies]
 dev = [
   "pytest>=8",
+  "pytest-cov>=5",
   "ruff>=0.6",
+  "build>=1.2",
+  "bandit[toml]>=1.7",
+  "pip-audit>=2.7",
 ]
 
 [tool.ruff]
@@ -41,3 +45,15 @@ dnsforge = [
   "infrastructure/bind/resources/**/*.j2",
   "infrastructure/bind/resources/**/*.tpl",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.coverage.run]
+source = ["src/dnsforge"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

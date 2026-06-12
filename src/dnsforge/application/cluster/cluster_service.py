@@ -5,8 +5,14 @@ from dnsforge.domain.cluster.validator import ClusterValidator
 from dnsforge.infrastructure.cluster.keepalived_renderer import KeepalivedRenderer
 from dnsforge.infrastructure.settings.env_loader import EnvSettingsLoader
 
+
 class ClusterService:
-    def __init__(self, loader: EnvSettingsLoader | None = None, validator: ClusterValidator | None = None, keepalived: KeepalivedRenderer | None = None) -> None:
+    def __init__(
+        self,
+        loader: EnvSettingsLoader | None = None,
+        validator: ClusterValidator | None = None,
+        keepalived: KeepalivedRenderer | None = None,
+    ) -> None:
         self.loader = loader or EnvSettingsLoader()
         self.validator = validator or ClusterValidator()
         self.keepalived = keepalived or KeepalivedRenderer()
@@ -65,11 +71,11 @@ class ClusterService:
         config = self.load(setup_file)
         self.validator.validate(config)
         if not config.enabled:
-            return 'Cluster security: disabled'
-        checks = ['Cluster security validation OK', 'TSIG: required', 'ACL: required', 'AXFR/IXFR: protected']
-        if config.role and config.role.value == 'proxy':
-            checks.append('Keepalived auth: required')
-        return '\n'.join(checks)
+            return "Cluster security: disabled"
+        checks = ["Cluster security validation OK", "TSIG: required", "ACL: required", "AXFR/IXFR: protected"]
+        if config.role and config.role.value == "proxy":
+            checks.append("Keepalived auth: required")
+        return "\n".join(checks)
 
     def sync(self, setup_file: Path, dry_run: bool = False) -> str:
         config = self.load(setup_file)
