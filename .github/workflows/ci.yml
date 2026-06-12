@@ -52,16 +52,16 @@ jobs:
         run: mypy src/dnsforge
 
       - name: Architecture gates
-        run: pytest -q tests/architecture
+        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" python -m pytest -q tests/architecture
 
       - name: Run pytest suite
-        run: pytest -q
+        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" python -m pytest -q
 
       - name: Validate generated BIND configuration explicitly
-        run: pytest -q tests/bind/test_generated_bind_config_validation.py
+        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" python -m pytest -q tests/bind/test_generated_bind_config_validation.py
 
       - name: Coverage gate
-        run: pytest -q --cov=src/dnsforge --cov-report=term-missing --cov-fail-under=60
+        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" python -m pytest -q --cov=src/dnsforge --cov-report=term-missing --cov-fail-under=60
 
       - name: Build package
         run: python -m build
@@ -82,7 +82,7 @@ jobs:
           /tmp/dnsforge-wheel-test/bin/python -m pip install dist/*.whl
           /tmp/dnsforge-wheel-test/bin/python -c "import dnsforge; import dnsforge.interfaces.cli.main"
           /tmp/dnsforge-wheel-test/bin/dnsforge --help
-          /tmp/dnsforge-wheel-test/bin/dnsforge version
+          sudo -E /tmp/dnsforge-wheel-test/bin/dnsforge version
           /tmp/dnsforge-wheel-test/bin/dnsforge authoritative initialize --help
           /tmp/dnsforge-wheel-test/bin/dnsforge proxy initialize --help
 

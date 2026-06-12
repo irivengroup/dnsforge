@@ -35,6 +35,7 @@ from dnsforge.domain.model.roles import DnsRole
 from dnsforge.infrastructure.backup.backup_service import BackupService
 from dnsforge.infrastructure.filesystem.paths import ProjectPaths
 from dnsforge.infrastructure.settings.env_loader import EnvSettingsLoader
+from dnsforge.infrastructure.system.privilege_guard import RootPrivilegeGuard
 from dnsforge.shared.errors import DnsForgeError
 
 
@@ -639,14 +640,17 @@ class DnsForgeCli:
         self,
         parser_factory: DnsForgeArgumentParserFactory | None = None,
         dispatcher: DnsForgeCommandDispatcher | None = None,
+        privilege_guard: RootPrivilegeGuard | None = None,
     ) -> None:
         self.parser_factory = parser_factory or DnsForgeArgumentParserFactory()
         self.dispatcher = dispatcher or DnsForgeCommandDispatcher()
+        self.privilege_guard = privilege_guard or RootPrivilegeGuard()
 
     def run(self, argv: list[str] | None = None) -> int:
         parser = self.parser_factory.build()
         args = parser.parse_args(argv)
         try:
+            self.privilege_guard.require_root()
             return self.dispatcher.dispatch(args)
         except DnsForgeError as exc:
             print(f"ERROR: {exc}", file=sys.stderr)
