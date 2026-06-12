@@ -1,0 +1,25 @@
+// DNSForge managed logging.
+// Logs are segmented for operations, security, transfers, RPZ and resolver troubleshooting.
+logging {
+    channel default_log { file "{{ LOG_DIR }}/default.log" versions 10 size 50m; severity info; print-time yes; print-category yes; print-severity yes; };
+    channel security_log { file "{{ LOG_DIR }}/security.log" versions 20 size 50m; severity info; print-time yes; print-category yes; print-severity yes; };
+    channel transfer_log { file "{{ LOG_DIR }}/transfer.log" versions 20 size 50m; severity info; print-time yes; print-category yes; print-severity yes; };
+    channel rpz_log { file "{{ LOG_DIR }}/rpz.log" versions 20 size 50m; severity info; print-time yes; print-category yes; print-severity yes; };
+    channel resolver_log { file "{{ LOG_DIR }}/resolver.log" versions 10 size 50m; severity info; print-time yes; print-category yes; print-severity yes; };
+    channel query_errors_log { file "{{ LOG_DIR }}/query-errors.log" versions 10 size 50m; severity info; print-time yes; print-category yes; print-severity yes; };
+    channel lame_servers_null { null; };
+
+    category default { default_log; };
+    category general { default_log; };
+    category config { default_log; };
+    category security { security_log; };
+    category update-security { security_log; };
+    category xfer-in { transfer_log; };
+    category xfer-out { transfer_log; };
+    category notify { transfer_log; };
+    category rpz { rpz_log; };
+    category resolver { resolver_log; };
+    category queries { resolver_log; };
+    category query-errors { query_errors_log; };
+    category lame-servers { lame_servers_null; };
+};

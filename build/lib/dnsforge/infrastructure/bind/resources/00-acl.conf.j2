@@ -1,0 +1,22 @@
+// DNSForge managed ACLs.
+// This file is generated. Do not edit manually.
+
+acl "recursive_clients" {
+    {{ RECURSIVE_CLIENTS }}
+};
+
+acl "admin_clients" {
+    {{ ADMIN_CLIENTS }}
+};
+
+acl "zone_transfer_clients" {
+    {{ ZONE_TRANSFER_CLIENTS }}
+};
+
+acl "blackhole_clients" {
+    {{ BLACKHOLE_CLIENTS }}
+};
+
+acl "dnsforge_monitoring_clients" {
+    {{ MONITORING_CLIENTS }}
+};
