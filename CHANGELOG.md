@@ -1,3 +1,10 @@
+# 10.6.0
+
+- Split render and deploy as first-class application commands.
+- Added `dnsforge deploy` for applying previously rendered native BIND trees.
+- `dnsforge initialize` now orchestrates one-shot `backup -> render -> deploy -> lock`.
+- Added deploy tests ensuring deployment does not create the initialization lock.
+
 # 10.5.25
 
 - Added advisory `mypy` CI gate.

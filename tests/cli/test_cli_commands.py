@@ -16,6 +16,8 @@ def test_cli_parser_accepts_active_commands() -> None:
         ["validate", "authoritative", "auth01"],
         ["render", "proxy", "proxy01", "--type", "forwarder"],
         ["render", "authoritative", "auth01"],
+        ["deploy", "proxy", "proxy01", "--type", "forwarder", "--dry-run"],
+        ["deploy", "authoritative", "auth01", "--dry-run"],
         ["initialize", "proxy", "proxy01", "--type", "forwarder", "--render-only"],
         ["initialize", "proxy", "proxy01", "--type", "forwarder", "--dry-run"],
         ["initialize", "authoritative", "auth01", "--render-only"],

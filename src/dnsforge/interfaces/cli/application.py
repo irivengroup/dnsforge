@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 
-from __future__ import annotations
-
 import argparse
 import sys
 from pathlib import Path
 
 from dnsforge.application.audit.product_auditor import ProductAuditor
 from dnsforge.application.cluster.cluster_service import ClusterService
+from dnsforge.application.deploy.deploy_service import DeployService
 from dnsforge.application.initialize.initialize_authoritative import InitializeAuthoritative
 from dnsforge.application.initialize.initialize_proxy import InitializeProxy
 from dnsforge.application.doctor.doctor_service import DoctorService
@@ -44,6 +43,7 @@ class DnsForgeArgumentParserFactory:
 
         self._add_validate(sub)
         self._add_render(sub)
+        self._add_deploy(sub)
         self._add_initialize(sub)
         self._add_zone(sub)
         self._add_audit(sub)
@@ -80,6 +80,21 @@ class DnsForgeArgumentParserFactory:
         p.add_argument("--type", choices=ProxyType.choices(), dest="proxy_type")
         a = inner.add_parser("authoritative")
         a.add_argument("node", nargs="?")
+
+    def _add_deploy(self, sub) -> None:
+        root = sub.add_parser("deploy", help="Deploy previously rendered BIND configuration")
+        root.add_argument("--target-root", default="/")
+        root.add_argument("--dry-run", action="store_true")
+        inner = root.add_subparsers(dest="role", required=False)
+        p = inner.add_parser("proxy")
+        p.add_argument("node", nargs="?")
+        p.add_argument("--type", choices=ProxyType.choices(), dest="proxy_type")
+        p.add_argument("--target-root", default=None)
+        p.add_argument("--dry-run", action="store_true")
+        a = inner.add_parser("authoritative")
+        a.add_argument("node", nargs="?")
+        a.add_argument("--target-root", default=None)
+        a.add_argument("--dry-run", action="store_true")
 
     def _add_initialize(self, sub) -> None:
         root = sub.add_parser("initialize", help="Initialize local DNSForge node")
@@ -272,6 +287,33 @@ class DnsForgeCommandDispatcher:
                 RenderProxy(paths).execute(args.node or "local", ProxyType.from_value(args.proxy_type or "forwarder"))
             elif args.role == "authoritative":
                 RenderAuthoritative(paths).execute(args.node or "local")
+            return 0
+
+        if args.command == "deploy":
+            role = args.role
+            node = getattr(args, "node", None) or "local"
+            proxy_type = getattr(args, "proxy_type", None)
+
+            if role is None:
+                settings = EnvSettingsLoader().load(paths.setup_file)
+                role_value = settings.get("ROLE", "").strip()
+                node = settings.get("NODE_NAME", node) or node
+                if role_value == DnsRole.PROXY.value:
+                    role = "proxy"
+                    proxy_type = settings.get("PROXY_TYPE", proxy_type or "forwarder")
+                elif role_value == DnsRole.AUTHORITATIVE.value:
+                    role = "authoritative"
+                else:
+                    print(
+                        f"ERROR: unsupported ROLE in {paths.setup_file}: {role_value or '<missing>'}",
+                        file=sys.stderr,
+                    )
+                    return 2
+
+            render_role = DnsRole.PROXY if role == "proxy" else DnsRole.AUTHORITATIVE
+            render_root = paths.render_dir(render_role, node)
+            target_root = Path(args.target_root or "/")
+            DeployService().deploy(render_root, target_root=target_root, dry_run=args.dry_run)
             return 0
 
         if args.command == "initialize":
