@@ -27,7 +27,7 @@ class ZoneChangePlan:
     def __post_init__(self) -> None:
         self.zones = list(self.original_zones)
 
-    def list(self) -> list[ZoneDefinition]:
+    def list_zones(self) -> list[ZoneDefinition]:
         return list(self.zones)
 
     def get(self, name: str) -> ZoneDefinition:
@@ -99,7 +99,7 @@ class ZoneTransactionEngine:
         plan.validate()
         previous = list(plan.original_zones)
         try:
-            self.catalog.save(plan.list())
+            self.catalog.save(plan.list_zones())
         except Exception:
             self.catalog.save(previous)
             raise
