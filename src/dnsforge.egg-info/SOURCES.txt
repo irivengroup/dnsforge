@@ -168,6 +168,7 @@ src/dnsforge/infrastructure/profile/__init__.py
 src/dnsforge/infrastructure/profile/setup_template_service.py
 src/dnsforge/infrastructure/profile/template_loader.py
 src/dnsforge/infrastructure/profile/resources/VARIABLE-COVERAGE.md
+src/dnsforge/infrastructure/profile/resources/__init__.py
 src/dnsforge/infrastructure/profile/resources/authoritative/setup.conf
 src/dnsforge/infrastructure/profile/resources/proxy-forwarder/setup.conf
 src/dnsforge/infrastructure/profile/resources/proxy-hybrid/setup.conf
