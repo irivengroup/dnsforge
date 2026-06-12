@@ -270,45 +270,65 @@ class DnsForgeArgumentParserFactory:
 
 
 class DnsForgeCommandDispatcher:
+    def _resolve_role_from_setup(
+        self, paths: ProjectPaths, role: str | None, node: str | None = None, proxy_type: str | None = None
+    ) -> tuple[str, str, str | None] | None:
+        resolved_node = node or "local"
+        resolved_proxy_type = proxy_type
+        if role is not None:
+            return role, resolved_node, resolved_proxy_type
+
+        settings = EnvSettingsLoader().load(paths.setup_file)
+        role_value = settings.get("ROLE", "").strip()
+        resolved_node = settings.get("NODE_NAME", resolved_node) or resolved_node
+        if role_value == DnsRole.PROXY.value:
+            return "proxy", resolved_node, settings.get("PROXY_TYPE", resolved_proxy_type or "forwarder")
+        if role_value == DnsRole.AUTHORITATIVE.value:
+            return "authoritative", resolved_node, resolved_proxy_type
+
+        print(f"ERROR: unsupported ROLE in {paths.setup_file}: {role_value or '<missing>'}", file=sys.stderr)
+        return None
+
     def dispatch(self, args: argparse.Namespace) -> int:
         paths = ProjectPaths(Path(args.project_root).resolve())
 
         if args.command == "validate":
-            if args.role == "proxy":
-                node = args.node or "local"
-                proxy_type = ProxyType.from_value(args.proxy_type or "forwarder")
-                ValidateProxy(paths).execute(node, proxy_type)
-            elif args.role == "authoritative":
-                ValidateAuthoritative(paths).execute(args.node or "local")
+            resolved = self._resolve_role_from_setup(
+                paths, args.role, getattr(args, "node", None), getattr(args, "proxy_type", None)
+            )
+            if resolved is None:
+                return 2
+            role, node, proxy_type = resolved
+            if role == "proxy":
+                ValidateProxy(paths).execute(node, ProxyType.from_value(proxy_type or "forwarder"))
+            elif role == "authoritative":
+                ValidateAuthoritative(paths).execute(node)
+            else:
+                return 2
             return 0
 
         if args.command == "render":
-            if args.role == "proxy":
-                RenderProxy(paths).execute(args.node or "local", ProxyType.from_value(args.proxy_type or "forwarder"))
-            elif args.role == "authoritative":
-                RenderAuthoritative(paths).execute(args.node or "local")
+            resolved = self._resolve_role_from_setup(
+                paths, args.role, getattr(args, "node", None), getattr(args, "proxy_type", None)
+            )
+            if resolved is None:
+                return 2
+            role, node, proxy_type = resolved
+            if role == "proxy":
+                RenderProxy(paths).execute(node, ProxyType.from_value(proxy_type or "forwarder"))
+            elif role == "authoritative":
+                RenderAuthoritative(paths).execute(node)
+            else:
+                return 2
             return 0
 
         if args.command == "deploy":
-            role = args.role
-            node = getattr(args, "node", None) or "local"
-            proxy_type = getattr(args, "proxy_type", None)
-
-            if role is None:
-                settings = EnvSettingsLoader().load(paths.setup_file)
-                role_value = settings.get("ROLE", "").strip()
-                node = settings.get("NODE_NAME", node) or node
-                if role_value == DnsRole.PROXY.value:
-                    role = "proxy"
-                    proxy_type = settings.get("PROXY_TYPE", proxy_type or "forwarder")
-                elif role_value == DnsRole.AUTHORITATIVE.value:
-                    role = "authoritative"
-                else:
-                    print(
-                        f"ERROR: unsupported ROLE in {paths.setup_file}: {role_value or '<missing>'}",
-                        file=sys.stderr,
-                    )
-                    return 2
+            resolved = self._resolve_role_from_setup(
+                paths, args.role, getattr(args, "node", None), getattr(args, "proxy_type", None)
+            )
+            if resolved is None:
+                return 2
+            role, node, _proxy_type = resolved
 
             render_role = DnsRole.PROXY if role == "proxy" else DnsRole.AUTHORITATIVE
             render_root = paths.render_dir(render_role, node)
@@ -321,24 +341,12 @@ class DnsForgeCommandDispatcher:
                 print("ERROR: --render-only and --apply are mutually exclusive", file=sys.stderr)
                 return 2
 
-            role = args.role
-            node = args.node or "local"
-            proxy_type = args.proxy_type
-
-            if role is None:
-                settings = EnvSettingsLoader().load(paths.setup_file)
-                role_value = settings.get("ROLE", "").strip()
-                node = settings.get("NODE_NAME", node) or node
-                if role_value == DnsRole.PROXY.value:
-                    role = "proxy"
-                    proxy_type = settings.get("PROXY_TYPE", proxy_type or "forwarder")
-                elif role_value == DnsRole.AUTHORITATIVE.value:
-                    role = "authoritative"
-                else:
-                    print(
-                        f"ERROR: unsupported ROLE in {paths.setup_file}: {role_value or '<missing>'}", file=sys.stderr
-                    )
-                    return 2
+            resolved = self._resolve_role_from_setup(
+                paths, args.role, getattr(args, "node", None), getattr(args, "proxy_type", None)
+            )
+            if resolved is None:
+                return 2
+            role, node, proxy_type = resolved
 
             if role == "proxy":
                 InitializeProxy(paths).execute(
