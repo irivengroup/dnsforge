@@ -9,12 +9,10 @@ from dnsforge.interfaces.cli.main import build_parser
 def test_initialize_cli_accepts_one_shot_modes() -> None:
     parser = build_parser()
     for command in (
-        ["authoritative", "initialize", "--render-only"],
-        ["authoritative", "initialize", "--apply"],
-        ["authoritative", "initialize", "local", "--render-only"],
-        ["authoritative", "initialize", "local", "--apply"],
-        ["proxy", "initialize", "local", "--type", "forwarder", "--render-only"],
-        ["proxy", "initialize", "local", "--type", "forwarder", "--apply"],
+        ["initialize"],
+        ["initialize", "--render-only"],
+        ["initialize", "--apply"],
+        ["initialize", "--dry-run"],
     ):
         parser.parse_args(command)
 

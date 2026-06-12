@@ -21,9 +21,9 @@ Les scripts Bash historiques sont conservés dans `legacy/bash/`, mais ne sont p
 ## Commandes
 
 ```bash
-./bin/dnsforge proxy initialize proxy01 --type forwarder --dry-run
-./bin/dnsforge proxy initialize proxy01 --type hybrid
-./bin/dnsforge authoritative initialize auth01 --dry-run
+./bin/dnsforge initialize --dry-run
+./bin/dnsforge initialize
+./bin/dnsforge initialize --dry-run
 ```
 
 

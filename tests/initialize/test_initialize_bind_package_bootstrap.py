@@ -2,32 +2,50 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dnsforge.application.initialize.initialize_service import InitializeService
 from dnsforge.application.initialize.initialize_planner import InitializePlanner
+from dnsforge.application.initialize.initialize_service import InitializeService
 
 
-class _PackageManager:
+class _Backup:
     def __init__(self) -> None:
         self.called = False
-        self.dry_run: bool | None = None
 
-    def ensure_bind(self, dry_run: bool = False) -> list[list[str]]:
+    def create(self, *args, **kwargs):
         self.called = True
-        self.dry_run = dry_run
-        return [["dnf", "install", "-y", "bind", "bind-utils"]]
+        raise AssertionError("backup should not run when backup_before_apply is false")
 
 
-def test_initialize_apply_bootstraps_bind_when_missing(tmp_path: Path) -> None:
+class _Deploy:
+    def __init__(self) -> None:
+        self.called = False
+
+    def deploy(self, *args, **kwargs) -> None:
+        self.called = True
+
+
+class _StateStore:
+    def __init__(self) -> None:
+        self.marked = False
+
+    def assert_not_initialized(self, setup_file: Path) -> None:
+        return None
+
+    def mark_initialized(self, setup_file: Path, role: str, node: str) -> None:
+        self.marked = True
+
+
+def test_initialize_does_not_install_packages(tmp_path: Path) -> None:
     render = tmp_path / "render"
     (render / "etc/named").mkdir(parents=True)
     (render / "etc/named.conf").write_text("// named\n", encoding="utf-8")
     setup_file = tmp_path / "etc/dnsforge/setup.conf"
 
-    package_manager = _PackageManager()
-    service = InitializeService(package_manager=package_manager)
-    plan = InitializePlanner().build_authoritative_plan("auth01", render, dry_run=True, backup_before_apply=False)
+    deploy = _Deploy()
+    state = _StateStore()
+    service = InitializeService(bind_backup=_Backup(), deploy_service=deploy, state_store=state)
+    plan = InitializePlanner().build_authoritative_plan("auth01", render, dry_run=False, backup_before_apply=False)
 
     service.apply(plan, setup_file=setup_file)
 
-    assert package_manager.called is True
-    assert package_manager.dry_run is True
+    assert deploy.called is True
+    assert state.marked is True

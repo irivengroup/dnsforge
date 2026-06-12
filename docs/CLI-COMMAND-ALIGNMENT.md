@@ -26,8 +26,7 @@ dnsforge deploy [--target-root <path>] [--dry-run]
 dnsforge deploy proxy [node] [--type forwarder|hybrid] [--target-root <path>] [--dry-run]
 dnsforge deploy authoritative [node] [--target-root <path>] [--dry-run]
 
-dnsforge proxy initialize [node] [--type forwarder|hybrid] [--render-only] [--apply] [--dry-run]
-dnsforge authoritative initialize [node] [--render-only] [--apply] [--dry-run]
+dnsforge initialize [--render-only] [--apply] [--dry-run]
 ```
 
 Bare `validate`, `render`, `deploy`, and `initialize` resolve the role from `setup.conf`.

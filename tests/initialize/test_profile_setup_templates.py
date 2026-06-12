@@ -2,20 +2,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from dnsforge.application.initialize.initialize_command import InitializeCommand
 from dnsforge.domain.profile.model import ConfigurationProfile
 from dnsforge.infrastructure.filesystem.paths import ProjectPaths
 from dnsforge.infrastructure.profile.setup_template_service import ProfileSetupTemplateService
-from dnsforge.application.initialize.initialize_authoritative import InitializeAuthoritative
-from dnsforge.application.initialize.initialize_proxy import InitializeProxy
-from dnsforge.domain.model.proxy_type import ProxyType
 
 
 class _Renderer:
     def __init__(self) -> None:
-        self.calls: list[tuple[str, str | None]] = []
+        self.calls: list[tuple[str, object | None]] = []
 
-    def execute(self, node: str, proxy_type: ProxyType | None = None) -> None:
-        self.calls.append((node, proxy_type.value if proxy_type else None))
+    def execute(self, node: str, proxy_type: object | None = None) -> None:
+        self.calls.append((node, proxy_type))
 
 
 class _InitializeService:
@@ -38,31 +36,30 @@ def test_install_tree_no_longer_owns_profile_templates() -> None:
     assert not Path("install/templates").exists()
 
 
-def test_authoritative_initialize_creates_setup_conf_from_project_resource(tmp_path: Path, monkeypatch) -> None:
+def test_initialize_consumes_existing_authoritative_setup_conf(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("DNSFORGE_CONFIG_ROOT", str(tmp_path / "etc/dnsforge"))
     monkeypatch.setenv("DNSFORGE_BACKUP_ROOT", str(tmp_path / "backups"))
     paths = ProjectPaths(tmp_path)
+    paths.setup_file.parent.mkdir(parents=True, exist_ok=True)
+    paths.setup_file.write_text('ROLE="dns-authoritative"\nNODE_NAME="auth01"\n', encoding="utf-8")
     renderer = _Renderer()
 
-    InitializeAuthoritative(paths, renderer=renderer, service=_InitializeService()).execute("auth01", render_only=True)
+    InitializeCommand(paths, authoritative_renderer=renderer, service=_InitializeService()).execute(render_only=True)
 
-    content = paths.setup_file.read_text(encoding="utf-8")
-    assert 'ROLE="dns-authoritative"' in content
-    assert 'NODE_NAME="auth01"' in content
-    assert "PROXY_TYPE" not in content
+    assert renderer.calls == [("auth01", None)]
+    assert 'ROLE="dns-authoritative"' in paths.setup_file.read_text(encoding="utf-8")
 
 
-def test_proxy_initialize_creates_hybrid_setup_conf_by_default(tmp_path: Path, monkeypatch) -> None:
+def test_initialize_consumes_existing_proxy_setup_conf(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("DNSFORGE_CONFIG_ROOT", str(tmp_path / "etc/dnsforge"))
     monkeypatch.setenv("DNSFORGE_BACKUP_ROOT", str(tmp_path / "backups"))
     paths = ProjectPaths(tmp_path)
+    paths.setup_file.parent.mkdir(parents=True, exist_ok=True)
+    paths.setup_file.write_text('ROLE="dns-proxy"\nNODE_NAME="proxy01"\nPROXY_TYPE="hybrid"\n', encoding="utf-8")
     renderer = _Renderer()
 
-    InitializeProxy(paths, renderer=renderer, service=_InitializeService()).execute(
-        "proxy01", ProxyType.HYBRID, render_only=True
-    )
+    InitializeCommand(paths, proxy_renderer=renderer, service=_InitializeService()).execute(render_only=True)
 
-    content = paths.setup_file.read_text(encoding="utf-8")
-    assert 'ROLE="dns-proxy"' in content
-    assert 'PROXY_TYPE="hybrid"' in content
-    assert 'NODE_NAME="proxy01"' in content
+    assert len(renderer.calls) == 1
+    assert renderer.calls[0][0] == "proxy01"
+    assert 'PROXY_TYPE="hybrid"' in paths.setup_file.read_text(encoding="utf-8")

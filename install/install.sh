@@ -132,11 +132,11 @@ Installation complete.
 Edit:
   ${CONFIG_ROOT}/setup.conf
 
-Then create the node settings file:
-  sudo ${INSTALL_ROOT}/install/create-node-settings.sh --role proxy --node <node>
-  sudo ${INSTALL_ROOT}/install/create-node-settings.sh --role authoritative --node <node>
+Then edit the generated setup.conf to match this node:
+  ${CONFIG_ROOT}/setup.conf
 
 Then run:
-  dnsforge profile audit
-  dnsforge authoritative initialize or dnsforge proxy initialize --type hybrid|forwarder.
+  sudo dnsforge profile audit
+  sudo dnsforge initialize --render-only
+  sudo dnsforge initialize --apply
 EOF

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dnsforge.application.initialize.initialize_proxy import InitializeProxy
+from dnsforge.application.initialize.initialize_command import InitializeCommand
 from dnsforge.application.validate.validate_proxy import ValidateProxy
 from dnsforge.domain.model.proxy_type import ProxyType
 from dnsforge.infrastructure.settings.env_loader import EnvSettingsLoader
@@ -19,7 +19,7 @@ def test_project_has_expected_oop_ddd_layout() -> None:
 
 
 def test_core_ddd_components_are_importable() -> None:
-    assert InitializeProxy is not None
+    assert InitializeCommand is not None
     assert ValidateProxy is not None
     assert EnvSettingsLoader is not None
     assert ProxyType.from_value("forwarder") is ProxyType.FORWARDER

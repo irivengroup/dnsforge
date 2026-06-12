@@ -2,7 +2,7 @@
 
 # Profile-driven initialization
 
-`dnsforge authoritative initialize` et `dnsforge proxy initialize` prennent en main le serveur BIND local selon le profil DNS choisi.
+`dnsforge initialize` prend en main le serveur BIND local selon le profil déjà choisi par install/install.sh et déclaré dans /etc/dnsforge/setup.conf.
 
 Le wheel installe le package Python et la commande `dnsforge`. Le premier chemin privilégié `initialize` installe automatiquement BIND si les outils BIND sont absents du système.
 
@@ -39,8 +39,8 @@ INITIALIZED_NODE=<node>
 Ce verrou interdit ensuite :
 
 ```bash
-dnsforge authoritative initialize local
-dnsforge proxy initialize local --type forwarder
+dnsforge initialize
+dnsforge initialize
 ```
 
 La suppression de ce verrou n'est pas une opération normale. Elle n'est acceptable que dans un scénario contrôlé de reconstruction complète du nœud.
@@ -70,15 +70,15 @@ Ce comportement évite les configurations hybrides entre l'ancien BIND et DNSFor
 ## Usage direct
 
 ```bash
-dnsforge authoritative initialize local
+dnsforge initialize
 ```
 
 ```bash
-dnsforge proxy initialize local --type forwarder
+dnsforge initialize
 ```
 
 ```bash
-dnsforge proxy initialize local --type hybrid
+dnsforge initialize
 ```
 
 ## Usage en deux temps
@@ -86,19 +86,19 @@ dnsforge proxy initialize local --type hybrid
 Rendu uniquement, sans modification système et sans verrou :
 
 ```bash
-dnsforge authoritative initialize local --render-only
+dnsforge initialize --render-only
 ```
 
 Application du rendu existant, avec backup BIND, déploiement et verrouillage :
 
 ```bash
-dnsforge authoritative initialize local --apply
+dnsforge initialize --apply
 ```
 
 ## Dry-run
 
 ```bash
-dnsforge authoritative initialize local --dry-run
+dnsforge initialize --dry-run
 ```
 
 Le dry-run affiche le plan, les chemins qui seraient déplacés et l'archive qui serait créée, sans modifier le système et sans poser le verrou d'initialisation.
