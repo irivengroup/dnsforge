@@ -6,6 +6,9 @@ view "internal" {
     allow-query-cache { recursive_clients; localhost; };
     allow-query { recursive_clients; localhost; };
     additional-from-cache yes;
+{{ INTERNAL_RPZ_RESPONSE_POLICY }}
+{{ INTERNAL_CATALOG_INCLUDE }}
+{{ INTERNAL_RPZ_INCLUDE }}
     include "{{ INTERNAL_ZONE_INDEX }}";
 };
 

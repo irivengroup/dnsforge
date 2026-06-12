@@ -75,12 +75,16 @@ class BindConfigFactory:
             layout.conf_d / "30-logging.conf",
             layout.conf_d / "40-controls.conf",
             layout.conf_d / "45-statistics.conf",
-            layout.conf_d / "55-catalog.conf",
         ]
-        if include_rpz:
-            includes.append(layout.conf_d / "50-rpz.conf")
+        # BIND requires every zone statement to live inside a view once any
+        # view is declared. Catalog/RPZ zones are therefore included from
+        # 60-views.conf for view-based profiles, not globally from named.conf.
         if include_views:
             includes.append(layout.conf_d / "60-views.conf")
+        else:
+            includes.append(layout.conf_d / "55-catalog.conf")
+            if include_rpz:
+                includes.append(layout.conf_d / "50-rpz.conf")
         include_block = "\n".join(f'include "{path}";' for path in includes)
         return self._render("named.conf.j2", {"INCLUDES": include_block}, layout)
 
@@ -118,7 +122,7 @@ class BindConfigFactory:
                 "ALLOW_QUERY_CACHE": recursion_acl,
                 "ALLOW_QUERY": settings.get("DNS_ALLOW_QUERY", "any;"),
                 "ALLOW_TRANSFER": settings.get("XFR_ALLOWED_CLIENTS", "zone_transfer_clients;"),
-                "RPZ_RESPONSE_POLICY": self.rpz_response_policy(settings) if settings.get("ENABLE_RPZ", "no") == "yes" else "",
+                "RPZ_RESPONSE_POLICY": "",
                 "TCP_CLIENTS": settings.get("DNS_TCP_CLIENTS", "1000"),
                 "RECURSIVE_CLIENTS_LIMIT": settings.get("DNS_RECURSIVE_CLIENTS_LIMIT", "10000" if proxy else "1000"),
                 "CLIENTS_PER_QUERY": settings.get("DNS_CLIENTS_PER_QUERY", "10"),
@@ -213,12 +217,15 @@ class BindConfigFactory:
         layout = layout or self.template_service.layout
         return self._render("45-statistics.conf.j2", {"STATISTICS_PORT": "8053"}, layout)
 
-    def views(self, layout: BindLayout) -> str:
+    def views(self, layout: BindLayout, include_rpz: bool = False) -> str:
         return self._render(
             "60-views.conf.j2",
             {
                 "INTERNAL_ZONE_INDEX": layout.zones_enabled_dir("internal") / "zones.index.conf",
                 "EXTERNAL_ZONE_INDEX": layout.zones_enabled_dir("external") / "zones.index.conf",
+                "INTERNAL_CATALOG_INCLUDE": f'    include "{layout.conf_d / "55-catalog.conf"}";',
+                "INTERNAL_RPZ_INCLUDE": f'    include "{layout.conf_d / "50-rpz.conf"}";' if include_rpz else "",
+                "INTERNAL_RPZ_RESPONSE_POLICY": self.rpz_response_policy({}) if include_rpz else "",
             },
             layout,
         )
@@ -304,7 +311,7 @@ class BindRenderTree:
             self._write_native(destination, layout.conf_d / "50-rpz.conf", "// RPZ is disabled for this authoritative profile.\n")
 
         if model.include_views:
-            self._write_views(destination, ServerProfile.PROXY_HYBRID if model.proxy else ServerProfile.AUTHORITATIVE)
+            self._write_views(destination, ServerProfile.PROXY_HYBRID if model.proxy else ServerProfile.AUTHORITATIVE, include_rpz=model.include_rpz)
 
     def _write_common_conf(self, destination: Path, env: dict[str, str], proxy: bool) -> None:
         layout = self.layout
@@ -315,9 +322,9 @@ class BindRenderTree:
         self._write_native(destination, layout.conf_d / "40-controls.conf", self.config_factory.controls(env, layout))
         self._write_native(destination, layout.conf_d / "45-statistics.conf", self.config_factory.statistics(layout))
 
-    def _write_views(self, destination: Path, profile: ServerProfile) -> None:
+    def _write_views(self, destination: Path, profile: ServerProfile, include_rpz: bool = False) -> None:
         layout = self.layout
-        self._write_native(destination, layout.conf_d / "60-views.conf", self.config_factory.views(layout))
+        self._write_native(destination, layout.conf_d / "60-views.conf", self.config_factory.views(layout, include_rpz=include_rpz))
         for view in ("external", "internal"):
             self._write_native(destination, layout.zones_enabled_dir(view) / "zones.index.conf", self.config_factory.zone_index(layout, view))
             scope = ZoneScope.from_value(view)
