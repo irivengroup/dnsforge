@@ -64,7 +64,9 @@ jobs:
         run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" python -m pytest -q --cov=src/dnsforge --cov-report=term-missing --cov-fail-under=60
 
       - name: Build package
-        run: python -m build
+        run: |
+          rm -rf dist build *.egg-info src/*.egg-info src/dnsforge.egg-info
+          python -m build
 
       - name: Verify distribution artifacts
         shell: bash
@@ -79,7 +81,8 @@ jobs:
         run: |
           python -m venv /tmp/dnsforge-wheel-test
           /tmp/dnsforge-wheel-test/bin/python -m pip install --upgrade pip
-          /tmp/dnsforge-wheel-test/bin/python -m pip install dist/*.whl
+          WHEEL="$(python -c 'from pathlib import Path; wheels=sorted(Path("dist").glob("dnsforge-*.whl")); assert len(wheels) == 1, f"expected exactly one DNSForge wheel, found {len(wheels)}: {[str(w) for w in wheels]}"; print(wheels[0])')"
+          /tmp/dnsforge-wheel-test/bin/python -m pip install "$WHEEL"
           /tmp/dnsforge-wheel-test/bin/python -c "import dnsforge; import dnsforge.interfaces.cli.main"
           /tmp/dnsforge-wheel-test/bin/dnsforge --help
           sudo -E /tmp/dnsforge-wheel-test/bin/dnsforge version

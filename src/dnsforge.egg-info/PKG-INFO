@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: dnsforge
-Version: 10.6.7.1
+Version: 10.6.7.2
 Summary: DNSForge - Enterprise BIND deployment and configuration platform
 Author: Alfred TCHONDJO
 Requires-Python: >=3.9
