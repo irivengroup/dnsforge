@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dnsforge"
-version = "10.5.24"
+version = "10.5.25"
 description = "DNSForge - Enterprise BIND deployment and configuration platform"
 requires-python = ">=3.9"
 readme = "README.md"
@@ -31,6 +31,7 @@ dev = [
   "build>=1.2",
   "bandit[toml]>=1.7",
   "pip-audit>=2.7",
+  "mypy>=1.10",
 ]
 
 [tool.ruff]
@@ -58,3 +59,20 @@ branch = true
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
+
+[tool.mypy]
+python_version = "3.9"
+files = ["src/dnsforge"]
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+show_error_codes = true
+pretty = true
+namespace_packages = true
+explicit_package_bases = true
+
+# Advisory stage: keep strictness progressive until DNSForge type model is stabilized.
+check_untyped_defs = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+no_implicit_optional = true

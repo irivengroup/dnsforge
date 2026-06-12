@@ -1,3 +1,9 @@
+# 10.5.25
+
+- Added advisory `mypy` CI gate.
+- Added project-level mypy configuration for Python 3.9+.
+- Added typing CI documentation.
+
 # 10.5.0
 
 - Reoriented `dnsforge initialize` as a BIND configuration takeover/deployment command.
