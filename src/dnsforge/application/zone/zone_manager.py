@@ -19,7 +19,7 @@ class ZoneManager:
         self.parser = DnsRecordExpressionParser()
         self.history = ZoneHistoryService(
             self.catalog,
-            FilesystemHistoryRepository(),
+            FilesystemHistoryRepository(paths.history_root),
         )
 
     def list(self):

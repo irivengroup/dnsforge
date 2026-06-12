@@ -65,7 +65,44 @@ def _render_profile(family: str, profile: str) -> tuple[Path, object]:
         )
         BindRenderTree(layout=layout).render_proxy(settings, destination)
 
+    _rewrite_generated_paths_for_host_validation(destination, layout)
     return destination, layout
+
+
+def _rewrite_generated_paths_for_host_validation(root: Path, layout: object) -> None:
+    """Make generated absolute BIND paths validate without named-checkconf -t.
+
+    GitHub-hosted runners do not allow BIND to chroot into an arbitrary tmpdir
+    and fail with ``isc_dir_chroot: permission denied``. The generated tree still
+    uses native absolute paths, so for CI syntax validation we rewrite references
+    to the temporary rendered tree and run the normal host-side BIND validators.
+    This keeps validation strict while avoiding a privileged chroot requirement.
+    """
+    native_roots = sorted(
+        {
+            layout.named_conf,
+            layout.config_dir,
+            layout.data_dir,
+            layout.cache_dir,
+            layout.run_dir,
+            layout.log_dir,
+            Path("/etc/rndc.conf"),
+            Path("/etc/rndc.key"),
+        },
+        key=lambda item: len(str(item)),
+        reverse=True,
+    )
+
+    replacements = {str(native): str(root / native.relative_to("/")) for native in native_roots}
+    for path in root.rglob("*"):
+        if not path.is_file():
+            continue
+        content = path.read_text(encoding="utf-8")
+        rewritten = content
+        for source, target in replacements.items():
+            rewritten = rewritten.replace(source, target)
+        if rewritten != content:
+            path.write_text(rewritten, encoding="utf-8")
 
 
 @pytest.mark.parametrize("family", ["redhat", "debian", "suse"])
@@ -74,12 +111,16 @@ def test_generated_bind_configuration_is_accepted_by_bind_tools(family: str, pro
     _require_bind_tools()
     root, layout = _render_profile(family, profile)
 
-    _run(["named-checkconf", "-t", str(root), str(layout.named_conf)])
-    _run(["named-checkconf", "-z", "-t", str(root), str(layout.named_conf)])
+    named_conf = root / layout.named_conf.relative_to("/")
+    catalog_zone = root / layout.catalog_zone_file.relative_to("/")
+    rpz_zone = root / (layout.rpz_data_dir / "rpz.local.zone").relative_to("/")
 
-    _run(["named-checkzone", "-t", str(root), "catalog.dnsforge", str(layout.catalog_zone_file)])
+    _run(["named-checkconf", str(named_conf)])
+    _run(["named-checkconf", "-z", str(named_conf)])
+
+    _run(["named-checkzone", "catalog.dnsforge", str(catalog_zone)])
     if profile == "proxy-hybrid":
-        _run(["named-checkzone", "-t", str(root), "rpz.local", str(layout.rpz_data_dir / "rpz.local.zone")])
+        _run(["named-checkzone", "rpz.local", str(rpz_zone)])
 
 
 def test_ci_validates_every_registered_template_is_used() -> None:
