@@ -13,7 +13,13 @@ _ZONE_LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9-]{0,62}$")
 class ZoneType(str, Enum):
     MASTER = "master"
     SECONDARY = "secondary"
+    STUB = "stub"
     FORWARD = "forward"
+    HINT = "hint"
+    RPZ = "rpz"
+    CATALOG = "catalog"
+    REVERSE_MASTER = "reverse-master"
+    REVERSE_SECONDARY = "reverse-secondary"
 
     @classmethod
     def from_value(cls, value: str) -> "ZoneType":
@@ -41,7 +47,15 @@ class ZoneDefinition:
         for view in self.views:
             if view not in {"internal", "external", "partner"}:
                 raise ZoneError(f"unsupported zone view/scope: {view}")
-        if self.zone_type in {ZoneType.SECONDARY, ZoneType.FORWARD} and self.records:
+        recordless_types = {
+            ZoneType.SECONDARY,
+            ZoneType.STUB,
+            ZoneType.FORWARD,
+            ZoneType.HINT,
+            ZoneType.CATALOG,
+            ZoneType.REVERSE_SECONDARY,
+        }
+        if self.zone_type in recordless_types and self.records:
             raise ZoneError(f"{self.zone_type.value} zones must not carry master zone records")
         self._validate_record_set()
 

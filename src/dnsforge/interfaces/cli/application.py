@@ -26,6 +26,8 @@ from dnsforge.application.status.status_service import StatusService
 from dnsforge.application.validate.validate_authoritative import ValidateAuthoritative
 from dnsforge.application.validate.validate_proxy import ValidateProxy
 from dnsforge.application.zone.zone_manager import ZoneManager
+from dnsforge.domain.zone.model import ZoneType
+from dnsforge.domain.zone.policy_validator import ServerProfile
 from dnsforge.domain.migration.model import MigrationTarget
 from dnsforge.domain.model.proxy_type import ProxyType
 from dnsforge.domain.model.roles import DnsRole
@@ -137,8 +139,9 @@ class DnsForgeArgumentParserFactory:
         rollback.add_argument("--version", required=True, type=int)
         create = inner.add_parser("create")
         create.add_argument("--name", required=True)
-        create.add_argument("--type", required=True, choices=["master", "secondary", "forward"], dest="zone_type")
+        create.add_argument("--type", required=True, choices=[item.value for item in ZoneType], dest="zone_type")
         create.add_argument("--views", required=True)
+        create.add_argument("--profile", choices=[item.value for item in ServerProfile], default="authoritative")
         create.add_argument("--cluster")
         create.add_argument("--disabled", action="store_true")
         edit = inner.add_parser("edit")
@@ -401,6 +404,7 @@ class DnsForgeCommandDispatcher:
                 return 0
             if args.action == "create":
                 views = [i.strip() for i in args.views.replace(";", ",").split(",") if i.strip()]
+                manager = ZoneManager(paths, profile=ServerProfile.from_value(args.profile))
                 manager.create(args.name, args.zone_type, views, cluster=args.cluster, enabled=not args.disabled)
                 return 0
             if args.action == "edit":

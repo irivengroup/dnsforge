@@ -1,4 +1,4 @@
-// DNSForge managed internal forward zone.
+// DNSForge managed authoritative internal forward zone.
 zone "{{ zone_name }}" {
     type forward;
     forward {{ FORWARD_POLICY }};

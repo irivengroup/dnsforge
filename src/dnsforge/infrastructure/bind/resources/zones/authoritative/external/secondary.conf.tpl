@@ -1,4 +1,4 @@
-// DNSForge managed external secondary zone.
+// DNSForge managed authoritative external secondary zone.
 zone "{{ zone_name }}" {
     type secondary;
     masters { {{ MASTERS }} };

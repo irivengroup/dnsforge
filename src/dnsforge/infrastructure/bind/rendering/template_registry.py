@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from dnsforge.infrastructure.bind.layout import BindLayout
+from dnsforge.domain.zone.template_registry import ZoneTemplateRegistry
 
 
 @dataclass(frozen=True)
@@ -52,129 +53,17 @@ class TemplateRegistry:
             Path("60-views.conf.j2"),
             Path("/etc/named/views/external/zones.enabled/zones.index.conf"),
         ),
-        TemplateArtifact(
-            "internal-master-template",
-            Path("master-zone.conf.tpl"),
-            Path("/etc/named/views/internal/templates/master.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "internal-secondary-template",
-            Path("secondary-zone.conf.tpl"),
-            Path("/etc/named/views/internal/templates/secondary.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "internal-forward-template",
-            Path("forward-zone.conf.tpl"),
-            Path("/etc/named/views/internal/templates/forward.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "external-master-template",
-            Path("master-zone.conf.tpl"),
-            Path("/etc/named/views/external/templates/master.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "external-secondary-template",
-            Path("secondary-zone.conf.tpl"),
-            Path("/etc/named/views/external/templates/secondary.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "external-forward-template",
-            Path("forward-zone.conf.tpl"),
-            Path("/etc/named/views/external/templates/forward.conf.tpl"),
-        ),
         TemplateArtifact("rpz-zone", Path("rpz.local.zone.j2"), Path("/var/named/rpz/rpz.local.zone")),
-        # Zone declaration templates are intentionally registered per server profile and scope.
-        # Some files currently share content; the split is a product contract that prevents
-        # authoritative, forwarder and hybrid policies from regressing into one generic template.
-        TemplateArtifact(
-            "authoritative-internal-master-zone-template",
-            Path("zones/authoritative/internal/master.conf.tpl"),
-            Path("/etc/named/views/internal/templates/authoritative-master.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "authoritative-internal-secondary-zone-template",
-            Path("zones/authoritative/internal/secondary.conf.tpl"),
-            Path("/etc/named/views/internal/templates/authoritative-secondary.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "authoritative-internal-forward-zone-template",
-            Path("zones/authoritative/internal/forward.conf.tpl"),
-            Path("/etc/named/views/internal/templates/authoritative-forward.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "authoritative-external-master-zone-template",
-            Path("zones/authoritative/external/master.conf.tpl"),
-            Path("/etc/named/views/external/templates/authoritative-master.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "authoritative-external-secondary-zone-template",
-            Path("zones/authoritative/external/secondary.conf.tpl"),
-            Path("/etc/named/views/external/templates/authoritative-secondary.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "authoritative-external-forward-zone-template",
-            Path("zones/authoritative/external/forward.conf.tpl"),
-            Path("/etc/named/views/external/templates/authoritative-forward.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "proxy-forwarder-internal-master-zone-template",
-            Path("zones/proxy-forwarder/internal/master.conf.tpl"),
-            Path("/etc/named/views/internal/templates/proxy-forwarder-master.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "proxy-forwarder-internal-secondary-zone-template",
-            Path("zones/proxy-forwarder/internal/secondary.conf.tpl"),
-            Path("/etc/named/views/internal/templates/proxy-forwarder-secondary.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "proxy-forwarder-internal-forward-zone-template",
-            Path("zones/proxy-forwarder/internal/forward.conf.tpl"),
-            Path("/etc/named/views/internal/templates/proxy-forwarder-forward.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "proxy-forwarder-external-master-zone-template",
-            Path("zones/proxy-forwarder/external/master.conf.tpl"),
-            Path("/etc/named/views/external/templates/proxy-forwarder-master.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "proxy-forwarder-external-secondary-zone-template",
-            Path("zones/proxy-forwarder/external/secondary.conf.tpl"),
-            Path("/etc/named/views/external/templates/proxy-forwarder-secondary.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "proxy-forwarder-external-forward-zone-template",
-            Path("zones/proxy-forwarder/external/forward.conf.tpl"),
-            Path("/etc/named/views/external/templates/proxy-forwarder-forward.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "proxy-hybrid-internal-master-zone-template",
-            Path("zones/proxy-hybrid/internal/master.conf.tpl"),
-            Path("/etc/named/views/internal/templates/proxy-hybrid-master.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "proxy-hybrid-internal-secondary-zone-template",
-            Path("zones/proxy-hybrid/internal/secondary.conf.tpl"),
-            Path("/etc/named/views/internal/templates/proxy-hybrid-secondary.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "proxy-hybrid-internal-forward-zone-template",
-            Path("zones/proxy-hybrid/internal/forward.conf.tpl"),
-            Path("/etc/named/views/internal/templates/proxy-hybrid-forward.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "proxy-hybrid-external-master-zone-template",
-            Path("zones/proxy-hybrid/external/master.conf.tpl"),
-            Path("/etc/named/views/external/templates/proxy-hybrid-master.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "proxy-hybrid-external-secondary-zone-template",
-            Path("zones/proxy-hybrid/external/secondary.conf.tpl"),
-            Path("/etc/named/views/external/templates/proxy-hybrid-secondary.conf.tpl"),
-        ),
-        TemplateArtifact(
-            "proxy-hybrid-external-forward-zone-template",
-            Path("zones/proxy-hybrid/external/forward.conf.tpl"),
-            Path("/etc/named/views/external/templates/proxy-hybrid-forward.conf.tpl"),
+        *tuple(
+            TemplateArtifact(
+                key=f"zone-template:{artifact.key.profile.value}:{artifact.key.scope.value}:{artifact.key.zone_type.value}",
+                template=artifact.template,
+                redhat_path=Path("/etc/named/views")
+                / artifact.key.scope.value
+                / "templates"
+                / artifact.destination_name,
+            )
+            for artifact in ZoneTemplateRegistry.artifacts()
         ),
     )
 

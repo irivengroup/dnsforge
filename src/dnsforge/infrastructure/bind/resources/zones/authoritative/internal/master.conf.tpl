@@ -1,4 +1,4 @@
-// DNSForge managed internal master zone.
+// DNSForge managed authoritative internal master zone.
 zone "{{ zone_name }}" {
     type master;
     file "{{ ZONE_FILE }}";

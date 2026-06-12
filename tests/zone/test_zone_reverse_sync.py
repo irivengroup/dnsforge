@@ -19,7 +19,7 @@ def test_forward_a_record_creates_managed_reverse_zone(tmp_path: Path) -> None:
 
     reverse = m.get("100.168.192.in-addr.arpa")
     assert reverse.managed_reverse is True
-    assert reverse.zone_type.value == "master"
+    assert reverse.zone_type.value == "reverse-master"
     assert reverse.views == ["external"]
     assert [r.to_bind_line() for r in reverse.records] == ["10 300 IN PTR www.example.com."]
 

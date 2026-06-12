@@ -8,7 +8,8 @@ from dnsforge.domain.model.settings import AuthoritativeSettings, ProxySettings
 from dnsforge.domain.render.profile import ProxyRenderProfile
 from dnsforge.domain.security.model import SecurityControls, SecurityProfile
 from dnsforge.domain.zone.model import ZoneType
-from dnsforge.domain.zone.template_policy import ServerProfile, ZoneScope, ZoneTemplateKey, ZoneTemplatePolicy
+from dnsforge.domain.zone.policy_validator import ServerProfile, ZoneScope
+from dnsforge.domain.zone.template_registry import ZoneTemplateKey, ZoneTemplateRegistry
 from dnsforge.infrastructure.bind.layout import BindLayout, BindLayoutDetector
 from dnsforge.infrastructure.security.bind_security import BindSecurityOptionsRenderer
 from dnsforge.infrastructure.bind.rendering.template_service import TemplateService
@@ -272,12 +273,17 @@ class BindConfigFactory:
         return f"// DNSForge managed index for {view} view.\n"
 
     def zone_template(self, layout: BindLayout, profile: ServerProfile, scope: ZoneScope, zone_type: ZoneType) -> str:
-        template = ZoneTemplatePolicy.template_path(ZoneTemplateKey(profile, scope, zone_type))
-        zone_file = (
-            layout.master_view_data_dir(scope.value) if zone_type is ZoneType.MASTER else layout.secondary_data_dir
-        ) / "{{ zone_file }}"
+        artifact = ZoneTemplateRegistry.by_key(ZoneTemplateKey(profile, scope, zone_type))
+        if zone_type in {ZoneType.MASTER, ZoneType.REVERSE_MASTER, ZoneType.CATALOG}:
+            zone_file = layout.master_view_data_dir(scope.value) / "{{ zone_file }}"
+        elif zone_type in {ZoneType.RPZ}:
+            zone_file = layout.rpz_data_dir / "{{ zone_file }}"
+        elif zone_type is ZoneType.HINT:
+            zone_file = layout.data_dir / "named.ca"
+        else:
+            zone_file = layout.secondary_data_dir / "{{ zone_file }}"
         return self._render(
-            str(template),
+            str(artifact.template),
             {
                 "ZONE_FILE": zone_file,
                 "ALSO_NOTIFY": "{{ ALSO_NOTIFY }}",
@@ -390,21 +396,14 @@ class BindRenderTree:
                 self.config_factory.zone_index(layout, view),
             )
             scope = ZoneScope.from_value(view)
-            self._write_native(
-                destination,
-                layout.view_templates_dir(view) / "master.conf.tpl",
-                self.config_factory.zone_template(layout, profile, scope, ZoneType.MASTER),
-            )
-            self._write_native(
-                destination,
-                layout.view_templates_dir(view) / "secondary.conf.tpl",
-                self.config_factory.zone_template(layout, profile, scope, ZoneType.SECONDARY),
-            )
-            self._write_native(
-                destination,
-                layout.view_templates_dir(view) / "forward.conf.tpl",
-                self.config_factory.zone_template(layout, profile, scope, ZoneType.FORWARD),
-            )
+            for artifact in ZoneTemplateRegistry.artifacts():
+                if artifact.key.profile is not profile or artifact.key.scope is not scope:
+                    continue
+                self._write_native(
+                    destination,
+                    layout.view_templates_dir(view) / artifact.destination_name,
+                    self.config_factory.zone_template(layout, profile, scope, artifact.key.zone_type),
+                )
 
     def _common_tree(self, destination: Path) -> None:
         layout = self.layout

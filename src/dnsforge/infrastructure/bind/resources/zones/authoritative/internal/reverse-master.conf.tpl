@@ -1,4 +1,4 @@
-// DNSForge managed proxy-hybrid internal master zone.
+// DNSForge managed authoritative internal reverse-master zone.
 zone "{{ zone_name }}" {
     type master;
     file "{{ ZONE_FILE }}";

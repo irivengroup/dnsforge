@@ -1,4 +1,4 @@
-// DNSForge managed external forward zone.
+// DNSForge managed proxy-forwarder external forward zone.
 zone "{{ zone_name }}" {
     type forward;
     forward {{ FORWARD_POLICY }};

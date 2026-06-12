@@ -5,6 +5,7 @@ from typing import List
 
 from dnsforge.application.history.history_service import ZoneHistoryService
 from dnsforge.domain.zone.model import ZoneDefinition, ZoneType
+from dnsforge.domain.zone.policy_validator import ServerProfile, ZonePolicyValidator
 from dnsforge.domain.zone.record import DnsRecord, DnsRecordExpressionParser, DnsRecordType
 from dnsforge.domain.zone.reverse import is_reverse_zone_name, reverse_mapping_for_address
 from dnsforge.infrastructure.catalog.zone_catalog import ZoneCatalog
@@ -14,8 +15,11 @@ from dnsforge.shared.errors import ZoneError
 
 
 class ZoneManager:
-    def __init__(self, paths: ProjectPaths, catalog: ZoneCatalog | None = None) -> None:
+    def __init__(
+        self, paths: ProjectPaths, catalog: ZoneCatalog | None = None, profile: ServerProfile = ServerProfile.AUTHORITATIVE
+    ) -> None:
         self.paths = paths
+        self.profile = profile
         self.catalog = catalog or ZoneCatalog(paths.catalog_file)
         self.parser = DnsRecordExpressionParser()
         self.history = ZoneHistoryService(
@@ -54,7 +58,9 @@ class ZoneManager:
         cluster: str | None = None,
         enabled: bool = True,
     ) -> None:
-        self.catalog.create(ZoneDefinition(name, ZoneType.from_value(zone_type), views, cluster, enabled))
+        zone = ZoneDefinition(name, ZoneType.from_value(zone_type), views, cluster, enabled)
+        ZonePolicyValidator.validate_zone(zone, self.profile)
+        self.catalog.create(zone)
         self.history.snapshot_current(name, "create")
 
     def disable(self, name: str) -> None:
@@ -132,18 +138,18 @@ class ZoneManager:
         self.history.snapshot_current(zone_name, "delete-record")
 
     def _save(self, zone: ZoneDefinition, records: List[DnsRecord]) -> None:
-        self.catalog.update(
-            ZoneDefinition(
-                zone.name,
-                zone.zone_type,
-                zone.views,
-                zone.cluster,
-                zone.enabled,
-                zone.acl,
-                records,
-                zone.managed_reverse,
-            )
+        updated = ZoneDefinition(
+            zone.name,
+            zone.zone_type,
+            zone.views,
+            zone.cluster,
+            zone.enabled,
+            zone.acl,
+            records,
+            zone.managed_reverse,
         )
+        ZonePolicyValidator.validate_zone(updated, self.profile)
+        self.catalog.update(updated)
 
     def _apply_reverse_add(self, zone: ZoneDefinition, record: DnsRecord) -> None:
         mapping_record = self._reverse_record_for(zone, record)
@@ -189,7 +195,7 @@ class ZoneManager:
         except ZoneError:
             reverse_zone = ZoneDefinition(
                 name=reverse_name,
-                zone_type=ZoneType.MASTER,
+                zone_type=ZoneType.REVERSE_MASTER,
                 views=list(source_zone.views),
                 cluster=source_zone.cluster,
                 enabled=source_zone.enabled,
@@ -202,7 +208,7 @@ class ZoneManager:
             return reverse_zone
 
     def _replace_records(self, zone: ZoneDefinition, records: List[DnsRecord]) -> ZoneDefinition:
-        return ZoneDefinition(
+        updated = ZoneDefinition(
             zone.name,
             zone.zone_type,
             list(zone.views),
@@ -212,6 +218,8 @@ class ZoneManager:
             records,
             zone.managed_reverse,
         )
+        ZonePolicyValidator.validate_zone(updated, self.profile)
+        return updated
 
     def _absolute_owner(self, zone_name: str, record_name: str) -> str:
         if record_name == "@":

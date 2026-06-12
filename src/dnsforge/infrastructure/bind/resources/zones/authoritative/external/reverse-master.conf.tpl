@@ -1,8 +1,8 @@
-// DNSForge managed proxy-hybrid internal master zone.
+// DNSForge managed authoritative external reverse-master zone.
 zone "{{ zone_name }}" {
     type master;
     file "{{ ZONE_FILE }}";
-    allow-query { recursive_clients; localhost; };
+    allow-query { any; };
     allow-transfer { zone_transfer_clients; };
     allow-update { none; };
     also-notify { {{ ALSO_NOTIFY }} };
