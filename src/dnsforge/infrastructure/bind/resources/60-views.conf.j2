@@ -5,7 +5,6 @@ view "internal" {
     allow-recursion { recursive_clients; localhost; };
     allow-query-cache { recursive_clients; localhost; };
     allow-query { recursive_clients; localhost; };
-    additional-from-cache yes;
 {{ INTERNAL_RPZ_RESPONSE_POLICY }}
 {{ INTERNAL_CATALOG_INCLUDE }}
 {{ INTERNAL_RPZ_INCLUDE }}
@@ -18,6 +17,5 @@ view "external" {
     allow-recursion { none; };
     allow-query-cache { none; };
     allow-query { any; };
-    additional-from-cache no;
     include "{{ EXTERNAL_ZONE_INDEX }}";
 };

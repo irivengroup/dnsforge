@@ -80,3 +80,35 @@ def test_qname_minimization_boolean_settings_are_normalized_for_bind() -> None:
     BindRenderTree().render_proxy(settings, root)
     options = (root / "etc/named/conf.d/20-options.conf").read_text(encoding="utf-8")
     assert "qname-minimization disabled;" in options
+
+
+def test_removed_bind_options_are_not_rendered() -> None:
+    """Protect CI against BIND options removed from modern BIND releases."""
+    removed_options = (
+        "additional-from-cache",
+        "dnssec-enable",
+        "maintain-ixfr-base",
+        "cleaning-interval",
+    )
+    for family in ("redhat", "debian", "suse"):
+        for profile in ("authoritative", "proxy-hybrid"):
+            os.environ["DNSFORGE_BIND_LAYOUT"] = family
+            root = Path(tempfile.mkdtemp())
+            if profile == "authoritative":
+                settings = AuthoritativeSettings(
+                    role=DnsRole.AUTHORITATIVE,
+                    node_name="dnsforge-modern-bind",
+                    raw={"SECURITY_PROFILE": "enterprise"},
+                )
+                BindRenderTree().render_authoritative(settings, root)
+            else:
+                settings = ProxySettings(
+                    role=DnsRole.PROXY,
+                    node_name="dnsforge-modern-bind",
+                    raw={"ENABLE_RPZ": "yes", "SECURITY_PROFILE": "enterprise"},
+                    proxy_type=ProxyType.HYBRID,
+                )
+                BindRenderTree().render_proxy(settings, root)
+            rendered = "\n".join(path.read_text(encoding="utf-8") for path in root.rglob("*.conf"))
+            for option in removed_options:
+                assert option not in rendered, (family, profile, option)
