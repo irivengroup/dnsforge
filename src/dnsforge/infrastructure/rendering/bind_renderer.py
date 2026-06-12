@@ -102,6 +102,32 @@ class BindConfigFactory:
             layout,
         )
 
+    @staticmethod
+    def _qname_minimization_value(value: str | None) -> str:
+        """Return a BIND-valid qname-minimization mode.
+
+        BIND expects a mode such as ``relaxed``/``strict``/``disabled`` here,
+        not a boolean. DNSForge still accepts legacy yes/no-style setup values
+        and normalizes them before rendering the options block.
+        """
+        normalized = (value or "relaxed").strip().strip("\"'").lower()
+        aliases = {
+            "yes": "relaxed",
+            "true": "relaxed",
+            "1": "relaxed",
+            "on": "relaxed",
+            "enabled": "relaxed",
+            "no": "disabled",
+            "false": "disabled",
+            "0": "disabled",
+            "off": "disabled",
+            "disable": "disabled",
+            "disabled": "disabled",
+            "relaxed": "relaxed",
+            "strict": "strict",
+        }
+        return aliases.get(normalized, "relaxed")
+
     def _options(self, settings: dict[str, str], layout: BindLayout, proxy: bool) -> str:
         controls = self.security_controls(settings)
         recursion_acl = "recursive_clients; localhost;" if proxy else "none;"
@@ -134,7 +160,7 @@ class BindConfigFactory:
                 "MAX_RECURSION_QUERIES": settings.get("DNS_MAX_RECURSION_QUERIES", "100"),
                 "FETCHES_PER_SERVER": settings.get("DNS_FETCHES_PER_SERVER", "100"),
                 "FETCHES_PER_ZONE": settings.get("DNS_FETCHES_PER_ZONE", "500"),
-                "QNAME_MINIMIZATION": settings.get("DNS_QNAME_MINIMIZATION", "yes"),
+                "QNAME_MINIMIZATION": self._qname_minimization_value(settings.get("DNS_QNAME_MINIMIZATION")),
                 "SERVE_STALE": settings.get("DNS_SERVE_STALE", "yes" if proxy else "no"),
                 "STALE_ANSWER_TTL": settings.get("DNS_STALE_ANSWER_TTL", "30"),
                 "SECURITY_OPTIONS": self.security_renderer.render_options(controls),

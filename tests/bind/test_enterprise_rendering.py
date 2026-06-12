@@ -26,7 +26,7 @@ def test_proxy_enterprise_rendering_contains_security_directives() -> None:
             "minimal-responses yes;",
             "minimal-any yes;",
             "dnssec-validation auto;",
-            "qname-minimization yes;",
+            "qname-minimization relaxed;",
             "response-policy",
             "rate-limit {",
             "max-cache-size",
@@ -54,3 +54,29 @@ def test_authoritative_enterprise_rendering_disables_recursion() -> None:
     assert "allow-recursion { none; };" in options
     assert "allow-query-cache { none; };" in options
     assert "dnssec-validation auto;" in options
+
+
+def test_qname_minimization_boolean_settings_are_normalized_for_bind() -> None:
+    os.environ["DNSFORGE_BIND_LAYOUT"] = "redhat"
+    root = Path(tempfile.mkdtemp())
+    settings = ProxySettings(
+        role=DnsRole.PROXY,
+        node_name="dnsforge-qname",
+        raw={"ENABLE_RPZ": "yes", "DNS_QNAME_MINIMIZATION": "yes"},
+        proxy_type=ProxyType.HYBRID,
+    )
+    BindRenderTree().render_proxy(settings, root)
+    options = (root / "etc/named/conf.d/20-options.conf").read_text(encoding="utf-8")
+    assert "qname-minimization relaxed;" in options
+    assert "qname-minimization yes;" not in options
+
+    root = Path(tempfile.mkdtemp())
+    settings = ProxySettings(
+        role=DnsRole.PROXY,
+        node_name="dnsforge-qname-off",
+        raw={"ENABLE_RPZ": "yes", "DNS_QNAME_MINIMIZATION": "no"},
+        proxy_type=ProxyType.HYBRID,
+    )
+    BindRenderTree().render_proxy(settings, root)
+    options = (root / "etc/named/conf.d/20-options.conf").read_text(encoding="utf-8")
+    assert "qname-minimization disabled;" in options
