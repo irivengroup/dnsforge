@@ -74,9 +74,7 @@ class ZonePolicyValidator:
                 ZoneType.REVERSE_SECONDARY,
             }
         ),
-        (ServerProfile.PROXY_FORWARDER, ZoneScope.INTERNAL): frozenset(
-            {ZoneType.FORWARD, ZoneType.HINT, ZoneType.RPZ}
-        ),
+        (ServerProfile.PROXY_FORWARDER, ZoneScope.INTERNAL): frozenset({ZoneType.FORWARD, ZoneType.HINT, ZoneType.RPZ}),
         (ServerProfile.PROXY_FORWARDER, ZoneScope.EXTERNAL): frozenset({ZoneType.FORWARD, ZoneType.HINT}),
         (ServerProfile.PROXY_HYBRID, ZoneScope.INTERNAL): frozenset(
             {
@@ -132,7 +130,9 @@ class ZonePolicyValidator:
 
     @staticmethod
     def _validate_reverse_name(zone: ZoneDefinition, key: ZonePolicyKey) -> None:
-        if key.zone_type in {ZoneType.REVERSE_MASTER, ZoneType.REVERSE_SECONDARY} and not is_reverse_zone_name(zone.name):
+        if key.zone_type in {ZoneType.REVERSE_MASTER, ZoneType.REVERSE_SECONDARY} and not is_reverse_zone_name(
+            zone.name
+        ):
             raise ZoneError(f"reverse zone type requires an in-addr.arpa or ip6.arpa name: {zone.name}")
         if is_reverse_zone_name(zone.name) and key.zone_type in {ZoneType.MASTER, ZoneType.SECONDARY}:
             raise ZoneError(f"reverse zone {zone.name} must use reverse-master or reverse-secondary")

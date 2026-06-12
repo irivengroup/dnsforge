@@ -32,9 +32,7 @@ class ZoneTemplateRegistry:
         artifacts: list[ZoneTemplateArtifact] = []
         for profile in ServerProfile:
             for scope in ZoneScope:
-                for zone_type in sorted(
-                    ZonePolicyValidator.allowed_types(profile, scope), key=lambda item: item.value
-                ):
+                for zone_type in sorted(ZonePolicyValidator.allowed_types(profile, scope), key=lambda item: item.value):
                     key = ZoneTemplateKey(profile, scope, zone_type)
                     artifacts.append(
                         ZoneTemplateArtifact(

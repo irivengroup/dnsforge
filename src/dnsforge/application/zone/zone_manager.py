@@ -260,7 +260,6 @@ class ZoneManager:
             return record_name
         return f"{record_name}.{zone_name.rstrip('.')}."
 
-
     def _snapshot_changes(self, primary_zone: str, action: str, plan: ZoneChangePlan) -> None:
         for zone_name in plan.affected_zones():
             if zone_name == primary_zone:
