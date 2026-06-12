@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ipaddress
+from typing import List
 
 from dnsforge.application.history.history_service import ZoneHistoryService
 from dnsforge.domain.zone.model import ZoneDefinition, ZoneType
@@ -49,7 +50,7 @@ class ZoneManager:
         self,
         name: str,
         zone_type: str,
-        views: list[str],
+        views: List[str],
         cluster: str | None = None,
         enabled: bool = True,
     ) -> None:
@@ -110,7 +111,7 @@ class ZoneManager:
         record_type, name, priority, value = self.parser.parse_delete(expr)
         found = False
         records = []
-        removed: list[DnsRecord] = []
+        removed: List[DnsRecord] = []
         for record in zone.records:
             match = (
                 record.record_type == record_type
@@ -130,7 +131,7 @@ class ZoneManager:
             self._apply_reverse_delete(zone, record)
         self.history.snapshot_current(zone_name, "delete-record")
 
-    def _save(self, zone: ZoneDefinition, records: list[DnsRecord]) -> None:
+    def _save(self, zone: ZoneDefinition, records: List[DnsRecord]) -> None:
         self.catalog.update(
             ZoneDefinition(
                 zone.name,
@@ -200,7 +201,7 @@ class ZoneManager:
             self.history.snapshot_current(reverse_name, "create-managed-reverse")
             return reverse_zone
 
-    def _replace_records(self, zone: ZoneDefinition, records: list[DnsRecord]) -> ZoneDefinition:
+    def _replace_records(self, zone: ZoneDefinition, records: List[DnsRecord]) -> ZoneDefinition:
         return ZoneDefinition(
             zone.name,
             zone.zone_type,

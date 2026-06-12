@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: dnsforge
-Version: 10.5.25
+Version: 10.5.27
 Summary: DNSForge - Enterprise BIND deployment and configuration platform
 Author: Alfred TCHONDJO
 Requires-Python: >=3.9
@@ -12,7 +12,7 @@ Requires-Dist: ruff>=0.6; extra == "dev"
 Requires-Dist: build>=1.2; extra == "dev"
 Requires-Dist: bandit[toml]>=1.7; extra == "dev"
 Requires-Dist: pip-audit>=2.7; extra == "dev"
-Requires-Dist: mypy>=1.10; extra == "dev"
+Requires-Dist: mypy<1.18,>=1.10; extra == "dev"
 
 # ZoneForge DNSaaS
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any, List
 from dnsforge.domain.zone.model import ZoneDefinition, ZoneType
 from dnsforge.domain.zone.record import DnsRecord, DnsRecordType
 from dnsforge.shared.errors import ZoneError
@@ -10,22 +11,22 @@ class ZoneCatalog:
     def __init__(self, path: Path) -> None:
         self.path = path
 
-    def list(self) -> list[ZoneDefinition]:
+    def list(self) -> List[ZoneDefinition]:
         if not self.path.exists():
             return []
-        zones = []
-        current = None
-        section = None
-        rec = None
+        zones: List[ZoneDefinition] = []
+        current: dict[str, Any] | None = None
+        section: str | None = None
+        rec: dict[str, Any] | None = None
         for raw in self.path.read_text(encoding="utf-8").splitlines():
             s = raw.strip()
             if not s or s.startswith("#") or s == "zones:":
                 continue
             if s.startswith("- name:"):
-                if rec and current:
+                if rec is not None and current is not None:
                     current["records"].append(self._record(rec))
                     rec = None
-                if current:
+                if current is not None:
                     zones.append(self._zone(current))
                 current = {
                     "name": s.split(":", 1)[1].strip(),
@@ -73,9 +74,9 @@ class ZoneCatalog:
             elif ":" in s and section == "acl":
                 k, v = s.split(":", 1)
                 current["acl"][k.strip()] = v.strip()
-        if rec and current:
+        if rec is not None and current is not None:
             current["records"].append(self._record(rec))
-        if current:
+        if current is not None:
             zones.append(self._zone(current))
         return zones
 
@@ -124,7 +125,7 @@ class ZoneCatalog:
             ZoneDefinition(z.name, z.zone_type, z.views, z.cluster, enabled, z.acl, z.records, z.managed_reverse)
         )
 
-    def save(self, zones: list[ZoneDefinition]) -> None:
+    def save(self, zones: List[ZoneDefinition]) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         lines = ["zones:"]
         for z in zones:
@@ -148,7 +149,7 @@ class ZoneCatalog:
                 lines.append(f"        value: {r.value}")
         self.path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
 
-    def _zone(self, d: dict) -> ZoneDefinition:
+    def _zone(self, d: dict[str, Any]) -> ZoneDefinition:
         return ZoneDefinition(
             str(d["name"]),
             ZoneType.from_value(str(d.get("type", "master"))),
@@ -160,7 +161,7 @@ class ZoneCatalog:
             bool(d.get("managed_reverse", False)),
         )
 
-    def _record(self, d: dict) -> DnsRecord:
+    def _record(self, d: dict[str, Any]) -> DnsRecord:
         r = DnsRecord(
             DnsRecordType.from_value(str(d.get("type", ""))),
             str(d.get("name", "@")),

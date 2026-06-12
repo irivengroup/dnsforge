@@ -48,8 +48,7 @@ jobs:
       - name: Ruff format check
         run: ruff format --check src tests
 
-      - name: Mypy type check advisory
-        continue-on-error: true
+      - name: Mypy type check
         run: mypy src/dnsforge
 
       - name: Architecture gates
