@@ -1,6 +1,6 @@
 # Changelog
 
-## 10.8.1
+## 10.8.2
 - Require explicit --reason on zone mutating operations.
 - Enforce minimum reason length for zone and config changes.
 - Add audit detection for legacy zone history entries without a valid reason.
@@ -500,7 +500,7 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 
 # Changelog
 
-## 10.8.1
+## 10.8.2
 - Require explicit --reason on zone mutating operations.
 - Enforce minimum reason length for zone and config changes.
 - Add audit detection for legacy zone history entries without a valid reason.

@@ -313,11 +313,23 @@ class DnsForgeArgumentParserFactory:
         attach.add_argument("zone")
 
     def _add_dnssec(self, sub) -> None:
-        dnssec = sub.add_parser("dnssec", help="Manage DNSSEC controls")
+        dnssec = sub.add_parser("dnssec", help="Manage DNSSEC lifecycle")
         dnssec.add_argument("--setup-file", default="/etc/dnsforge/setup.conf")
         inner = dnssec.add_subparsers(dest="action", required=True)
-        for action in ("status", "validate", "rotate-ksk", "rotate-zsk", "check-expiry"):
-            inner.add_parser(action)
+
+        status = inner.add_parser("status")
+        status.add_argument("--zone")
+
+        validate = inner.add_parser("validate")
+        validate.add_argument("--zone")
+
+        for action in ("enable", "disable", "sign", "rotate-ksk", "rotate-zsk"):
+            parser = inner.add_parser(action)
+            parser.add_argument("--zone", required=True)
+            parser.add_argument("--reason", required=True)
+
+        check = inner.add_parser("check-expiry")
+        check.add_argument("--warn-days", type=int, default=30)
 
     def _add_rpz(self, sub) -> None:
         rpz = sub.add_parser("rpz", help="Manage RPZ DNS firewall")
@@ -721,19 +733,28 @@ class DnsForgeCommandDispatcher:
             service = DnssecService()
             setup_file = Path(args.setup_file)
             if args.action == "status":
-                print(service.status(setup_file))
+                print(service.status(setup_file, getattr(args, "zone", None)))
                 return 0
             if args.action == "validate":
-                print(service.validate(setup_file))
+                print(service.validate(setup_file, getattr(args, "zone", None)))
+                return 0
+            if args.action == "enable":
+                print(service.enable(setup_file, args.zone, args.reason))
+                return 0
+            if args.action == "disable":
+                print(service.disable(setup_file, args.zone, args.reason))
+                return 0
+            if args.action == "sign":
+                print(service.sign(setup_file, args.zone, args.reason))
                 return 0
             if args.action == "rotate-ksk":
-                print(service.rotate_ksk())
+                print(service.rotate_ksk(setup_file, args.zone, args.reason))
                 return 0
             if args.action == "rotate-zsk":
-                print(service.rotate_zsk())
+                print(service.rotate_zsk(setup_file, args.zone, args.reason))
                 return 0
             if args.action == "check-expiry":
-                print(service.check_expiry())
+                print(service.check_expiry(setup_file, args.warn_days))
                 return 0
             return 2
 

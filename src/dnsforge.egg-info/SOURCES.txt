@@ -84,6 +84,8 @@ src/dnsforge/domain/render/profile.py
 src/dnsforge/domain/security/__init__.py
 src/dnsforge/domain/security/model.py
 src/dnsforge/domain/security/validator.py
+src/dnsforge/domain/security/dnssec/__init__.py
+src/dnsforge/domain/security/dnssec/model.py
 src/dnsforge/domain/services/__init__.py
 src/dnsforge/domain/services/list_parser.py
 src/dnsforge/domain/services/settings_validator.py
@@ -186,6 +188,7 @@ src/dnsforge/infrastructure/runtime/command_runner.py
 src/dnsforge/infrastructure/runtime/file_ops.py
 src/dnsforge/infrastructure/security/__init__.py
 src/dnsforge/infrastructure/security/bind_security.py
+src/dnsforge/infrastructure/security/dnssec_state_repository.py
 src/dnsforge/infrastructure/settings/__init__.py
 src/dnsforge/infrastructure/settings/env_loader.py
 src/dnsforge/infrastructure/system/__init__.py

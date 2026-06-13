@@ -155,13 +155,22 @@ class _DnssecService:
     def validate(self, *_args, **_kwargs) -> str:
         return "OK"
 
-    def rotate_ksk(self) -> str:
+    def enable(self, *_args, **_kwargs) -> str:
         return "OK"
 
-    def rotate_zsk(self) -> str:
+    def disable(self, *_args, **_kwargs) -> str:
         return "OK"
 
-    def check_expiry(self) -> str:
+    def sign(self, *_args, **_kwargs) -> str:
+        return "OK"
+
+    def rotate_ksk(self, *_args, **_kwargs) -> str:
+        return "OK"
+
+    def rotate_zsk(self, *_args, **_kwargs) -> str:
+        return "OK"
+
+    def check_expiry(self, *_args, **_kwargs) -> str:
         return "OK"
 
 
@@ -377,10 +386,15 @@ CLI_COMMANDS: list[list[str]] = [
     ["view", "delete", "internal"],
     ["view", "attach-zone", "internal", "example.com"],
     ["dnssec", "status"],
+    ["dnssec", "status", "--zone", "example.com"],
     ["dnssec", "validate"],
-    ["dnssec", "rotate-ksk"],
-    ["dnssec", "rotate-zsk"],
-    ["dnssec", "check-expiry"],
+    ["dnssec", "validate", "--zone", "example.com"],
+    ["dnssec", "enable", "--zone", "example.com", "--reason", "unit test change"],
+    ["dnssec", "disable", "--zone", "example.com", "--reason", "unit test change"],
+    ["dnssec", "sign", "--zone", "example.com", "--reason", "unit test change"],
+    ["dnssec", "rotate-ksk", "--zone", "example.com", "--reason", "unit test change"],
+    ["dnssec", "rotate-zsk", "--zone", "example.com", "--reason", "unit test change"],
+    ["dnssec", "check-expiry", "--warn-days", "45"],
     ["rpz", "status"],
     ["rpz", "enable"],
     ["rpz", "update"],
