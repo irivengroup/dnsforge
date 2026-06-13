@@ -29,6 +29,20 @@ class ZoneType(str, Enum):
         raise ValueError(f"invalid zone type: {value}")
 
 
+class ZoneLifecycleState(str, Enum):
+    DRAFT = "draft"
+    ACTIVE = "active"
+    DEPRECATED = "deprecated"
+    RETIRED = "retired"
+
+    @classmethod
+    def from_value(cls, value: str) -> "ZoneLifecycleState":
+        for item in cls:
+            if item.value == value:
+                return item
+        raise ValueError(f"invalid zone lifecycle state: {value}")
+
+
 @dataclass(frozen=True)
 class ZoneDefinition:
     name: str
@@ -39,6 +53,12 @@ class ZoneDefinition:
     acl: dict[str, str] = field(default_factory=dict)
     records: list[DnsRecord] = field(default_factory=list)
     managed_reverse: bool = False
+    description: str = ""
+    business_owner: str = ""
+    technical_owner: str = ""
+    environment: str = ""
+    classification: str = ""
+    lifecycle: ZoneLifecycleState = ZoneLifecycleState.ACTIVE
 
     def validate(self) -> None:
         self._validate_zone_name()

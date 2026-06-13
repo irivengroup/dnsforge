@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, List
-from dnsforge.domain.zone.model import ZoneDefinition, ZoneType
+from dnsforge.domain.zone.model import ZoneDefinition, ZoneLifecycleState, ZoneType
 from dnsforge.domain.zone.record import DnsRecord, DnsRecordType
 from dnsforge.shared.errors import ZoneError
 
@@ -36,6 +36,12 @@ class ZoneCatalog:
                     "enabled": True,
                     "records": [],
                     "managed_reverse": False,
+                    "description": "",
+                    "business_owner": "",
+                    "technical_owner": "",
+                    "environment": "",
+                    "classification": "",
+                    "lifecycle": "active",
                 }
                 section = None
                 continue
@@ -62,6 +68,24 @@ class ZoneCatalog:
                 section = None
             elif s.startswith("managed_reverse:"):
                 current["managed_reverse"] = s.split(":", 1)[1].strip().lower() in {"true", "yes", "1"}
+                section = None
+            elif s.startswith("description:"):
+                current["description"] = s.split(":", 1)[1].strip()
+                section = None
+            elif s.startswith("business_owner:"):
+                current["business_owner"] = s.split(":", 1)[1].strip()
+                section = None
+            elif s.startswith("technical_owner:"):
+                current["technical_owner"] = s.split(":", 1)[1].strip()
+                section = None
+            elif s.startswith("environment:"):
+                current["environment"] = s.split(":", 1)[1].strip()
+                section = None
+            elif s.startswith("classification:"):
+                current["classification"] = s.split(":", 1)[1].strip()
+                section = None
+            elif s.startswith("lifecycle:"):
+                current["lifecycle"] = s.split(":", 1)[1].strip()
                 section = None
             elif s == "views:":
                 section = "views"
@@ -122,7 +146,22 @@ class ZoneCatalog:
     def _enabled(self, name: str, enabled: bool) -> None:
         z = self.get(name)
         self.update(
-            ZoneDefinition(z.name, z.zone_type, z.views, z.cluster, enabled, z.acl, z.records, z.managed_reverse)
+            ZoneDefinition(
+                z.name,
+                z.zone_type,
+                z.views,
+                z.cluster,
+                enabled,
+                z.acl,
+                z.records,
+                z.managed_reverse,
+                z.description,
+                z.business_owner,
+                z.technical_owner,
+                z.environment,
+                z.classification,
+                z.lifecycle,
+            )
         )
 
     def save(self, zones: List[ZoneDefinition]) -> None:
@@ -133,6 +172,12 @@ class ZoneCatalog:
             if z.cluster:
                 lines.append(f"    cluster: {z.cluster}")
             lines.append(f"    managed_reverse: {'yes' if z.managed_reverse else 'no'}")
+            lines.append(f"    description: {z.description}")
+            lines.append(f"    business_owner: {z.business_owner}")
+            lines.append(f"    technical_owner: {z.technical_owner}")
+            lines.append(f"    environment: {z.environment}")
+            lines.append(f"    classification: {z.classification}")
+            lines.append(f"    lifecycle: {z.lifecycle.value}")
             lines += [f"    enabled: {'yes' if z.enabled else 'no'}", "    views:"]
             lines += [f"      - {v}" for v in z.views]
             lines.append("    acl:")
@@ -159,6 +204,12 @@ class ZoneCatalog:
             dict(d.get("acl", {})),
             list(d.get("records", [])),
             bool(d.get("managed_reverse", False)),
+            str(d.get("description", "")),
+            str(d.get("business_owner", "")),
+            str(d.get("technical_owner", "")),
+            str(d.get("environment", "")),
+            str(d.get("classification", "")),
+            ZoneLifecycleState.from_value(str(d.get("lifecycle", "active"))),
         )
 
     def _record(self, d: dict[str, Any]) -> DnsRecord:

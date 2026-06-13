@@ -183,8 +183,8 @@ class _ZoneManager:
     def __init__(self, *_args, **_kwargs) -> None:
         self.zone = ZoneDefinition("example.com", ZoneType.MASTER, ["external"])
 
-    def list(self) -> list[ZoneDefinition]:
-        return [self.zone]
+    def list(self, enabled_only: bool = False) -> list[ZoneDefinition]:
+        return [self.zone] if not enabled_only or self.zone.enabled else []
 
     def get(self, *_args, **_kwargs) -> ZoneDefinition:
         return self.zone
@@ -201,8 +201,26 @@ class _ZoneManager:
     def history_diff(self, *_args, **_kwargs) -> str:
         return "OK"
 
+    def diff_current(self, *_args, **_kwargs) -> str:
+        return "OK"
+
+    def status(self, *_args, **_kwargs) -> str:
+        return "OK"
+
+    def backup(self, *_args, **_kwargs) -> str:
+        return "OK"
+
+    def restore(self, *_args, **_kwargs) -> str:
+        return "OK"
+
     def rollback(self, *_args, **_kwargs) -> str:
         return "OK"
+
+    def search_zones(self, *_args, **_kwargs) -> list[ZoneDefinition]:
+        return [self.zone]
+
+    def search_records(self, *_args, **_kwargs):
+        return []
 
     def create(self, *_args, **_kwargs) -> None:
         return None
@@ -273,20 +291,29 @@ CLI_COMMANDS: list[list[str]] = [
     ["initialize", "--apply", "--dry-run"],
     ["initialize", "--dry-run"],
     ["zone", "list"],
+    ["zone", "list", "--enabled"],
     ["zone", "get", "--name", "example.com"],
     ["zone", "show", "example.com"],
     ["zone", "show", "--zone", "example.com", "--version", "1"],
     ["zone", "history", "example.com"],
     ["zone", "diff", "--zone", "example.com", "--from", "1", "--to", "2"],
     ["zone", "rollback", "--zone", "example.com", "--version", "1"],
+    ["zone", "search", "--owner", "Finance"],
+    ["zone", "search", "--zone", "example.com", "--record-name", "www"],
+    ["zone", "status", "example.com"],
+    ["zone", "backup", "example.com"],
+    ["zone", "create", "example.org"],
     ["zone", "create", "--name", "example.com", "--type", "master", "--views", "external,internal"],
     ["zone", "create", "--name", "example.net", "--type", "secondary", "--views", "external", "--disabled"],
     ["zone", "edit", "example.com", "--add", "A:www:192.0.2.10", "--ttl", "300"],
     ["zone", "edit", "example.com", "--update", "A:www:192.0.2.11", "--ttl", "300"],
     ["zone", "edit", "example.com", "--delete", "A:www:192.0.2.10"],
     ["zone", "enable", "--name", "example.com"],
+    ["zone", "enable", "example.com"],
     ["zone", "disable", "--name", "example.com"],
+    ["zone", "disable", "example.com"],
     ["zone", "delete", "--name", "example.com"],
+    ["zone", "delete", "example.com"],
     ["audit"],
     ["audit", "--strict"],
     ["profile", "audit"],

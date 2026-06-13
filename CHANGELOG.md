@@ -1,5 +1,20 @@
 # Changelog
 
+## 10.7.1
+
+- Reconciled zone lifecycle CLI with existing canonical commands.
+- Removed inferior duplicate zone restore/history-diff/diff --id forms.
+- Preserved canonical commands: zone get --name, zone show --zone --version, zone diff --zone --from --to, zone rollback --zone --version.
+- Added zone catalog governance metadata and zone/record search.
+- Kept GitHub CI workflow and removed Python cache artifacts from release tree.
+
+## 10.7.0
+
+- Added complete zone lifecycle command set: list --enabled, status, backup, diff --id, history diff, restore --id.
+- Kept zone list as the primary zone inventory command.
+- Added CLI/parser alignment tests for the complete zone lifecycle.
+- Restored GitHub Actions CI workflow preservation.
+
 ## 10.6.9
 
 - Added `install/upgrade.sh` for controlled DNSForge upgrades.

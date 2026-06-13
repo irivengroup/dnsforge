@@ -114,38 +114,73 @@ class DnsForgeArgumentParserFactory:
     def _add_zone(self, sub) -> None:
         zone = sub.add_parser("zone", help="Manage DNS zones")
         inner = zone.add_subparsers(dest="action", required=True)
-        inner.add_parser("list")
-        history = inner.add_parser("history")
+
+        list_parser = inner.add_parser("list", help="Inventory configured zones")
+        list_parser.add_argument("--enabled", action="store_true", help="Show enabled/active zones only")
+
+        history = inner.add_parser("history", help="Show zone change history")
         history.add_argument("name")
-        get = inner.add_parser("get")
+
+        get = inner.add_parser("get", help="Show raw zone metadata")
         get.add_argument("--name", required=True)
-        show = inner.add_parser("show")
+
+        show = inner.add_parser("show", help="Show a zone")
         show.add_argument("name", nargs="?")
         show.add_argument("--zone", dest="zone_name")
         show.add_argument("--version", type=int)
-        diff = inner.add_parser("diff")
-        diff.add_argument("--zone", required=True)
-        diff.add_argument("--from", required=True, type=int, dest="from_version")
-        diff.add_argument("--to", required=True, type=int, dest="to_version")
-        rollback = inner.add_parser("rollback")
-        rollback.add_argument("--zone", required=True)
-        rollback.add_argument("--version", required=True, type=int)
-        create = inner.add_parser("create")
-        create.add_argument("--name", required=True)
-        create.add_argument("--type", required=True, choices=[item.value for item in ZoneType], dest="zone_type")
-        create.add_argument("--views", required=True)
+
+        status = inner.add_parser("status", help="Show zone lifecycle status")
+        status.add_argument("name")
+
+        backup = inner.add_parser("backup", help="Create an explicit zone snapshot")
+        backup.add_argument("name")
+
+        diff = inner.add_parser("diff", help="Diff two zone history versions")
+        diff.add_argument("--zone", dest="zone_name", required=True)
+        diff.add_argument("--from", type=int, dest="from_version", required=True)
+        diff.add_argument("--to", type=int, dest="to_version", required=True)
+
+        rollback = inner.add_parser("rollback", help="Rollback a zone to a history version")
+        rollback.add_argument("--zone", dest="zone_name", required=True)
+        rollback.add_argument("--version", type=int, required=True)
+
+        search = inner.add_parser("search", help="Search zones or records inside a zone")
+        search.add_argument("--zone", dest="zone_name")
+        search.add_argument("--owner")
+        search.add_argument("--view")
+        search.add_argument("--state")
+        search.add_argument("--environment")
+        search.add_argument("--classification")
+        search.add_argument("--record-name")
+        search.add_argument("--record-type")
+        search.add_argument("--value")
+
+        create = inner.add_parser("create", help="Create a zone")
+        create.add_argument("name", nargs="?")
+        create.add_argument("--name", dest="zone_name")
+        create.add_argument("--type", choices=[item.value for item in ZoneType], dest="zone_type", default="master")
+        create.add_argument("--views", default="internal")
         create.add_argument("--profile", choices=[item.value for item in ServerProfile], default="authoritative")
         create.add_argument("--cluster")
+        create.add_argument("--description", default="")
+        create.add_argument("--business-owner", default="")
+        create.add_argument("--technical-owner", default="")
+        create.add_argument("--environment", default="")
+        create.add_argument("--classification", default="")
+        create.add_argument("--state", choices=["draft", "active", "deprecated", "retired"], default="active")
         create.add_argument("--disabled", action="store_true")
-        edit = inner.add_parser("edit")
+
+        edit = inner.add_parser("edit", help="Edit records in a zone")
         edit.add_argument("name")
         edit.add_argument("--add", dest="add_record")
         edit.add_argument("--update", dest="update_record")
         edit.add_argument("--delete", dest="delete_record")
         edit.add_argument("--ttl", type=int)
+
         for action in ("disable", "enable", "delete"):
             parser = inner.add_parser(action)
-            parser.add_argument("--name", required=True)
+            parser.add_argument("name", nargs="?")
+            parser.add_argument("--name", dest="zone_name")
 
     def _add_audit(self, sub) -> None:
         audit = sub.add_parser("audit", help="Audit product consistency")
@@ -350,8 +385,10 @@ class DnsForgeCommandDispatcher:
         if args.command == "zone":
             manager = ZoneManager(paths)
             if args.action == "list":
-                for zone in manager.list():
-                    print(f"{zone.name}\t{zone.zone_type.value}\t{'enabled' if zone.enabled else 'disabled'}")
+                for zone in manager.list(enabled_only=args.enabled):
+                    print(
+                        f"{zone.name}\t{zone.zone_type.value}\t{'enabled' if zone.enabled else 'disabled'}\t{zone.lifecycle.value}\t{zone.business_owner or '-'}\t{zone.technical_owner or '-'}"
+                    )
                 return 0
             if args.action == "get":
                 zone = manager.get(args.name)
@@ -359,6 +396,12 @@ class DnsForgeCommandDispatcher:
                 print(f"type={zone.zone_type.value}")
                 print(f"enabled={'yes' if zone.enabled else 'no'}")
                 print(f"views={','.join(zone.views)}")
+                print(f"lifecycle={zone.lifecycle.value}")
+                print(f"business_owner={zone.business_owner}")
+                print(f"technical_owner={zone.technical_owner}")
+                print(f"environment={zone.environment}")
+                print(f"classification={zone.classification}")
+                print(f"description={zone.description}")
                 if zone.cluster:
                     print(f"cluster={zone.cluster}")
                 return 0
@@ -375,16 +418,63 @@ class DnsForgeCommandDispatcher:
                 else:
                     print(manager.show(zone_name))
                 return 0
+            if args.action == "status":
+                print(manager.status(args.name))
+                return 0
+            if args.action == "backup":
+                print(manager.backup(args.name))
+                return 0
             if args.action == "diff":
-                print(manager.history_diff(args.zone, args.from_version, args.to_version))
+                print(manager.history_diff(args.zone_name, args.from_version, args.to_version))
                 return 0
             if args.action == "rollback":
-                print(manager.rollback(args.zone, args.version))
+                print(manager.rollback(args.zone_name, int(args.version)))
+                return 0
+            if args.action == "search":
+                if args.zone_name or args.record_name or args.record_type or args.value:
+                    if not args.zone_name:
+                        print("ERROR: record search requires --zone", file=sys.stderr)
+                        return 2
+                    for record in manager.search_records(
+                        args.zone_name,
+                        record_name=args.record_name,
+                        record_type=args.record_type,
+                        value=args.value,
+                    ):
+                        print(record.to_bind_line())
+                    return 0
+                for zone in manager.search_zones(
+                    owner=args.owner,
+                    view=args.view,
+                    state=args.state,
+                    environment=args.environment,
+                    classification=args.classification,
+                ):
+                    print(
+                        f"{zone.name}	{zone.zone_type.value}	{zone.lifecycle.value}	"
+                        f"{zone.business_owner or '-'}	{zone.technical_owner or '-'}"
+                    )
                 return 0
             if args.action == "create":
+                zone_name = getattr(args, "zone_name", None) or getattr(args, "name", None)
+                if not zone_name:
+                    print("ERROR: zone create requires a zone name", file=sys.stderr)
+                    return 2
                 views = [i.strip() for i in args.views.replace(";", ",").split(",") if i.strip()]
                 manager = ZoneManager(paths, profile=ServerProfile.from_value(args.profile))
-                manager.create(args.name, args.zone_type, views, cluster=args.cluster, enabled=not args.disabled)
+                manager.create(
+                    zone_name,
+                    args.zone_type,
+                    views,
+                    cluster=args.cluster,
+                    enabled=not args.disabled,
+                    description=args.description,
+                    business_owner=args.business_owner,
+                    technical_owner=args.technical_owner,
+                    environment=args.environment,
+                    classification=args.classification,
+                    lifecycle=args.state,
+                )
                 return 0
             if args.action == "edit":
                 ops = [args.add_record, args.update_record, args.delete_record]
@@ -399,13 +489,25 @@ class DnsForgeCommandDispatcher:
                     manager.delete_record(args.name, args.delete_record)
                 return 0
             if args.action == "disable":
-                manager.disable(args.name)
+                zone_name = getattr(args, "zone_name", None) or getattr(args, "name", None)
+                if not zone_name:
+                    print("ERROR: zone disable requires a zone name", file=sys.stderr)
+                    return 2
+                manager.disable(zone_name)
                 return 0
             if args.action == "enable":
-                manager.enable(args.name)
+                zone_name = getattr(args, "zone_name", None) or getattr(args, "name", None)
+                if not zone_name:
+                    print("ERROR: zone enable requires a zone name", file=sys.stderr)
+                    return 2
+                manager.enable(zone_name)
                 return 0
             if args.action == "delete":
-                manager.delete(args.name)
+                zone_name = getattr(args, "zone_name", None) or getattr(args, "name", None)
+                if not zone_name:
+                    print("ERROR: zone delete requires a zone name", file=sys.stderr)
+                    return 2
+                manager.delete(zone_name)
                 return 0
             return 2
 
@@ -595,10 +697,14 @@ class DnsForgeCli:
 
     def run(self, argv: list[str] | None = None) -> int:
         parser = self.parser_factory.build()
-        args = parser.parse_args(argv)
+        normalized_argv = self._normalize_argv(list(sys.argv[1:] if argv is None else argv))
+        args = parser.parse_args(normalized_argv)
         try:
             self.privilege_guard.require_root()
             return self.dispatcher.dispatch(args)
         except DnsForgeError as exc:
             print(f"ERROR: {exc}", file=sys.stderr)
             return 1
+
+    def _normalize_argv(self, argv: list[str]) -> list[str]:
+        return argv
