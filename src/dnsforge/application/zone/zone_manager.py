@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ipaddress
+from dataclasses import replace
 from typing import List
 
 from dnsforge.application.history.history_service import ZoneHistoryService
@@ -35,7 +36,7 @@ class ZoneManager:
     def list(self, enabled_only: bool = False) -> List[ZoneDefinition]:
         zones = self.catalog.list()
         if enabled_only:
-            return [zone for zone in zones if zone.enabled]
+            return [zone for zone in zones if zone.enabled and zone.lifecycle is ZoneLifecycleState.ACTIVE]
         return zones
 
     def get(self, name: str) -> ZoneDefinition:
@@ -147,7 +148,7 @@ class ZoneManager:
         technical_owner: str = "",
         environment: str = "",
         classification: str = "",
-        lifecycle: str = "active",
+        lifecycle: str = "draft",
     ) -> None:
         plan = self.transactions.plan()
         zone = ZoneDefinition(
@@ -167,56 +168,28 @@ class ZoneManager:
         self.transactions.commit(plan)
         self.history.snapshot_current(name, "create")
 
-    def disable(self, name: str) -> None:
-        zone = self.get(name)
-        plan = self.transactions.plan()
-        plan.update(
-            ZoneDefinition(
-                zone.name,
-                zone.zone_type,
-                zone.views,
-                zone.cluster,
-                False,
-                zone.acl,
-                zone.records,
-                zone.managed_reverse,
-                zone.description,
-                zone.business_owner,
-                zone.technical_owner,
-                zone.environment,
-                zone.classification,
-                zone.lifecycle,
-            )
-        )
-        self.transactions.commit(plan)
-        self.history.snapshot_current(name, "disable")
-
     def enable(self, name: str) -> None:
         zone = self.get(name)
-        plan = self.transactions.plan()
-        plan.update(
-            ZoneDefinition(
-                zone.name,
-                zone.zone_type,
-                zone.views,
-                zone.cluster,
-                True,
-                zone.acl,
-                zone.records,
-                zone.managed_reverse,
-                zone.description,
-                zone.business_owner,
-                zone.technical_owner,
-                zone.environment,
-                zone.classification,
-                zone.lifecycle,
-            )
-        )
-        self.transactions.commit(plan)
-        self.history.snapshot_current(name, "enable")
+        if zone.lifecycle is not ZoneLifecycleState.DRAFT:
+            raise ZoneError("only draft zones can be enabled")
+        self._update_zone(replace(zone, enabled=True, lifecycle=ZoneLifecycleState.ACTIVE), "enable")
+
+    def disable(self, name: str) -> None:
+        zone = self.get(name)
+        if zone.lifecycle is not ZoneLifecycleState.ACTIVE:
+            raise ZoneError("only active zones can be disabled")
+        self._update_zone(replace(zone, enabled=False, lifecycle=ZoneLifecycleState.DEPRECATED), "disable")
+
+    def retire(self, name: str) -> None:
+        zone = self.get(name)
+        if zone.lifecycle is not ZoneLifecycleState.DEPRECATED:
+            raise ZoneError("only deprecated zones can be retired")
+        self._update_zone(replace(zone, enabled=False, lifecycle=ZoneLifecycleState.RETIRED), "retire")
 
     def delete(self, name: str) -> None:
         zone = self.get(name)
+        if zone.lifecycle is not ZoneLifecycleState.RETIRED:
+            raise ZoneError("zone delete requires lifecycle retired")
         self.history.snapshot_current(name, "pre-delete")
         plan = self.transactions.plan()
         working_zone = plan.get(name)
@@ -224,6 +197,41 @@ class ZoneManager:
             self._apply_reverse_delete(plan, working_zone, record)
         plan.delete(name)
         self.transactions.commit(plan)
+
+    def _update_zone(self, zone: ZoneDefinition, action: str) -> None:
+        plan = self.transactions.plan()
+        plan.update(zone)
+        self.transactions.commit(plan)
+        self.history.snapshot_current(zone.name, action)
+
+    def audit_zones(self) -> tuple[bool, str]:
+        findings: list[str] = []
+        zone_names = {zone.name for zone in self.catalog.list()}
+        for zone in self.catalog.list():
+            prefix = f"{zone.name}:"
+            if not zone.business_owner:
+                findings.append(f"{prefix} missing business owner")
+            if not zone.technical_owner:
+                findings.append(f"{prefix} missing technical owner")
+            if not zone.classification:
+                findings.append(f"{prefix} missing classification")
+            if not zone.environment:
+                findings.append(f"{prefix} missing environment")
+            if zone.lifecycle is ZoneLifecycleState.ACTIVE and not zone.enabled:
+                findings.append(f"{prefix} active zone is disabled")
+            if zone.lifecycle is not ZoneLifecycleState.ACTIVE and zone.enabled:
+                findings.append(f"{prefix} non-active zone is enabled")
+            for record in zone.records:
+                if record.record_type in {DnsRecordType.A, DnsRecordType.AAAA}:
+                    reverse = reverse_mapping_for_address(
+                        record.value, self._absolute_owner(zone.name, record.name)
+                    ).zone_name
+                    if reverse not in zone_names:
+                        findings.append(f"{prefix} missing reverse zone for {record.name} {record.value}")
+
+        if not findings:
+            return True, "Zone audit OK"
+        return False, "\n".join(findings)
 
     def add_record(self, zone_name: str, expr: str, ttl: int | None = None) -> None:
         plan = self.transactions.plan()

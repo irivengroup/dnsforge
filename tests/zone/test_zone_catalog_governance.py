@@ -34,7 +34,7 @@ def test_zone_catalog_governance_metadata_is_persisted_and_searchable(tmp_path: 
 
 def test_zone_record_search_inside_zone(tmp_path: Path) -> None:
     manager = ZoneManager(ProjectPaths(tmp_path), ZoneCatalog(tmp_path / "zones.yml"))
-    manager.create("example.com", "master", ["internal"])
+    manager.create("example.com", "master", ["internal"], lifecycle="active")
     manager.add_record("example.com", "A:www:192.168.10.10")
     manager.add_record("example.com", "CNAME:app:www.example.com.")
 

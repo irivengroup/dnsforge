@@ -240,8 +240,14 @@ class _ZoneManager:
     def enable(self, *_args, **_kwargs) -> None:
         return None
 
+    def retire(self, *_args, **_kwargs) -> None:
+        return None
+
     def delete(self, *_args, **_kwargs) -> None:
         return None
+
+    def audit_zones(self) -> tuple[bool, str]:
+        return True, "OK"
 
 
 @pytest.fixture(autouse=True)
@@ -312,10 +318,13 @@ CLI_COMMANDS: list[list[str]] = [
     ["zone", "enable", "example.com"],
     ["zone", "disable", "--name", "example.com"],
     ["zone", "disable", "example.com"],
+    ["zone", "retire", "--name", "example.com"],
     ["zone", "delete", "--name", "example.com"],
+    ["zone", "retire", "example.com"],
     ["zone", "delete", "example.com"],
     ["audit"],
     ["audit", "--strict"],
+    ["audit", "zones"],
     ["profile", "audit"],
     ["security", "show"],
     ["security", "audit"],

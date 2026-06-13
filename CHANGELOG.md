@@ -1,5 +1,15 @@
 # Changelog
 
+## 10.7.2
+
+- Added strict zone lifecycle governance: draft -> active -> deprecated -> retired.
+- `dnsforge zone create` now defaults to draft lifecycle.
+- `dnsforge zone list --enabled` now lists only enabled active zones.
+- Added `dnsforge zone retire <zone|--name>` before deletion.
+- `dnsforge zone delete` now requires retired lifecycle.
+- Added `dnsforge audit zones` for zone governance metadata, lifecycle consistency and reverse coverage checks.
+- Preserved canonical history commands: `zone get`, `zone show --version`, `zone diff --from --to`, `zone rollback --version`.
+
 ## 10.7.1
 
 - Reconciled zone lifecycle CLI with existing canonical commands.
@@ -476,6 +486,16 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 - Archive régénérée avec dossier racine `binddns-enterprise-redhat-v3.9`.
 
 # Changelog
+
+## 10.7.2
+
+- Added strict zone lifecycle governance: draft -> active -> deprecated -> retired.
+- `dnsforge zone create` now defaults to draft lifecycle.
+- `dnsforge zone list --enabled` now lists only enabled active zones.
+- Added `dnsforge zone retire <zone|--name>` before deletion.
+- `dnsforge zone delete` now requires retired lifecycle.
+- Added `dnsforge audit zones` for zone governance metadata, lifecycle consistency and reverse coverage checks.
+- Preserved canonical history commands: `zone get`, `zone show --version`, `zone diff --from --to`, `zone rollback --version`.
 
 ## v3.6 complete
 

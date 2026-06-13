@@ -27,6 +27,7 @@ def test_requested_zone_lifecycle_commands_parse() -> None:
         ["zone", "enable", "example.com"],
         ["zone", "status", "example.com"],
         ["zone", "backup", "example.com"],
+        ["zone", "retire", "example.com"],
         ["zone", "delete", "example.com"],
         ["zone", "history", "example.com"],
         ["zone", "diff", "--zone", "example.com", "--from", "1", "--to", "2"],
@@ -42,10 +43,13 @@ def test_zone_lifecycle_manager_operations(tmp_path: Path) -> None:
     manager = ZoneManager(ProjectPaths(tmp_path), ZoneCatalog(tmp_path / "zones.yml"))
     manager.create("example.com", "master", ["internal"])
     assert [zone.name for zone in manager.list()] == ["example.com"]
-    assert [zone.name for zone in manager.list(enabled_only=True)] == ["example.com"]
+    assert [zone.name for zone in manager.list(enabled_only=True)] == []
 
+    assert "Lifecycle: draft" in manager.status("example.com")
+    manager.enable("example.com")
+    assert [zone.name for zone in manager.list(enabled_only=True)] == ["example.com"]
     assert "Lifecycle: active" in manager.status("example.com")
-    assert "Zone backup created: example.com#2" in manager.backup("example.com")
+    assert "Zone backup created: example.com#3" in manager.backup("example.com")
 
     manager.add_record("example.com", "A:www:192.168.10.10")
     assert "www IN A 192.168.10.10" in manager.show("example.com")
@@ -55,13 +59,15 @@ def test_zone_lifecycle_manager_operations(tmp_path: Path) -> None:
     manager.disable("example.com")
     assert "example.com" not in [zone.name for zone in manager.list(enabled_only=True)]
     assert "Status: disabled" in manager.status("example.com")
-
-    manager.enable("example.com")
-    assert "example.com" in [zone.name for zone in manager.list(enabled_only=True)]
+    assert "Lifecycle: deprecated" in manager.status("example.com")
 
     manager.rollback("example.com", 1)
     assert "none" in manager.show("example.com")
     assert "example.com" in [zone.name for zone in manager.search_zones(view="internal")]
 
+    manager.enable("example.com")
+    manager.disable("example.com")
+    manager.retire("example.com")
+    assert "Lifecycle: retired" in manager.status("example.com")
     manager.delete("example.com")
     assert "example.com" not in [zone.name for zone in manager.list()]

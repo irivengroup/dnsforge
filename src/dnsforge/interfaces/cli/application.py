@@ -167,7 +167,7 @@ class DnsForgeArgumentParserFactory:
         create.add_argument("--technical-owner", default="")
         create.add_argument("--environment", default="")
         create.add_argument("--classification", default="")
-        create.add_argument("--state", choices=["draft", "active", "deprecated", "retired"], default="active")
+        create.add_argument("--state", choices=["draft", "active", "deprecated", "retired"], default="draft")
         create.add_argument("--disabled", action="store_true")
 
         edit = inner.add_parser("edit", help="Edit records in a zone")
@@ -177,7 +177,7 @@ class DnsForgeArgumentParserFactory:
         edit.add_argument("--delete", dest="delete_record")
         edit.add_argument("--ttl", type=int)
 
-        for action in ("disable", "enable", "delete"):
+        for action in ("disable", "enable", "retire", "delete"):
             parser = inner.add_parser(action)
             parser.add_argument("name", nargs="?")
             parser.add_argument("--name", dest="zone_name")
@@ -185,6 +185,8 @@ class DnsForgeArgumentParserFactory:
     def _add_audit(self, sub) -> None:
         audit = sub.add_parser("audit", help="Audit product consistency")
         audit.add_argument("--strict", action="store_true")
+        inner = audit.add_subparsers(dest="action", required=False)
+        inner.add_parser("zones", help="Audit DNS zone governance")
 
     def _add_profile(self, sub) -> None:
         profile = sub.add_parser("profile", help="Audit configuration profiles")
@@ -502,6 +504,13 @@ class DnsForgeCommandDispatcher:
                     return 2
                 manager.enable(zone_name)
                 return 0
+            if args.action == "retire":
+                zone_name = getattr(args, "zone_name", None) or getattr(args, "name", None)
+                if not zone_name:
+                    print("ERROR: zone retire requires a zone name", file=sys.stderr)
+                    return 2
+                manager.retire(zone_name)
+                return 0
             if args.action == "delete":
                 zone_name = getattr(args, "zone_name", None) or getattr(args, "name", None)
                 if not zone_name:
@@ -512,6 +521,10 @@ class DnsForgeCommandDispatcher:
             return 2
 
         if args.command == "audit":
+            if getattr(args, "action", None) == "zones":
+                ok, output = ZoneManager(paths).audit_zones()
+                print(output)
+                return 0 if ok else 1
             report = ProductAuditor().audit(paths.project_root)
             print(report.render())
             if not report.ok:

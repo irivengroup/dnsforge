@@ -15,6 +15,7 @@ def test_zone_cli_commands_parse() -> None:
         ["zone", "create", "--name", "example.com", "--type", "master", "--views", "external,internal"],
         ["zone", "disable", "--name", "example.com"],
         ["zone", "enable", "--name", "example.com"],
+        ["zone", "retire", "--name", "example.com"],
         ["zone", "delete", "--name", "example.com"],
     ):
         parser.parse_args(command)

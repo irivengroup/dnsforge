@@ -46,8 +46,10 @@ def test_forward_a_record_delete_removes_empty_managed_reverse_zone(tmp_path: Pa
 
 def test_delete_forward_zone_removes_its_reverse_records(tmp_path: Path) -> None:
     m = manager(tmp_path)
-    m.create("example.com", "master", ["external"])
+    m.create("example.com", "master", ["external"], lifecycle="active")
     m.add_record("example.com", "A:www:192.168.100.10")
+    m.disable("example.com")
+    m.retire("example.com")
     m.delete("example.com")
 
     assert m.list() == []

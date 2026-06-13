@@ -25,6 +25,7 @@ def test_cli_parser_accepts_active_commands() -> None:
         ["zone", "create", "--name", "example.com", "--type", "master", "--views", "external,internal"],
         ["zone", "disable", "--name", "example.com"],
         ["zone", "enable", "--name", "example.com"],
+        ["zone", "retire", "--name", "example.com"],
         ["zone", "delete", "--name", "example.com"],
     ]
     for command in commands:
