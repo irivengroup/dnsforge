@@ -1,3 +1,9 @@
+# 10.8.3
+
+- Enforced strict BIND validation tooling in GitHub Actions.
+- Local developer runs may still skip BIND validation when `named-checkconf`/`named-checkzone` are absent.
+- Added regression coverage ensuring missing BIND tools fail under `GITHUB_ACTIONS=true`.
+
 # Changelog
 
 ## 10.8.2

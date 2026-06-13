@@ -12,11 +12,11 @@ def setup_file(tmp_path: Path) -> Path:
     key_dir = tmp_path / "keys"
     path = tmp_path / "setup.conf"
     path.write_text(
-        f'''ROLE="dns-authoritative"
+        f"""ROLE="dns-authoritative"
 NODE_NAME="ns01"
 DNSSEC_ENABLED="yes"
 DNSSEC_KEY_DIRECTORY="{key_dir}"
-''',
+""",
         encoding="utf-8",
     )
     return path

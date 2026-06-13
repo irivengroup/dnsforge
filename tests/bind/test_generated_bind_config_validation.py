@@ -20,8 +20,21 @@ BIND_TOOLS = ("named-checkconf", "named-checkzone")
 
 def _require_bind_tools() -> None:
     missing = [tool for tool in BIND_TOOLS if shutil.which(tool) is None]
-    if missing:
-        pytest.skip(f"BIND validation tools are not installed: {', '.join(missing)}")
+    if not missing:
+        return
+
+    message = f"BIND validation tools are not installed: {', '.join(missing)}"
+    if os.environ.get("GITHUB_ACTIONS", "").lower() == "true":
+        raise AssertionError(message)
+    pytest.skip(message)  # BIND validation tools are not installed
+
+
+def test_bind_tools_are_required_in_github_actions(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    monkeypatch.setattr(shutil, "which", lambda _tool: None)
+
+    with pytest.raises(AssertionError, match="BIND validation tools are not installed"):
+        _require_bind_tools()
 
 
 def _run(command: list[str]) -> None:
