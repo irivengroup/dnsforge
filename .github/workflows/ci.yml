@@ -52,16 +52,16 @@ jobs:
         run: mypy src/dnsforge
 
       - name: Architecture gates
-        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" python -m pytest -q tests/architecture
+        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" python -m pytest -q -rs -rs tests/architecture
 
       - name: Run pytest suite
-        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" python -m pytest -q
+        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" python -m pytest -q -rs -rs
 
       - name: Validate generated BIND configuration explicitly
-        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" python -m pytest -q tests/bind/test_generated_bind_config_validation.py
+        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" python -m pytest -q -rs -rs tests/bind/test_generated_bind_config_validation.py
 
       - name: Coverage gate
-        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" python -m pytest -q --cov=src/dnsforge --cov-report=term-missing --cov-fail-under=60
+        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" python -m pytest -q -rs -rs --cov=src/dnsforge --cov-report=term-missing --cov-fail-under=60
 
       - name: Build package
         run: |
