@@ -1,3 +1,13 @@
+# Changelog
+
+## 10.6.9
+
+- Added `install/upgrade.sh` for controlled DNSForge upgrades.
+- Added `install/uninstall.sh` for safe uninstall and explicit purge flows.
+- Added tests for install, upgrade and uninstall entrypoints.
+- Ensured BIND packages are never removed unless `--purge --remove-bind` is explicitly requested.
+- Removed Python cache artifacts from release trees.
+
 
 ## 10.6.4 - Zone Transaction Engine
 
@@ -120,7 +130,7 @@
 - Création des liens `/opt/dnsforge/settings` et `/opt/dnsforge/src/settings` vers `/etc/dnsforge`.
 - Exposition globale de `/usr/local/bin/dnsforge`.
 - Ajout des templates `setup.conf` par profil.
-- Ajout de `install/create-node-settings.sh`.
+- Installation centralisée via `install/install.sh`.
 - Ajout de `docs/INSTALLATION.md`.
 
 ## v9.2

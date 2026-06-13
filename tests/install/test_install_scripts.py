@@ -10,7 +10,6 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 INSTALL_SCRIPT = PROJECT_ROOT / "install" / "install.sh"
-CREATE_NODE_SCRIPT = PROJECT_ROOT / "install" / "create-node-settings.sh"
 PROFILE_RESOURCES = PROJECT_ROOT / "src" / "dnsforge" / "infrastructure" / "profile" / "resources"
 
 
@@ -100,33 +99,9 @@ def test_install_script_replaces_setup_conf_with_force(tmp_path: Path) -> None:
     assert setup_file.read_text(encoding="utf-8") == expected
 
 
-@pytest.mark.skipif(os.geteuid() != 0, reason="install scripts intentionally require root")
-def test_create_node_settings_copies_current_setup_conf_to_role_directory(tmp_path: Path) -> None:
-    _, config_root, _ = _run_install(tmp_path, "proxy-hybrid")
-
-    subprocess.run(
-        [
-            "bash",
-            str(CREATE_NODE_SCRIPT),
-            "--role",
-            "proxy",
-            "--node",
-            "proxy01",
-            "--config-root",
-            str(config_root),
-        ],
-        cwd=PROJECT_ROOT,
-        text=True,
-        capture_output=True,
-        check=True,
-    )
-
-    assert (config_root / "dns-proxy" / "proxy01.env").read_text(encoding="utf-8") == (
-        config_root / "setup.conf"
-    ).read_text(encoding="utf-8")
-
-
 def test_install_profile_templates_are_owned_by_project_resources() -> None:
     assert not (PROJECT_ROOT / "install" / "templates").exists()
+    legacy_node_settings_scripts = list((PROJECT_ROOT / "install").glob("*node-settings*.sh"))
+    assert legacy_node_settings_scripts == []
     for profile in PROFILES:
         assert (PROFILE_RESOURCES / profile / "setup.conf").is_file()

@@ -27,10 +27,7 @@ Le fichier opérateur initial est :
 
 Après édition :
 
-```bash
-sudo /opt/dnsforge/install/create-node-settings.sh --role proxy --node proxy01
-sudo /opt/dnsforge/install/create-node-settings.sh --role authoritative --node auth01
-```
+```bash```
 
 Puis :
 
