@@ -14,7 +14,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 def test_python_project_entrypoints_exist() -> None:
     assert (PROJECT_ROOT / "pyproject.toml").is_file()
-    assert (PROJECT_ROOT / "bin/dnsforge").is_file()
+    pyproject = (PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    assert "dnsforge =" in pyproject
+    assert "dnsforge.interfaces.cli.main:main" in pyproject
+    assert not (PROJECT_ROOT / "bin").exists()
 
 
 def test_product_code_does_not_reference_legacy_shell_entrypoints() -> None:

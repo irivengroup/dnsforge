@@ -8,7 +8,6 @@ from dnsforge.domain.audit.product_audit import ProductAuditReport
 class ProductAuditor:
     REQUIRED_PATHS = (
         "pyproject.toml",
-        "bin/dnsforge",
         "src/dnsforge/domain",
         "src/dnsforge/application",
         "src/dnsforge/infrastructure",

@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-set -o errexit
-set -o nounset
-set -o pipefail
-
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PYTHONPATH="${PROJECT_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}" exec python3 -m dnsforge.interfaces.cli.main --project-root "${PROJECT_ROOT}" "$@"

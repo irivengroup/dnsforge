@@ -10,9 +10,9 @@ La v8.6 introduit un rendu Python natif pour produire l'arborescence de configur
 Le moteur Bash historique reste disponible, mais la commande suivante ne passe plus par les scripts Bash :
 
 ```bash
-./bin/dnsforge render proxy <node> --type forwarder
-./bin/dnsforge render proxy <node> --type hybrid
-./bin/dnsforge render authoritative <node>
+dnsforge render proxy <node> --type forwarder
+dnsforge render proxy <node> --type hybrid
+dnsforge render authoritative <node>
 ```
 
 ## Arborescence générée

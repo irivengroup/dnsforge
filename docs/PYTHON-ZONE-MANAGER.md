@@ -10,12 +10,12 @@ La v8.7 migre `dnsforge zone` vers Python natif.
 ## Commandes
 
 ```bash
-./bin/dnsforge zone list
-./bin/dnsforge zone get --name example.com
-./bin/dnsforge zone create --name example.com --type master --views external,internal --cluster A
-./bin/dnsforge zone disable --name example.com
-./bin/dnsforge zone enable --name example.com
-./bin/dnsforge zone delete --name example.com
+dnsforge zone list
+dnsforge zone get --name example.com
+dnsforge zone create --name example.com --type master --views external,internal --cluster A
+dnsforge zone disable --name example.com
+dnsforge zone enable --name example.com
+dnsforge zone delete --name example.com
 ```
 
 ## Catalogue

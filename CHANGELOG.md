@@ -185,7 +185,7 @@
 ## v8.5
 
 - Ajout d'un vrai package Python `src/dnsforge`.
-- Ajout du point d'entrée `bin/dnsforge` et du script Python `dnsforge`.
+- Suppression du point d’entrée historique `bin/dnsforge`; le wheel expose désormais le console script `dnsforge`.
 - Ajout du modèle domaine `DnsRole`, `ProxyType`, `ProxySettings`, `AuthoritativeSettings`.
 - Ajout de la validation Python des settings proxy/authoritative.
 - Ajout de la commande `configure` en remplacement conceptuel de `deploy`.

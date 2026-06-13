@@ -90,7 +90,7 @@ fi
 
 install_bind_if_missing
 
-mkdir -p "${INSTALL_ROOT}" "${CONFIG_ROOT}/dns-proxy" "${CONFIG_ROOT}/dns-authoritative"
+mkdir -p "${INSTALL_ROOT}/bin" "${CONFIG_ROOT}/dns-proxy" "${CONFIG_ROOT}/dns-authoritative" "$(dirname "${BIN_LINK}")"
 
 if command -v rsync >/dev/null 2>&1; then
   rsync -a --delete --exclude '__pycache__/' --exclude '*.pyc' --exclude '.git/' "${SOURCE_ROOT}/" "${INSTALL_ROOT}/"
@@ -114,6 +114,7 @@ else
   install -m 0640 "${TEMPLATE}" "${SETUP_CONF}"
 fi
 
+mkdir -p "${INSTALL_ROOT}/bin" "$(dirname "${BIN_LINK}")"
 cat > "${INSTALL_ROOT}/bin/dnsforge-system" <<EOF
 #!/usr/bin/env bash
 set -o errexit

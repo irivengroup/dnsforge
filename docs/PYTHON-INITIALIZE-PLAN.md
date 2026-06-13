@@ -14,19 +14,19 @@ Le moteur Python produit le plan et applique directement le déploiement BIND : 
 Proxy forwarder :
 
 ```bash
-./bin/dnsforge initialize --dry-run
+dnsforge initialize --dry-run
 ```
 
 Proxy hybrid :
 
 ```bash
-./bin/dnsforge initialize --dry-run
+dnsforge initialize --dry-run
 ```
 
 Authoritative :
 
 ```bash
-./bin/dnsforge initialize --dry-run
+dnsforge initialize --dry-run
 ```
 
 ## Composants

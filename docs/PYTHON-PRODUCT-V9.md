@@ -31,10 +31,10 @@ Ils ne sont plus appelés par le package Python `dnsforge`.
 ## Commandes
 
 ```bash
-./bin/dnsforge validate proxy proxy01 --type forwarder
-./bin/dnsforge render proxy proxy01 --type hybrid
-./bin/dnsforge initialize --dry-run
-./bin/dnsforge zone list
+dnsforge validate proxy proxy01 --type forwarder
+dnsforge render proxy proxy01 --type hybrid
+dnsforge initialize --dry-run
+dnsforge zone list
 ```
 
 ## Architecture

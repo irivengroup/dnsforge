@@ -17,7 +17,7 @@ Bash   : moteur historique de rendu/configuration encore conservé
 ## Point d'entrée
 
 ```bash
-./bin/dnsforge --help
+dnsforge --help
 ```
 
 ## Commandes
@@ -25,28 +25,28 @@ Bash   : moteur historique de rendu/configuration encore conservé
 Validation proxy :
 
 ```bash
-./bin/dnsforge validate proxy <node> --type forwarder
-./bin/dnsforge validate proxy <node> --type hybrid
+dnsforge validate proxy <node> --type forwarder
+dnsforge validate proxy <node> --type hybrid
 ```
 
 Configuration proxy :
 
 ```bash
-./bin/dnsforge initialize
-./bin/dnsforge initialize --render-only
+dnsforge initialize
+dnsforge initialize --render-only
 ```
 
 Authoritative :
 
 ```bash
-./bin/dnsforge validate authoritative <node>
-./bin/dnsforge initialize --render-only
+dnsforge validate authoritative <node>
+dnsforge initialize --render-only
 ```
 
 Zones :
 
 ```bash
-./bin/dnsforge zone list
+dnsforge zone list
 ```
 
 ## Étape suivante

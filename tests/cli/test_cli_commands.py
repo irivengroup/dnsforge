@@ -31,5 +31,8 @@ def test_cli_parser_accepts_active_commands() -> None:
         parser.parse_args(command)
 
 
-def test_bin_dnsforge_entrypoint_exists() -> None:
-    assert (PROJECT_ROOT / "bin/dnsforge").is_file()
+def test_dnsforge_console_script_is_declared() -> None:
+    pyproject = (PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    assert "dnsforge =" in pyproject
+    assert "dnsforge.interfaces.cli.main:main" in pyproject
+    assert not (PROJECT_ROOT / "bin").exists()

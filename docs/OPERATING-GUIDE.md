@@ -12,11 +12,11 @@ validate -> render -> initialize -> zone
 ## Commandes
 
 ```bash
-./bin/dnsforge validate proxy proxy01 --type forwarder
-./bin/dnsforge render proxy proxy01 --type hybrid
-./bin/dnsforge initialize --dry-run
-./bin/dnsforge zone list
-./bin/dnsforge audit
+dnsforge validate proxy proxy01 --type forwarder
+dnsforge render proxy proxy01 --type hybrid
+dnsforge initialize --dry-run
+dnsforge zone list
+dnsforge audit
 ```
 
 
