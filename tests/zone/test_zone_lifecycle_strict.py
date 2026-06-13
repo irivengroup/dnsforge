@@ -15,7 +15,7 @@ def manager(tmp_path: Path) -> ZoneManager:
 
 def test_zone_create_defaults_to_draft_and_enabled_inventory_means_active(tmp_path: Path) -> None:
     m = manager(tmp_path)
-    m.create("example.com", "master", ["internal"])
+    m.create("example.com", "master", ["internal"], reason="unit test change")
 
     zone = m.get("example.com")
     assert zone.lifecycle.value == "draft"
@@ -25,29 +25,29 @@ def test_zone_create_defaults_to_draft_and_enabled_inventory_means_active(tmp_pa
 
 def test_strict_lifecycle_transitions_are_enforced(tmp_path: Path) -> None:
     m = manager(tmp_path)
-    m.create("example.com", "master", ["internal"])
+    m.create("example.com", "master", ["internal"], reason="unit test change")
 
     with pytest.raises(ZoneError, match="requires lifecycle retired"):
-        m.delete("example.com")
+        m.delete("example.com", reason="unit test change")
     with pytest.raises(ZoneError, match="only active zones"):
-        m.disable("example.com")
+        m.disable("example.com", reason="unit test change")
 
-    m.enable("example.com")
+    m.enable("example.com", reason="unit test change")
     with pytest.raises(ZoneError, match="only draft zones"):
-        m.enable("example.com")
+        m.enable("example.com", reason="unit test change")
 
-    m.disable("example.com")
+    m.disable("example.com", reason="unit test change")
     with pytest.raises(ZoneError, match="requires lifecycle retired"):
-        m.delete("example.com")
+        m.delete("example.com", reason="unit test change")
 
-    m.retire("example.com")
-    m.delete("example.com")
+    m.retire("example.com", reason="unit test change")
+    m.delete("example.com", reason="unit test change")
     assert m.list() == []
 
 
 def test_zone_audit_reports_missing_governance_metadata(tmp_path: Path) -> None:
     m = manager(tmp_path)
-    m.create("example.com", "master", ["internal"])
+    m.create("example.com", "master", ["internal"], reason="unit test change")
 
     ok, output = m.audit_zones()
 

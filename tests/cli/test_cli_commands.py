@@ -22,11 +22,22 @@ def test_cli_parser_accepts_active_commands() -> None:
         ["initialize", "--apply"],
         ["zone", "list"],
         ["zone", "get", "--name", "example.com"],
-        ["zone", "create", "--name", "example.com", "--type", "master", "--views", "external,internal"],
-        ["zone", "disable", "--name", "example.com"],
-        ["zone", "enable", "--name", "example.com"],
-        ["zone", "retire", "--name", "example.com"],
-        ["zone", "delete", "--name", "example.com"],
+        [
+            "zone",
+            "create",
+            "--name",
+            "example.com",
+            "--type",
+            "master",
+            "--views",
+            "external,internal",
+            "--reason",
+            "unit test change",
+        ],
+        ["zone", "disable", "--name", "example.com", "--reason", "unit test change"],
+        ["zone", "enable", "--name", "example.com", "--reason", "unit test change"],
+        ["zone", "retire", "--name", "example.com", "--reason", "unit test change"],
+        ["zone", "delete", "--name", "example.com", "--reason", "unit test change"],
     ]
     for command in commands:
         parser.parse_args(command)

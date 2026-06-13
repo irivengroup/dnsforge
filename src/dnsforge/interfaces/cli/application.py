@@ -8,6 +8,7 @@ from pathlib import Path
 from dnsforge import __version__
 from dnsforge.application.audit.product_auditor import ProductAuditor
 from dnsforge.application.cluster.cluster_service import ClusterService
+from dnsforge.application.config.config_service import ConfigService
 from dnsforge.application.deploy.deploy_service import DeployService
 from dnsforge.application.initialize.initialize_command import InitializeCommand
 from dnsforge.application.doctor.doctor_service import DoctorService
@@ -59,6 +60,7 @@ class DnsForgeArgumentParserFactory:
         self._add_restore(sub)
         self._add_migrate(sub)
         self._add_cluster(sub)
+        self._add_config(sub)
         self._add_acl(sub)
         self._add_view(sub)
         self._add_dnssec(sub)
@@ -134,6 +136,7 @@ class DnsForgeArgumentParserFactory:
 
         backup = inner.add_parser("backup", help="Create an explicit zone snapshot")
         backup.add_argument("name")
+        backup.add_argument("--reason", required=True)
 
         diff = inner.add_parser("diff", help="Diff two zone history versions")
         diff.add_argument("--zone", dest="zone_name", required=True)
@@ -143,6 +146,7 @@ class DnsForgeArgumentParserFactory:
         rollback = inner.add_parser("rollback", help="Rollback a zone to a history version")
         rollback.add_argument("--zone", dest="zone_name", required=True)
         rollback.add_argument("--version", type=int, required=True)
+        rollback.add_argument("--reason", required=True)
 
         search = inner.add_parser("search", help="Search zones or records inside a zone")
         search.add_argument("--zone", dest="zone_name")
@@ -169,6 +173,7 @@ class DnsForgeArgumentParserFactory:
         create.add_argument("--classification", default="")
         create.add_argument("--state", choices=["draft", "active", "deprecated", "retired"], default="draft")
         create.add_argument("--disabled", action="store_true")
+        create.add_argument("--reason", required=True)
 
         edit = inner.add_parser("edit", help="Edit records in a zone")
         edit.add_argument("name")
@@ -176,17 +181,20 @@ class DnsForgeArgumentParserFactory:
         edit.add_argument("--update", dest="update_record")
         edit.add_argument("--delete", dest="delete_record")
         edit.add_argument("--ttl", type=int)
+        edit.add_argument("--reason", required=True)
 
         for action in ("disable", "enable", "retire", "delete"):
             parser = inner.add_parser(action)
             parser.add_argument("name", nargs="?")
             parser.add_argument("--name", dest="zone_name")
+            parser.add_argument("--reason", required=True)
 
     def _add_audit(self, sub) -> None:
         audit = sub.add_parser("audit", help="Audit product consistency")
         audit.add_argument("--strict", action="store_true")
         inner = audit.add_subparsers(dest="action", required=False)
         inner.add_parser("zones", help="Audit DNS zone governance")
+        inner.add_parser("config", help="Audit DNSForge node configuration")
 
     def _add_profile(self, sub) -> None:
         profile = sub.add_parser("profile", help="Audit configuration profiles")
@@ -253,6 +261,25 @@ class DnsForgeArgumentParserFactory:
         sync = inner.add_parser("sync")
         sync.add_argument("--setup-file", default=None)
         sync.add_argument("--dry-run", action="store_true")
+
+    def _add_config(self, sub) -> None:
+        config = sub.add_parser("config", help="Manage DNSForge node configuration")
+        config.add_argument("--setup-file", default=None)
+        inner = config.add_subparsers(dest="action", required=True)
+        inner.add_parser("show", help="Show node configuration")
+        inner.add_parser("validate", help="Validate node configuration")
+        diff = inner.add_parser("diff", help="Diff current setup.conf against history")
+        diff.add_argument("--id", type=int)
+        diff.add_argument("--id1", type=int)
+        diff.add_argument("--id2", type=int)
+        inner.add_parser("history", help="Show node configuration history")
+        apply = inner.add_parser("apply", help="Render and deploy setup.conf changes")
+        apply.add_argument("--reason", required=True)
+        apply.add_argument("--dry-run", action="store_true")
+        rollback = inner.add_parser("rollback", help="Rollback setup.conf to a history snapshot")
+        rollback.add_argument("--id", type=int, required=True)
+        rollback.add_argument("--reason", required=True)
+        rollback.add_argument("--dry-run", action="store_true")
 
     def _add_acl(self, sub) -> None:
         acl = sub.add_parser("acl", help="Manage DNS ACLs")
@@ -424,13 +451,13 @@ class DnsForgeCommandDispatcher:
                 print(manager.status(args.name))
                 return 0
             if args.action == "backup":
-                print(manager.backup(args.name))
+                print(manager.backup(args.name, args.reason))
                 return 0
             if args.action == "diff":
                 print(manager.history_diff(args.zone_name, args.from_version, args.to_version))
                 return 0
             if args.action == "rollback":
-                print(manager.rollback(args.zone_name, int(args.version)))
+                print(manager.rollback(args.zone_name, int(args.version), args.reason))
                 return 0
             if args.action == "search":
                 if args.zone_name or args.record_name or args.record_type or args.value:
@@ -476,6 +503,7 @@ class DnsForgeCommandDispatcher:
                     environment=args.environment,
                     classification=args.classification,
                     lifecycle=args.state,
+                    reason=args.reason,
                 )
                 return 0
             if args.action == "edit":
@@ -484,45 +512,49 @@ class DnsForgeCommandDispatcher:
                     print("ERROR: zone edit requires exactly one of --add, --update or --delete", file=sys.stderr)
                     return 2
                 if args.add_record:
-                    manager.add_record(args.name, args.add_record, ttl=args.ttl)
+                    manager.add_record(args.name, args.add_record, ttl=args.ttl, reason=args.reason)
                 if args.update_record:
-                    manager.update_record(args.name, args.update_record, ttl=args.ttl)
+                    manager.update_record(args.name, args.update_record, ttl=args.ttl, reason=args.reason)
                 if args.delete_record:
-                    manager.delete_record(args.name, args.delete_record)
+                    manager.delete_record(args.name, args.delete_record, reason=args.reason)
                 return 0
             if args.action == "disable":
                 zone_name = getattr(args, "zone_name", None) or getattr(args, "name", None)
                 if not zone_name:
                     print("ERROR: zone disable requires a zone name", file=sys.stderr)
                     return 2
-                manager.disable(zone_name)
+                manager.disable(zone_name, args.reason)
                 return 0
             if args.action == "enable":
                 zone_name = getattr(args, "zone_name", None) or getattr(args, "name", None)
                 if not zone_name:
                     print("ERROR: zone enable requires a zone name", file=sys.stderr)
                     return 2
-                manager.enable(zone_name)
+                manager.enable(zone_name, args.reason)
                 return 0
             if args.action == "retire":
                 zone_name = getattr(args, "zone_name", None) or getattr(args, "name", None)
                 if not zone_name:
                     print("ERROR: zone retire requires a zone name", file=sys.stderr)
                     return 2
-                manager.retire(zone_name)
+                manager.retire(zone_name, args.reason)
                 return 0
             if args.action == "delete":
                 zone_name = getattr(args, "zone_name", None) or getattr(args, "name", None)
                 if not zone_name:
                     print("ERROR: zone delete requires a zone name", file=sys.stderr)
                     return 2
-                manager.delete(zone_name)
+                manager.delete(zone_name, args.reason)
                 return 0
             return 2
 
         if args.command == "audit":
             if getattr(args, "action", None) == "zones":
                 ok, output = ZoneManager(paths).audit_zones()
+                print(output)
+                return 0 if ok else 1
+            if getattr(args, "action", None) == "config":
+                ok, output = ConfigService(paths).audit()
                 print(output)
                 return 0 if ok else 1
             report = ProductAuditor().audit(paths.project_root)
@@ -616,6 +648,34 @@ class DnsForgeCommandDispatcher:
                 return 0
             if args.action == "sync":
                 print(service.sync(setup_file, dry_run=args.dry_run))
+                return 0
+            return 2
+
+        if args.command == "config":
+            config_paths = paths
+            if getattr(args, "setup_file", None):
+                import os
+
+                os.environ["DNSFORGE_SETUP_FILE"] = args.setup_file
+                config_paths = ProjectPaths(paths.project_root)
+            service = ConfigService(config_paths)
+            if args.action == "show":
+                print(service.show())
+                return 0
+            if args.action == "validate":
+                print(service.validate())
+                return 0
+            if args.action == "diff":
+                print(service.diff(identifier=args.id, id1=args.id1, id2=args.id2))
+                return 0
+            if args.action == "history":
+                print(service.history())
+                return 0
+            if args.action == "apply":
+                print(service.apply(args.reason, dry_run=args.dry_run))
+                return 0
+            if args.action == "rollback":
+                print(service.rollback(args.id, args.reason, dry_run=args.dry_run))
                 return 0
             return 2
 

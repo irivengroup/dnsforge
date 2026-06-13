@@ -16,6 +16,17 @@ from dnsforge.infrastructure.history.filesystem_repository import FilesystemHist
 from dnsforge.shared.errors import ZoneError
 
 
+def require_reason(reason: str) -> str:
+    normalized = (reason or "").strip()
+    if len(normalized) < 8:
+        raise ZoneError("--reason is required and must contain at least 8 characters")
+    return normalized
+
+
+def action_with_reason(action: str, reason: str) -> str:
+    return f"{action}: {require_reason(reason)}"
+
+
 class ZoneManager:
     def __init__(
         self,
@@ -131,9 +142,9 @@ class ZoneManager:
             ]
         )
 
-    def backup(self, name: str) -> str:
+    def backup(self, name: str, reason: str) -> str:
         self.get(name)
-        self.history.snapshot_current(name, "manual-backup")
+        self.history.snapshot_current(name, action_with_reason("manual-backup", reason))
         return f"Zone backup created: {name}#{self.history.current_version(name)}"
 
     def create(
@@ -149,7 +160,9 @@ class ZoneManager:
         environment: str = "",
         classification: str = "",
         lifecycle: str = "draft",
+        reason: str = "",
     ) -> None:
+        snapshot_reason = action_with_reason("create", reason)
         plan = self.transactions.plan()
         zone = ZoneDefinition(
             name=name,
@@ -166,31 +179,31 @@ class ZoneManager:
         )
         plan.create(zone)
         self.transactions.commit(plan)
-        self.history.snapshot_current(name, "create")
+        self.history.snapshot_current(name, snapshot_reason)
 
-    def enable(self, name: str) -> None:
+    def enable(self, name: str, reason: str) -> None:
         zone = self.get(name)
         if zone.lifecycle is not ZoneLifecycleState.DRAFT:
             raise ZoneError("only draft zones can be enabled")
-        self._update_zone(replace(zone, enabled=True, lifecycle=ZoneLifecycleState.ACTIVE), "enable")
+        self._update_zone(replace(zone, enabled=True, lifecycle=ZoneLifecycleState.ACTIVE), "enable", reason)
 
-    def disable(self, name: str) -> None:
+    def disable(self, name: str, reason: str) -> None:
         zone = self.get(name)
         if zone.lifecycle is not ZoneLifecycleState.ACTIVE:
             raise ZoneError("only active zones can be disabled")
-        self._update_zone(replace(zone, enabled=False, lifecycle=ZoneLifecycleState.DEPRECATED), "disable")
+        self._update_zone(replace(zone, enabled=False, lifecycle=ZoneLifecycleState.DEPRECATED), "disable", reason)
 
-    def retire(self, name: str) -> None:
+    def retire(self, name: str, reason: str) -> None:
         zone = self.get(name)
         if zone.lifecycle is not ZoneLifecycleState.DEPRECATED:
             raise ZoneError("only deprecated zones can be retired")
-        self._update_zone(replace(zone, enabled=False, lifecycle=ZoneLifecycleState.RETIRED), "retire")
+        self._update_zone(replace(zone, enabled=False, lifecycle=ZoneLifecycleState.RETIRED), "retire", reason)
 
-    def delete(self, name: str) -> None:
+    def delete(self, name: str, reason: str) -> None:
         zone = self.get(name)
         if zone.lifecycle is not ZoneLifecycleState.RETIRED:
             raise ZoneError("zone delete requires lifecycle retired")
-        self.history.snapshot_current(name, "pre-delete")
+        self.history.snapshot_current(name, action_with_reason("pre-delete", reason))
         plan = self.transactions.plan()
         working_zone = plan.get(name)
         for record in working_zone.records:
@@ -198,17 +211,20 @@ class ZoneManager:
         plan.delete(name)
         self.transactions.commit(plan)
 
-    def _update_zone(self, zone: ZoneDefinition, action: str) -> None:
+    def _update_zone(self, zone: ZoneDefinition, action: str, reason: str) -> None:
         plan = self.transactions.plan()
         plan.update(zone)
         self.transactions.commit(plan)
-        self.history.snapshot_current(zone.name, action)
+        self.history.snapshot_current(zone.name, action_with_reason(action, reason))
 
     def audit_zones(self) -> tuple[bool, str]:
         findings: list[str] = []
         zone_names = {zone.name for zone in self.catalog.list()}
         for zone in self.catalog.list():
             prefix = f"{zone.name}:"
+            for snapshot in self.history.repository.list(zone.name):
+                if ":" not in snapshot.action or len(snapshot.action.split(":", 1)[1].strip()) < 8:
+                    findings.append(f"{prefix} history version {snapshot.version} has missing or too-short reason")
             if not zone.business_owner:
                 findings.append(f"{prefix} missing business owner")
             if not zone.technical_owner:
@@ -233,7 +249,7 @@ class ZoneManager:
             return True, "Zone audit OK"
         return False, "\n".join(findings)
 
-    def add_record(self, zone_name: str, expr: str, ttl: int | None = None) -> None:
+    def add_record(self, zone_name: str, expr: str, ttl: int | None = None, reason: str = "") -> None:
         plan = self.transactions.plan()
         zone = plan.get(zone_name)
         record = self.parser.parse_add(expr, ttl)
@@ -243,9 +259,9 @@ class ZoneManager:
         plan.update(updated_zone)
         self._apply_reverse_add(plan, updated_zone, record)
         self.transactions.commit(plan)
-        self._snapshot_changes(zone_name, "add-record", plan)
+        self._snapshot_changes(zone_name, action_with_reason("add-record", reason), plan)
 
-    def update_record(self, zone_name: str, expr: str, ttl: int | None = None) -> None:
+    def update_record(self, zone_name: str, expr: str, ttl: int | None = None, reason: str = "") -> None:
         plan = self.transactions.plan()
         zone = plan.get(zone_name)
         new_record, old_value = self.parser.parse_update(expr, ttl)
@@ -271,9 +287,9 @@ class ZoneManager:
         self._apply_reverse_delete(plan, updated_zone, old_record)
         self._apply_reverse_add(plan, updated_zone, new_record)
         self.transactions.commit(plan)
-        self._snapshot_changes(zone_name, "update-record", plan)
+        self._snapshot_changes(zone_name, action_with_reason("update-record", reason), plan)
 
-    def delete_record(self, zone_name: str, expr: str) -> None:
+    def delete_record(self, zone_name: str, expr: str, reason: str = "") -> None:
         plan = self.transactions.plan()
         zone = plan.get(zone_name)
         record_type, name, priority, value = self.parser.parse_delete(expr)
@@ -299,7 +315,7 @@ class ZoneManager:
         for record in removed:
             self._apply_reverse_delete(plan, updated_zone, record)
         self.transactions.commit(plan)
-        self._snapshot_changes(zone_name, "delete-record", plan)
+        self._snapshot_changes(zone_name, action_with_reason("delete-record", reason), plan)
 
     def _save(self, zone: ZoneDefinition, records: List[DnsRecord]) -> None:
         updated = ZoneDefinition(
@@ -427,8 +443,11 @@ class ZoneManager:
     def restore(self, zone_name: str, version: int) -> str:
         return self.history.rollback(zone_name, version)
 
-    def rollback(self, zone_name: str, version: int) -> str:
-        return self.restore(zone_name, version)
+    def rollback(self, zone_name: str, version: int, reason: str) -> str:
+        require_reason(reason)
+        result = self.restore(zone_name, version)
+        self.history.snapshot_current(zone_name, action_with_reason(f"rollback-to-{version}", reason))
+        return result
 
     def show_version(self, zone_name: str, version: int) -> str:
         return self.history.show_version(zone_name, version)

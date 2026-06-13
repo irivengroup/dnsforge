@@ -25,11 +25,11 @@ class FailingOnceZoneCatalog(ZoneCatalog):
 def test_zone_record_change_is_atomic_when_catalog_commit_fails(tmp_path: Path) -> None:
     catalog = FailingOnceZoneCatalog(tmp_path / "zones.yml")
     manager = ZoneManager(ProjectPaths(tmp_path), catalog=catalog)
-    manager.create("example.com", "master", ["internal"])
+    manager.create("example.com", "master", ["internal"], reason="unit test change")
 
     catalog.fail_next_save = True
     with pytest.raises(RuntimeError, match="simulated catalog persistence failure"):
-        manager.add_record("example.com", "A:www:192.168.100.10")
+        manager.add_record("example.com", "A:www:192.168.100.10", reason="unit test change")
 
     zone = manager.get("example.com")
     assert zone.records == []
@@ -40,10 +40,10 @@ def test_zone_record_change_is_atomic_when_catalog_commit_fails(tmp_path: Path) 
 def test_zone_record_update_commits_forward_and_reverse_together(tmp_path: Path) -> None:
     catalog = ZoneCatalog(tmp_path / "zones.yml")
     manager = ZoneManager(ProjectPaths(tmp_path), catalog=catalog)
-    manager.create("example.com", "master", ["internal"])
+    manager.create("example.com", "master", ["internal"], reason="unit test change")
 
-    manager.add_record("example.com", "A:app:192.168.100.10")
-    manager.update_record("example.com", "A:app:192.168.100.10:192.168.101.20")
+    manager.add_record("example.com", "A:app:192.168.100.10", reason="unit test change")
+    manager.update_record("example.com", "A:app:192.168.100.10:192.168.101.20", reason="unit test change")
 
     assert "192.168.101.20" in manager.show("example.com")
     assert "100.168.192.in-addr.arpa" not in [item.name for item in manager.list()]

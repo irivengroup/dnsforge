@@ -1,5 +1,18 @@
 # Changelog
 
+## 10.8.1
+- Require explicit --reason on zone mutating operations.
+- Enforce minimum reason length for zone and config changes.
+- Add audit detection for legacy zone history entries without a valid reason.
+
+## 10.8.0
+
+- Added node configuration governance for `/etc/dnsforge/setup.conf`.
+- Added `dnsforge config show|validate|diff|history|apply|rollback`.
+- Added `dnsforge audit config`.
+- Added configuration snapshots with mandatory reason for apply/rollback.
+- Preserved GitHub CI and wheel packaging.
+
 ## 10.7.2
 
 - Added strict zone lifecycle governance: draft -> active -> deprecated -> retired.
@@ -486,6 +499,11 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 - Archive régénérée avec dossier racine `binddns-enterprise-redhat-v3.9`.
 
 # Changelog
+
+## 10.8.1
+- Require explicit --reason on zone mutating operations.
+- Enforce minimum reason length for zone and config changes.
+- Add audit detection for legacy zone history entries without a valid reason.
 
 ## 10.7.2
 

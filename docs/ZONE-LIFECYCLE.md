@@ -48,5 +48,3 @@ dnsforge zone show --zone <zone> --version <ID>
 dnsforge zone diff --zone <zone> --from <ID1> --to <ID2>
 dnsforge zone rollback --zone <zone> --version <ID>
 ```
-
-

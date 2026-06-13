@@ -1,3 +1,19 @@
+Metadata-Version: 2.4
+Name: dnsforge
+Version: 10.8.1
+Summary: DNSForge - Enterprise BIND deployment and configuration platform
+Author: Alfred TCHONDJO
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"
+Requires-Dist: pytest-cov>=5; extra == "dev"
+Requires-Dist: ruff>=0.6; extra == "dev"
+Requires-Dist: build>=1.2; extra == "dev"
+Requires-Dist: bandit[toml]>=1.7; extra == "dev"
+Requires-Dist: pip-audit>=2.7; extra == "dev"
+Requires-Dist: mypy<1.18,>=1.10; extra == "dev"
+
 # ZoneForge DNSaaS
 
 > Plateforme de Déploiement et de Configuration DNS as a Service
