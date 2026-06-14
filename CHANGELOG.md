@@ -1,3 +1,10 @@
+# 10.8.4
+
+- Added CI zero-skip enforcement with `DNSFORGE_FORBID_SKIPS=1`.
+- Added consolidated GitHub Actions quality report.
+- Kept local BIND-tool skips for developer workstations without `named-checkconf`/`named-checkzone`.
+- Cleaned release build artifacts before wheel generation.
+
 # 10.8.3
 
 - Enforced strict BIND validation tooling in GitHub Actions.

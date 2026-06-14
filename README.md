@@ -155,3 +155,10 @@ sudo dnsforge audit config
 ```
 
 `setup.conf` remains the source of truth for the node. `dnsforge initialize` is still one-shot; later changes are applied through `dnsforge config apply`.
+
+## CI / Quality gates
+
+DNSForge CI is blocking and runs on Python 3.9, 3.11 and 3.13.
+
+The pipeline enforces Ruff, mypy, pytest, coverage, Bandit, pip-audit, wheel build/install, and generated BIND configuration validation. In GitHub Actions, skipped tests are forbidden; local runs may skip BIND validation only when BIND tools are not installed.
+
