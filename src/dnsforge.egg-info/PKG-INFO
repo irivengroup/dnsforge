@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: dnsforge
-Version: 10.9.0
+Version: 10.9.2
 Summary: DNSForge - Enterprise BIND deployment and configuration platform
 Author: Alfred TCHONDJO
 Requires-Python: >=3.9
@@ -178,3 +178,18 @@ DNSForge CI is blocking and runs on Python 3.9, 3.11 and 3.13.
 
 The pipeline enforces Ruff, mypy, pytest, coverage, Bandit, pip-audit, wheel build/install, and generated BIND configuration validation. In GitHub Actions, skipped tests are forbidden; local runs may skip BIND validation only when BIND tools are not installed.
 
+
+## Catalog Zones
+
+DNSForge 10.9 introduces Enterprise catalog zone governance.
+
+```bash
+sudo dnsforge catalog status
+sudo dnsforge catalog enable --reason "Enable catalog publication"
+sudo dnsforge catalog sync --reason "Publish active authoritative zones"
+sudo dnsforge catalog list
+sudo dnsforge catalog validate
+sudo dnsforge audit catalog
+```
+
+Catalog sync publishes active eligible zones from the DNSForge zone catalog and writes the generated catalog zone into the native BIND layout for the current distribution.

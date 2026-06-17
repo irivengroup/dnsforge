@@ -1,0 +1,58 @@
+// DNSForge managed global options.
+// Enterprise defaults: closed recursion by profile, sane cache limits,
+// response minimisation, DNSSEC validation, response-policy, rate-limit and operational statistics.
+options {
+    directory "{{ DATA_DIR }}";
+    managed-keys-directory "{{ DYNAMIC_DIR }}";
+    pid-file "{{ PID_FILE }}";
+    session-keyfile "{{ SESSION_KEY_FILE }}";
+
+    dump-file "{{ DUMP_FILE }}";
+    statistics-file "{{ STATISTICS_FILE }}";
+    memstatistics-file "{{ MEMSTATISTICS_FILE }}";
+
+    listen-on port 53 { {{ LISTEN_ON }} };
+    listen-on-v6 port 53 { {{ LISTEN_ON_V6 }} };
+
+    recursion {{ RECURSION }};
+    allow-recursion { {{ ALLOW_RECURSION }} };
+    allow-query-cache { {{ ALLOW_QUERY_CACHE }} };
+    allow-query { {{ ALLOW_QUERY }} };
+    allow-transfer { {{ ALLOW_TRANSFER }} };
+    allow-update { none; };
+    blackhole { blackhole_clients; };
+{{ RPZ_RESPONSE_POLICY }}
+
+    auth-nxdomain no;
+    empty-zones-enable yes;
+    minimal-responses yes;
+    minimal-any yes;
+    answer-cookie yes;
+    edns-udp-size 1232;
+    max-udp-size 1232;
+
+    tcp-clients {{ TCP_CLIENTS }};
+    recursive-clients {{ RECURSIVE_CLIENTS_LIMIT }};
+    clients-per-query {{ CLIENTS_PER_QUERY }};
+    max-clients-per-query {{ MAX_CLIENTS_PER_QUERY }};
+    max-cache-size {{ MAX_CACHE_SIZE }};
+    max-cache-ttl {{ MAX_CACHE_TTL }};
+    max-ncache-ttl {{ MAX_NCACHE_TTL }};
+    max-recursion-depth {{ MAX_RECURSION_DEPTH }};
+    max-recursion-queries {{ MAX_RECURSION_QUERIES }};
+    fetches-per-server {{ FETCHES_PER_SERVER }};
+    fetches-per-zone {{ FETCHES_PER_ZONE }};
+
+    dnssec-validation auto;
+    qname-minimization {{ QNAME_MINIMIZATION }};
+    stale-answer-enable {{ SERVE_STALE }};
+    stale-answer-ttl {{ STALE_ANSWER_TTL }};
+
+    version "not disclosed";
+    hostname none;
+    server-id none;
+
+{{ SECURITY_OPTIONS }}
+{{ FORWARDERS_BLOCK }}
+{{ RRL_OPTIONS }}
+};

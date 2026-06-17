@@ -52,8 +52,8 @@ sudo ./src/dnsProxyDeploy.sh <node>
 ## 6. Tester
 
 ```bash
-dig @<AUTHORITATIVE_BACK_IP> <ZONE> AXFR -y <TSIG_KEY_NAME>:<TSIG_SECRET>
-dig @<AUTHORITATIVE_BACK_IP> <ZONE> AXFR
+dig @<PEER_AUTHORITATIVE_ADDRESSES> <ZONE> AXFR -y <TSIG_KEY_NAME>:<TSIG_SECRET>
+dig @<PEER_AUTHORITATIVE_ADDRESSES> <ZONE> AXFR
 ```
 
 Le transfert sans TSIG doit échouer.

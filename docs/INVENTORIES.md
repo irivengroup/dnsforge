@@ -29,7 +29,7 @@ FRONT_IP="<front-ip>"
 BACK_IP="<back-ip>"
 ADM_IP="<adm-ip>"
 
-AUTHORITATIVE_BACK_IP=("192.0.2.10" "192.0.2.20")
+PEER_AUTHORITATIVE_ADDRESSES=("192.0.2.10" "192.0.2.20")
 
 FRONT_ALLOWED_CLIENTS="any"
 BACK_RECURSIVE_CLIENTS="10.0.0.0/8; 172.16.0.0/12; 192.168.0.0/16; localhost; localnets;"
@@ -44,12 +44,12 @@ RNDC_KEY_NAME="rndc-key"
 RNDC_SECRET="<secret>"
 ```
 
-## AUTHORITATIVE_BACK_IP multi-VIP
+## PEER_AUTHORITATIVE_ADDRESSES multi-VIP
 
-`AUTHORITATIVE_BACK_IP` accepte désormais une liste :
+`PEER_AUTHORITATIVE_ADDRESSES` accepte désormais une liste :
 
 ```bash
-AUTHORITATIVE_BACK_IP=("192.0.2.10" "192.0.2.20")
+PEER_AUTHORITATIVE_ADDRESSES=("192.0.2.10" "192.0.2.20")
 ```
 
 Chaque entrée représente une VIP ou IP BACK d'un cluster authoritative.

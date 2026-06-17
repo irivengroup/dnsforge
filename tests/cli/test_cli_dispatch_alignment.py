@@ -104,8 +104,17 @@ class _ClusterService:
     def validate_security(self, *_args, **_kwargs) -> str:
         return "OK"
 
+    def render(self, *_args, **_kwargs) -> str:
+        return "OK"
+
+    def apply(self, *_args, **_kwargs) -> str:
+        return "OK"
+
     def sync(self, *_args, **_kwargs) -> str:
         return "OK"
+
+    def audit(self, *_args, **_kwargs) -> tuple[bool, str]:
+        return True, "OK"
 
 
 class _CatalogService:
@@ -401,7 +410,9 @@ CLI_COMMANDS: list[list[str]] = [
     ["cluster", "status"],
     ["cluster", "validate"],
     ["cluster", "validate-security"],
-    ["cluster", "sync", "--dry-run"],
+    ["cluster", "render", "--reason", "unit test change", "--dry-run"],
+    ["cluster", "apply", "--reason", "unit test change", "--dry-run"],
+    ["cluster", "sync", "--reason", "unit test change", "--dry-run"],
     ["catalog", "status"],
     ["catalog", "enable", "--reason", "unit test change"],
     ["catalog", "disable", "--reason", "unit test change"],
@@ -409,6 +420,7 @@ CLI_COMMANDS: list[list[str]] = [
     ["catalog", "list"],
     ["catalog", "validate"],
     ["audit", "catalog"],
+    ["audit", "cluster"],
     ["acl", "list"],
     ["acl", "show", "trusted"],
     ["acl", "create", "trusted"],

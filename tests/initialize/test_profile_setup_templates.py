@@ -32,6 +32,17 @@ def test_profile_setup_templates_are_package_resources() -> None:
     assert 'PROXY_TYPE="hybrid"' in service.template_text(ConfigurationProfile.PROXY_HYBRID)
 
 
+def test_proxy_templates_use_distributed_peer_variables() -> None:
+    service = ProfileSetupTemplateService()
+    for profile in (ConfigurationProfile.PROXY_FORWARDER, ConfigurationProfile.PROXY_HYBRID):
+        text = service.template_text(profile)
+        assert "PEER_AUTHORITATIVE_ADDRESSES" in text
+        assert "PEER_PROXY_ADDRESSES" in text
+        assert "AUTHORITATIVE_BACK_IP" not in text
+        assert "PROXY_VIP_FRONT_IP" not in text
+        assert "PROXY_KEEPALIVED_INTERFACE" not in text
+
+
 def test_install_tree_no_longer_owns_profile_templates() -> None:
     assert not Path("install/templates").exists()
 

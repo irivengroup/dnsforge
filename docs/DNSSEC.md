@@ -73,8 +73,8 @@ sudo ./src/dnsAuthoritativeDeploy.sh <node>
 ```bash
 rndc signing -list <ZONE>
 rndc dnssec -status <ZONE>
-dig @<AUTHORITATIVE_BACK_IP> <ZONE> SOA +dnssec
-delv @<AUTHORITATIVE_BACK_IP> <ZONE> SOA
+dig @<PEER_AUTHORITATIVE_ADDRESSES> <ZONE> SOA +dnssec
+delv @<PEER_AUTHORITATIVE_ADDRESSES> <ZONE> SOA
 ```
 
 ## Exporter le DS

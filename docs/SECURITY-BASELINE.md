@@ -26,8 +26,8 @@ grep -Rni 'key "{{ TSIG_KEY_NAME }}"\|allow-transfer' src/dnsforge/infrastructur
 Test :
 
 ```bash
-dig @<AUTHORITATIVE_BACK_IP> <ZONE> AXFR
-dig @<AUTHORITATIVE_BACK_IP> <ZONE> AXFR -y <TSIG_KEY_NAME>:<TSIG_SECRET>
+dig @<PEER_AUTHORITATIVE_ADDRESSES> <ZONE> AXFR
+dig @<PEER_AUTHORITATIVE_ADDRESSES> <ZONE> AXFR -y <TSIG_KEY_NAME>:<TSIG_SECRET>
 ```
 
 Sans TSIG : refus attendu. Avec TSIG : transfert autorisé si ACL correcte.

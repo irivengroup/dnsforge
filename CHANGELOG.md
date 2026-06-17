@@ -1,3 +1,22 @@
+# Changelog
+
+## 10.9.2 - Authoritative HA / Keepalived cluster
+
+- Added authoritative-only HA cluster validation for 2+ nodes.
+- Added `dnsforge cluster render --reason` and `dnsforge cluster apply --reason`.
+- Added Keepalived rendering with VIP, VRID, priority, interface and unicast peers.
+- Added `dnsforge audit cluster`.
+- Kept proxies outside cluster membership; proxies use peer authoritative addresses.
+
+
+## 10.9.1 - Distributed topology cleanup
+
+- Replace `AUTHORITATIVE_BACK_IP` with `PEER_AUTHORITATIVE_ADDRESSES`.
+- Add `PEER_PROXY_ADDRESSES` for future proxy synchronization.
+- Remove obsolete proxy VIP variables from profile templates.
+- Restrict cluster governance to authoritative DNS servers only.
+- Keep proxy nodes outside the HA cluster model; proxies consume authoritative IP/VIP addresses only.
+
 # 10.8.4
 
 - Added CI zero-skip enforcement with `DNSFORGE_FORBID_SKIPS=1`.
@@ -126,7 +145,7 @@
 ## v9.9
 
 - Ajout du domaine `cluster`.
-- Ajout de `dnsforge cluster init/status/validate/sync`.
+- Ajout de `dnsforge cluster init/status/validate/render/apply/sync`.
 - Support proxy cluster avec VIP Keepalived.
 - Support authoritative cluster en modèle Primary/Secondary.
 - Ajout des variables cluster dans les templates `setup.conf`.
@@ -333,7 +352,7 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 
 
 - Normalisation universelle des listes.
-- `AUTHORITATIVE_BACK_IP` et `AUTH_CLUSTER_*_BACK_IP` acceptent espace, virgule et point-virgule.
+- `PEER_AUTHORITATIVE_ADDRESSES` et `AUTH_CLUSTER_*_BACK_IP` acceptent espace, virgule et point-virgule.
 - Abandon du format tableau Bash pour les listes IP.
 
 ## v6.0
@@ -405,7 +424,7 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 ## v5.0
 
 - Alignement des paramètres d'inventaire avec le code.
-- `AUTHORITATIVE_BACK_IP` supporte plusieurs VIP/IPs.
+- `PEER_AUTHORITATIVE_ADDRESSES` supporte plusieurs VIP/IPs.
 - Ajout de `lib-settings.sh`.
 - Rendu BIND multi-forwarders, multi-primaries et multi-allow-notify.
 - Ajout des tests d'inventaire.

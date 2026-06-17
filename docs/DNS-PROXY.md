@@ -78,12 +78,12 @@ allow-update {
 };
 ```
 
-## AUTHORITATIVE_BACK_IP multi-VIP
+## PEER_AUTHORITATIVE_ADDRESSES multi-VIP
 
 Un DNS Proxy peut forwarder vers plusieurs clusters authoritative :
 
 ```bash
-AUTHORITATIVE_BACK_IP=("192.0.2.10" "192.0.2.20")
+PEER_AUTHORITATIVE_ADDRESSES=("192.0.2.10" "192.0.2.20")
 ```
 
 Rendu attendu :

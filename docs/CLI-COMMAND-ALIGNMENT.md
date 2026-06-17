@@ -90,7 +90,9 @@ dnsforge cluster [--setup-file <path>] init [--setup-file <path>] [--dry-run]
 dnsforge cluster [--setup-file <path>] status [--setup-file <path>]
 dnsforge cluster [--setup-file <path>] validate [--setup-file <path>]
 dnsforge cluster [--setup-file <path>] validate-security [--setup-file <path>]
-dnsforge cluster [--setup-file <path>] sync [--setup-file <path>] [--dry-run]
+dnsforge cluster [--setup-file <path>] render --reason <reason> [--setup-file <path>] [--dry-run]
+dnsforge cluster [--setup-file <path>] apply --reason <reason> [--setup-file <path>] [--dry-run]
+dnsforge cluster [--setup-file <path>] sync --reason <reason> [--setup-file <path>] [--dry-run]
 ```
 
 ## ACL

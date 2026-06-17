@@ -97,8 +97,8 @@ rndc reload <ZONE>
 Diagnostic :
 
 ```bash
-dig @<AUTHORITATIVE_BACK_IP> <ZONE> AXFR
-dig @<AUTHORITATIVE_BACK_IP> <ZONE> AXFR -y <TSIG_KEY_NAME>:<TSIG_SECRET>
+dig @<PEER_AUTHORITATIVE_ADDRESSES> <ZONE> AXFR
+dig @<PEER_AUTHORITATIVE_ADDRESSES> <ZONE> AXFR -y <TSIG_KEY_NAME>:<TSIG_SECRET>
 grep -RniE 'transfer|xfr|tsig|denied' /var/log/named /var/log/messages 2>/dev/null
 ```
 

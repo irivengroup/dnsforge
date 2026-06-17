@@ -91,13 +91,13 @@ dig @<PROXY_FRONT_IP> <ZONE> SOA
 Proxy vers authoritative via BACK :
 
 ```bash
-dig @<AUTHORITATIVE_BACK_IP> <ZONE> SOA
+dig @<PEER_AUTHORITATIVE_ADDRESSES> <ZONE> SOA
 ```
 
 Transfert de zone depuis proxy :
 
 ```bash
-dig @<AUTHORITATIVE_BACK_IP> <ZONE> AXFR -y <KEY_NAME>:<SECRET>
+dig @<PEER_AUTHORITATIVE_ADDRESSES> <ZONE> AXFR -y <KEY_NAME>:<SECRET>
 ```
 
 ## 5. Interfaces

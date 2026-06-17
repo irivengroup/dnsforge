@@ -27,7 +27,7 @@ sudo ./src/dnsProxyDeploy.sh <node>
 Tester :
 
 ```bash
-dig @<AUTHORITATIVE_BACK_IP> example.net SOA
+dig @<PEER_AUTHORITATIVE_ADDRESSES> example.net SOA
 dig @<PROXY_FRONT_IP> example.net SOA
 ```
 

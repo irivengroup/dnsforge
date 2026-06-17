@@ -14,7 +14,7 @@ Décrire une procédure de rotation DNSSEC contrôlée.
 ```bash
 rndc dnssec -status <ZONE>
 rndc signing -list <ZONE>
-dig @<AUTHORITATIVE_BACK_IP> <ZONE> SOA +dnssec
+dig @<PEER_AUTHORITATIVE_ADDRESSES> <ZONE> SOA +dnssec
 ```
 
 ## 2. Vérifier la politique
@@ -37,9 +37,9 @@ journalctl -u named -f
 ## 4. Contrôler les signatures
 
 ```bash
-dig @<AUTHORITATIVE_BACK_IP> <ZONE> DNSKEY +dnssec
-dig @<AUTHORITATIVE_BACK_IP> <ZONE> SOA +dnssec
-delv @<AUTHORITATIVE_BACK_IP> <ZONE> SOA
+dig @<PEER_AUTHORITATIVE_ADDRESSES> <ZONE> DNSKEY +dnssec
+dig @<PEER_AUTHORITATIVE_ADDRESSES> <ZONE> SOA +dnssec
+delv @<PEER_AUTHORITATIVE_ADDRESSES> <ZONE> SOA
 ```
 
 ## 5. Publication DS
@@ -47,7 +47,7 @@ delv @<AUTHORITATIVE_BACK_IP> <ZONE> SOA
 Avant publication DS :
 
 ```bash
-dig @<AUTHORITATIVE_BACK_IP> <ZONE> DNSKEY +dnssec
+dig @<PEER_AUTHORITATIVE_ADDRESSES> <ZONE> DNSKEY +dnssec
 ```
 
 Après publication DS chez le parent :

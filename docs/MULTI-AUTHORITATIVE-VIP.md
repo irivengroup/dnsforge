@@ -12,7 +12,7 @@ La v5.1 valide concrètement le rendu multi-VIP côté DNS Proxy.
 ## Inventaire proxy
 
 ```bash
-AUTHORITATIVE_BACK_IP=("192.0.2.10" "192.0.2.20")
+PEER_AUTHORITATIVE_ADDRESSES=("192.0.2.10" "192.0.2.20")
 ```
 
 ## Test d'intégration
