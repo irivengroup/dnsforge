@@ -11,6 +11,8 @@ src/dnsforge/application/__init__.py
 src/dnsforge/application/audit/__init__.py
 src/dnsforge/application/audit/product_auditor.py
 src/dnsforge/application/backup/__init__.py
+src/dnsforge/application/catalog/__init__.py
+src/dnsforge/application/catalog/catalog_service.py
 src/dnsforge/application/cluster/__init__.py
 src/dnsforge/application/cluster/cluster_service.py
 src/dnsforge/application/config/__init__.py
@@ -59,6 +61,8 @@ src/dnsforge/application/zone/zone_transaction.py
 src/dnsforge/domain/__init__.py
 src/dnsforge/domain/audit/__init__.py
 src/dnsforge/domain/audit/product_audit.py
+src/dnsforge/domain/catalog/__init__.py
+src/dnsforge/domain/catalog/model.py
 src/dnsforge/domain/cluster/__init__.py
 src/dnsforge/domain/cluster/model.py
 src/dnsforge/domain/cluster/validator.py
@@ -158,6 +162,7 @@ src/dnsforge/infrastructure/bind/resources/zones/proxy-hybrid/internal/rpz.conf.
 src/dnsforge/infrastructure/bind/resources/zones/proxy-hybrid/internal/secondary.conf.tpl
 src/dnsforge/infrastructure/bind/resources/zones/proxy-hybrid/internal/stub.conf.tpl
 src/dnsforge/infrastructure/catalog/__init__.py
+src/dnsforge/infrastructure/catalog/catalog_state_repository.py
 src/dnsforge/infrastructure/catalog/zone_catalog.py
 src/dnsforge/infrastructure/cluster/__init__.py
 src/dnsforge/infrastructure/cluster/keepalived_renderer.py

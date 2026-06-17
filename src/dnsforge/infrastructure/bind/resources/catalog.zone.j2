@@ -1,4 +1,5 @@
 $TTL 300
-@ IN SOA localhost. root.localhost. (1 300 300 300 300)
+@ IN SOA localhost. root.localhost. ({{ CATALOG_SERIAL }} 300 300 300 300)
   IN NS localhost.
 version IN TXT "DNSForge catalog zone"
+{{ CATALOG_MEMBERS }}

@@ -8,6 +8,7 @@ from pathlib import Path
 from dnsforge import __version__
 from dnsforge.application.audit.product_auditor import ProductAuditor
 from dnsforge.application.cluster.cluster_service import ClusterService
+from dnsforge.application.catalog.catalog_service import CatalogService
 from dnsforge.application.config.config_service import ConfigService
 from dnsforge.application.deploy.deploy_service import DeployService
 from dnsforge.application.initialize.initialize_command import InitializeCommand
@@ -60,6 +61,7 @@ class DnsForgeArgumentParserFactory:
         self._add_restore(sub)
         self._add_migrate(sub)
         self._add_cluster(sub)
+        self._add_catalog(sub)
         self._add_config(sub)
         self._add_acl(sub)
         self._add_view(sub)
@@ -195,6 +197,7 @@ class DnsForgeArgumentParserFactory:
         inner = audit.add_subparsers(dest="action", required=False)
         inner.add_parser("zones", help="Audit DNS zone governance")
         inner.add_parser("config", help="Audit DNSForge node configuration")
+        inner.add_parser("catalog", help="Audit catalog zone publication")
 
     def _add_profile(self, sub) -> None:
         profile = sub.add_parser("profile", help="Audit configuration profiles")
@@ -261,6 +264,19 @@ class DnsForgeArgumentParserFactory:
         sync = inner.add_parser("sync")
         sync.add_argument("--setup-file", default=None)
         sync.add_argument("--dry-run", action="store_true")
+
+    def _add_catalog(self, sub) -> None:
+        catalog = sub.add_parser("catalog", help="Manage BIND catalog zones")
+        inner = catalog.add_subparsers(dest="action", required=True)
+        inner.add_parser("status", help="Show catalog publication status")
+        enable = inner.add_parser("enable", help="Enable catalog zone publication")
+        enable.add_argument("--reason", required=True)
+        disable = inner.add_parser("disable", help="Disable catalog zone publication")
+        disable.add_argument("--reason", required=True)
+        sync = inner.add_parser("sync", help="Synchronize active zones into the catalog zone")
+        sync.add_argument("--reason", required=True)
+        inner.add_parser("list", help="List published catalog members")
+        inner.add_parser("validate", help="Validate catalog state against active zones")
 
     def _add_config(self, sub) -> None:
         config = sub.add_parser("config", help="Manage DNSForge node configuration")
@@ -569,6 +585,10 @@ class DnsForgeCommandDispatcher:
                 ok, output = ConfigService(paths).audit()
                 print(output)
                 return 0 if ok else 1
+            if getattr(args, "action", None) == "catalog":
+                ok, output = CatalogService(paths).audit()
+                print(output)
+                return 0 if ok else 1
             report = ProductAuditor().audit(paths.project_root)
             print(report.render())
             if not report.ok:
@@ -663,6 +683,28 @@ class DnsForgeCommandDispatcher:
                 return 0
             return 2
 
+        if args.command == "catalog":
+            service = CatalogService(paths)
+            if args.action == "status":
+                print(service.status())
+                return 0
+            if args.action == "enable":
+                print(service.enable(args.reason))
+                return 0
+            if args.action == "disable":
+                print(service.disable(args.reason))
+                return 0
+            if args.action == "sync":
+                print(service.sync(args.reason))
+                return 0
+            if args.action == "list":
+                print(service.list_published())
+                return 0
+            if args.action == "validate":
+                print(service.validate())
+                return 0
+            return 2
+
         if args.command == "config":
             config_paths = paths
             if getattr(args, "setup_file", None):
@@ -694,7 +736,7 @@ class DnsForgeCommandDispatcher:
         if args.command == "acl":
             service = AclService(Path(args.state_file))
             if args.action == "list":
-                print(service.list())
+                print(service.list_published())
                 return 0
             if args.action == "show":
                 print(service.show(args.name))
@@ -716,7 +758,7 @@ class DnsForgeCommandDispatcher:
         if args.command == "view":
             service = ViewService(Path(args.state_file))
             if args.action == "list":
-                print(service.list())
+                print(service.list_published())
                 return 0
             if args.action == "create":
                 print(service.create(args.name))

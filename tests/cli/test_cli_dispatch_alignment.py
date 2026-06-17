@@ -108,11 +108,37 @@ class _ClusterService:
         return "OK"
 
 
+class _CatalogService:
+    def __init__(self, *_args, **_kwargs) -> None:
+        pass
+
+    def status(self) -> str:
+        return "OK"
+
+    def enable(self, *_args, **_kwargs) -> str:
+        return "OK"
+
+    def disable(self, *_args, **_kwargs) -> str:
+        return "OK"
+
+    def sync(self, *_args, **_kwargs) -> str:
+        return "OK"
+
+    def list_published(self) -> str:
+        return "OK"
+
+    def validate(self) -> str:
+        return "OK"
+
+    def audit(self) -> tuple[bool, str]:
+        return True, "OK"
+
+
 class _AclService:
     def __init__(self, *_args, **_kwargs) -> None:
         pass
 
-    def list(self) -> str:
+    def list_published(self) -> str:
         return "OK"
 
     def show(self, *_args, **_kwargs) -> str:
@@ -135,7 +161,7 @@ class _ViewService:
     def __init__(self, *_args, **_kwargs) -> None:
         pass
 
-    def list(self) -> str:
+    def list_published(self) -> str:
         return "OK"
 
     def create(self, *_args, **_kwargs) -> str:
@@ -284,6 +310,7 @@ def _patch_services(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(app, "BackupService", _BackupService)
     monkeypatch.setattr(app, "MigrationService", _MigrationService)
     monkeypatch.setattr(app, "ClusterService", _ClusterService)
+    monkeypatch.setattr(app, "CatalogService", _CatalogService)
     monkeypatch.setattr(app, "AclService", _AclService)
     monkeypatch.setattr(app, "ViewService", _ViewService)
     monkeypatch.setattr(app, "DnssecService", _DnssecService)
@@ -375,6 +402,13 @@ CLI_COMMANDS: list[list[str]] = [
     ["cluster", "validate"],
     ["cluster", "validate-security"],
     ["cluster", "sync", "--dry-run"],
+    ["catalog", "status"],
+    ["catalog", "enable", "--reason", "unit test change"],
+    ["catalog", "disable", "--reason", "unit test change"],
+    ["catalog", "sync", "--reason", "unit test change"],
+    ["catalog", "list"],
+    ["catalog", "validate"],
+    ["audit", "catalog"],
     ["acl", "list"],
     ["acl", "show", "trusted"],
     ["acl", "create", "trusted"],

@@ -556,3 +556,17 @@ Copyright
 - Validation now targets the detected native `named.conf`.
 - Systemd operations now use `named` or `bind9` according to the detected platform.
 - Added native BIND layout tests.
+
+## 10.9.0 - Catalog Zones Enterprise & Cluster Sync Foundation
+
+- Added `dnsforge catalog status`.
+- Added `dnsforge catalog enable --reason`.
+- Added `dnsforge catalog disable --reason`.
+- Added `dnsforge catalog sync --reason`.
+- Added `dnsforge catalog list`.
+- Added `dnsforge catalog validate`.
+- Added `dnsforge audit catalog`.
+- Added catalog state repository and publication service.
+- Catalog sync now publishes active eligible zones only.
+- Catalog mutations require Enterprise change reason.
+- Catalog zone rendering uses the native BIND layout.

@@ -38,6 +38,12 @@ def test_cli_parser_accepts_active_commands() -> None:
         ["zone", "enable", "--name", "example.com", "--reason", "unit test change"],
         ["zone", "retire", "--name", "example.com", "--reason", "unit test change"],
         ["zone", "delete", "--name", "example.com", "--reason", "unit test change"],
+        ["catalog", "status"],
+        ["catalog", "enable", "--reason", "unit test change"],
+        ["catalog", "sync", "--reason", "unit test change"],
+        ["catalog", "disable", "--reason", "unit test change"],
+        ["catalog", "list"],
+        ["catalog", "validate"],
     ]
     for command in commands:
         parser.parse_args(command)
