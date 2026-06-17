@@ -74,7 +74,8 @@ jobs:
 
       - name: Build package
         run: |
-          python tools/clean.py --fix
+          sudo -E python tools/clean.py --fix
+          python tools/clean.py --check
           python -m build
 
       - name: Verify distribution artifacts

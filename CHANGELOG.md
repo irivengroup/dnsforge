@@ -1,4 +1,4 @@
-# DNSForge 10.9.4
+# DNSForge 10.9.4.1
 
 - Added repository hygiene gate for Python/build/cache artifacts.
 - Fixed catalog zone rendering so generated BIND configuration no longer contains unresolved template placeholders.

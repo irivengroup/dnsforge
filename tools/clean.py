@@ -2,8 +2,12 @@
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
+import stat
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -36,18 +40,43 @@ def iter_artifacts(root: Path) -> list[Path]:
             continue
         if is_generated_artifact(path):
             artifacts.append(path)
-    # Delete parents before children when removing directories.
-    return sorted(artifacts, key=lambda item: (len(item.parts), str(item)))
+    # Delete children before parents so nested caches never outlive their container.
+    return sorted(artifacts, key=lambda item: (len(item.parts), str(item)), reverse=True)
+
+
+def _make_writable(path: Path) -> None:
+    """Best-effort chmod for read-only artifacts before deletion.
+
+    This does not bypass ownership; CI must run this script with sudo when previous
+    sudo test steps created root-owned caches.
+    """
+    try:
+        mode = path.stat().st_mode
+        path.chmod(mode | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+    except FileNotFoundError:
+        return
+    except PermissionError:
+        return
+
+
+def _on_rm_error(function: Callable[[str], Any], path: str, _exc_info: object) -> None:
+    target = Path(path)
+    _make_writable(target)
+    function(path)
 
 
 def clean(artifacts: list[Path]) -> None:
     for path in artifacts:
-        if not path.exists():
+        if not path.exists() and not path.is_symlink():
             continue
-        if path.is_dir():
-            shutil.rmtree(path)
+        if path.is_dir() and not path.is_symlink():
+            for child in path.rglob("*"):
+                _make_writable(child)
+            _make_writable(path)
+            shutil.rmtree(path, onerror=_on_rm_error)
         else:
-            path.unlink()
+            _make_writable(path)
+            path.unlink(missing_ok=True)
 
 
 def main() -> int:
@@ -68,6 +97,8 @@ def main() -> int:
         print("Generated artifacts must not be committed or shipped:")
         for path in artifacts:
             print(f"- {path.relative_to(REPO_ROOT)}")
+        if any(path.owner() == "root" for path in artifacts if path.exists()):
+            print("Hint: root-owned artifacts detected; run: sudo python tools/clean.py --fix")
         return 1
     return 0
 
