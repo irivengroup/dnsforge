@@ -314,7 +314,14 @@ class BindConfigFactory:
 
     def catalog_zone(self, layout: BindLayout | None = None) -> str:
         layout = layout or self.template_service.layout
-        return self._render("catalog.zone.j2", {}, layout)
+        return self._render(
+            "catalog.zone.j2",
+            {
+                "CATALOG_SERIAL": "1",
+                "CATALOG_MEMBERS": "; no active catalog members",
+            },
+            layout,
+        )
 
     def rpz_local_zone(self, layout: BindLayout | None = None) -> str:
         layout = layout or self.template_service.layout

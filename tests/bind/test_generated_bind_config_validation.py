@@ -136,6 +136,17 @@ def test_generated_bind_configuration_is_accepted_by_bind_tools(family: str, pro
         _run(["named-checkzone", "rpz.local", str(rpz_zone)])
 
 
+def test_generated_catalog_zone_has_no_unresolved_template_placeholders() -> None:
+    root, layout = _render_profile("redhat", "authoritative")
+    catalog_zone = root / layout.catalog_zone_file.relative_to("/")
+    content = catalog_zone.read_text(encoding="utf-8")
+
+    assert "{{" not in content
+    assert "}}" not in content
+    assert "CATALOG_MEMBERS" not in content
+    assert "CATALOG_SERIAL" not in content
+
+
 def test_ci_validates_every_registered_template_is_used() -> None:
     from dnsforge.infrastructure.bind.rendering.template_registry import TemplateRegistry
 

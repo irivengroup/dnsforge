@@ -1,3 +1,9 @@
+# DNSForge 10.9.4
+
+- Added repository hygiene gate for Python/build/cache artifacts.
+- Fixed catalog zone rendering so generated BIND configuration no longer contains unresolved template placeholders.
+- Removed build/cache artifacts from release archive.
+
 # DNSForge 10.9.3
 
 - Added authoritative-only cluster sync commands: `cluster peers`, `cluster diff`, `cluster sync --dry-run`, `cluster sync`.
