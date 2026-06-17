@@ -1,8 +1,0 @@
-// DNSForge managed catalog zone declaration.
-zone "{{ CATALOG_ZONE_NAME }}" {
-    type master;
-    file "{{ CATALOG_ZONE_FILE }}";
-    allow-query { localhost; admin_clients; };
-    allow-transfer { zone_transfer_clients; };
-    notify explicit;
-};

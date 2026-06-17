@@ -130,3 +130,63 @@ def test_cluster_requires_vip_interface_and_peer(tmp_path: Path) -> None:
     )
     with pytest.raises(SettingsError):
         ClusterService().validate(setup_file)
+
+
+def test_cluster_peers_diff_and_sync_plan(tmp_path: Path) -> None:
+    setup_file = tmp_path / "setup.conf"
+    _write_cluster_setup(setup_file, peers="10.10.10.11,10.10.10.12")
+    (tmp_path / "zones.yml").write_text(
+        """
+zones:
+
+  - name: example.com
+    type: master
+    managed_reverse: no
+    description: Public zone
+    business_owner: Network
+    technical_owner: DNS
+    environment: prod
+    classification: public
+    lifecycle: active
+    enabled: yes
+    views:
+      - external
+    acl:
+      external: any;
+    records:
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+    service = ClusterService()
+
+    peers = service.peers(setup_file)
+    assert "10.10.10.11" in peers
+    assert "unknown" in peers
+
+    diff = service.diff(setup_file)
+    assert "reachability" in diff
+
+    dry_run = service.sync(setup_file, "Dry run authoritative sync", dry_run=True)
+    assert "Authoritative HA cluster sync dry-run" in dry_run
+    assert "Zones: 1" in dry_run
+
+    result = service.sync(setup_file, "Apply authoritative sync", dry_run=False)
+    assert "Authoritative HA cluster sync completed" in result
+    assert (tmp_path / "cluster-sync" / "outbox" / "auth01.manifest").exists()
+
+
+def test_cluster_known_peer_manifest_diff_ok(tmp_path: Path) -> None:
+    setup_file = tmp_path / "setup.conf"
+    _write_cluster_setup(setup_file, peers="10.10.10.11")
+    (tmp_path / "zones.yml").write_text("zones:\n", encoding="utf-8")
+    peer_dir = tmp_path / "cluster-sync" / "peers"
+    peer_dir.mkdir(parents=True)
+    (peer_dir / "10.10.10.11.manifest").write_text(
+        "zone_count=0\ncatalog_serial=local\ndnssec_state=aligned\n",
+        encoding="utf-8",
+    )
+
+    service = ClusterService()
+    assert "known" in service.peers(setup_file)
+    assert service.diff(setup_file) == "Cluster diff OK"

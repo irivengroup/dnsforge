@@ -1,3 +1,10 @@
+# DNSForge 10.9.3
+
+- Added authoritative-only cluster sync commands: `cluster peers`, `cluster diff`, `cluster sync --dry-run`, `cluster sync`.
+- Added cluster sync planning and outbound sync manifests.
+- Added peer drift detection for zones, DNSSEC state, and peer reachability.
+- Preserved CI workflow and removed Python cache artifacts from release tree.
+
 # Changelog
 
 ## 10.9.2 - Authoritative HA / Keepalived cluster

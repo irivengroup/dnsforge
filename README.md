@@ -177,3 +177,14 @@ sudo dnsforge audit catalog
 ```
 
 Catalog sync publishes active eligible zones from the DNSForge zone catalog and writes the generated catalog zone into the native BIND layout for the current distribution.
+## Authoritative Cluster Sync
+
+```bash
+sudo dnsforge cluster peers
+sudo dnsforge cluster diff
+sudo dnsforge cluster sync --dry-run --reason "Review authoritative sync"
+sudo dnsforge cluster sync --reason "Apply authoritative sync"
+```
+
+Cluster sync is authoritative-only. Proxy nodes consume authoritative VIP/IP endpoints but are not HA cluster members.
+

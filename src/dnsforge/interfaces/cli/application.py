@@ -274,6 +274,10 @@ class DnsForgeArgumentParserFactory:
         sync.add_argument("--setup-file", default=None)
         sync.add_argument("--reason", required=True)
         sync.add_argument("--dry-run", action="store_true")
+        diff = inner.add_parser("diff")
+        diff.add_argument("--setup-file", default=None)
+        peers = inner.add_parser("peers")
+        peers.add_argument("--setup-file", default=None)
 
     def _add_catalog(self, sub) -> None:
         catalog = sub.add_parser("catalog", help="Manage BIND catalog zones")
@@ -700,6 +704,12 @@ class DnsForgeCommandDispatcher:
                 return 0
             if args.action == "sync":
                 print(service.sync(setup_file, args.reason, dry_run=args.dry_run))
+                return 0
+            if args.action == "diff":
+                print(service.diff(setup_file))
+                return 0
+            if args.action == "peers":
+                print(service.peers(setup_file))
                 return 0
             return 2
 
