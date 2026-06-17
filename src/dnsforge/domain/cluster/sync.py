@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -17,6 +17,9 @@ class ClusterPeerState:
     zone_count: int = 0
     catalog_serial: str = "unknown"
     dnssec_state: str = "unknown"
+    manifest_checksum: str = "unknown"
+    zone_checksum: str = "unknown"
+    soa_serials_checksum: str = "unknown"
     message: str = ""
 
 
@@ -35,6 +38,11 @@ class ClusterSyncPlan:
     zones: list[str]
     files: list[str]
     dry_run: bool
+    file_checksums: dict[str, str] = field(default_factory=dict)
+    zone_checksum: str = ""
+    soa_serials: dict[str, int] = field(default_factory=dict)
+    soa_serials_checksum: str = ""
+    manifest_checksum: str = ""
 
     @property
     def target_count(self) -> int:

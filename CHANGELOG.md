@@ -1,4 +1,13 @@
-# DNSForge 10.9.4.1
+# DNSForge 10.9.5
+
+## Cluster sync hardening
+
+- Added SHA-256 checksums to authoritative cluster sync manifests.
+- Added SOA serial discovery for local zone files.
+- Added drift detection for zone checksum and SOA serial checksum mismatches.
+- Added PEER_AUTHORITATIVE_ADDRESSES fallback when CLUSTER_PEERS is not set.
+- Preserved CI workflow and repository hygiene gates.
+
 
 - Added repository hygiene gate for Python/build/cache artifacts.
 - Fixed catalog zone rendering so generated BIND configuration no longer contains unresolved template placeholders.

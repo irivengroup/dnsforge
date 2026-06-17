@@ -190,3 +190,102 @@ def test_cluster_known_peer_manifest_diff_ok(tmp_path: Path) -> None:
     service = ClusterService()
     assert "known" in service.peers(setup_file)
     assert service.diff(setup_file) == "Cluster diff OK"
+
+
+def test_cluster_sync_manifest_contains_checksums_and_soa_serials(tmp_path: Path) -> None:
+    setup_file = tmp_path / "setup.conf"
+    _write_cluster_setup(setup_file, peers="10.10.10.11")
+    (tmp_path / "zones.yml").write_text(
+        """
+zones:
+
+  - name: example.com
+    type: master
+    managed_reverse: no
+    description: Public zone
+    business_owner: Network
+    technical_owner: DNS
+    environment: prod
+    classification: public
+    lifecycle: active
+    enabled: yes
+    views:
+      - external
+    acl:
+      external: any;
+    records:
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "example.com.zone").write_text(
+        "$TTL 300\n@ IN SOA ns1.example.com. hostmaster.example.com. (\n  2026061701 ; serial\n  3600 900 604800 300\n)\n",
+        encoding="utf-8",
+    )
+
+    service = ClusterService()
+    plan = service.sync_plan(setup_file)
+    assert plan.zone_checksum
+    assert plan.soa_serials == {"example.com": 2026061701}
+    assert plan.soa_serials_checksum
+    assert plan.manifest_checksum
+
+    dry_run = service.sync(setup_file, "Dry run with checksums", dry_run=True)
+    assert "Manifest SHA256:" in dry_run
+    assert "SOA serials:" in dry_run
+    assert "example.com: 2026061701" in dry_run
+
+    result = service.sync(setup_file, "Write checksum manifest", dry_run=False)
+    assert "manifest_sha256=" in result
+    manifest = tmp_path / "cluster-sync" / "outbox" / "auth01.manifest"
+    text = manifest.read_text(encoding="utf-8")
+    assert "manifest_sha256=" in text
+    assert "zone_checksum=" in text
+    assert "soa_serials_checksum=" in text
+    assert "example.com=2026061701" in text
+
+
+def test_cluster_diff_detects_zone_checksum_and_soa_serial_drift(tmp_path: Path) -> None:
+    setup_file = tmp_path / "setup.conf"
+    _write_cluster_setup(setup_file, peers="10.10.10.11")
+    (tmp_path / "zones.yml").write_text("zones:\n", encoding="utf-8")
+    peer_dir = tmp_path / "cluster-sync" / "peers"
+    peer_dir.mkdir(parents=True)
+    (peer_dir / "10.10.10.11.manifest").write_text(
+        "zone_count=0\n"
+        "catalog_serial=local\n"
+        "dnssec_state=aligned\n"
+        "zone_checksum=peer-zone-drift\n"
+        "soa_serials_checksum=peer-serial-drift\n",
+        encoding="utf-8",
+    )
+
+    diff = ClusterService().diff(setup_file)
+    assert "zone-checksum" in diff
+    assert "soa-serial" in diff
+
+
+def test_cluster_sync_uses_peer_authoritative_addresses_when_cluster_peers_absent(tmp_path: Path) -> None:
+    setup_file = tmp_path / "setup.conf"
+    setup_file.write_text(
+        "\n".join(
+            [
+                'ROLE="dns-authoritative"',
+                'NODE_NAME="auth01"',
+                'ENABLE_CLUSTER="yes"',
+                'CLUSTER_ROLE="authoritative"',
+                'CLUSTER_NAME="dns-prod"',
+                'PEER_AUTHORITATIVE_ADDRESSES="10.10.10.11,10.10.10.12"',
+                'CLUSTER_VIP="10.10.10.100"',
+                'CLUSTER_INTERFACE="eth1"',
+                'CLUSTER_PRIORITY="150"',
+                'CLUSTER_VRID="53"',
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "zones.yml").write_text("zones:\n", encoding="utf-8")
+
+    plan = ClusterService().sync_plan(setup_file)
+    assert plan.peers == ["10.10.10.11", "10.10.10.12"]
