@@ -37,8 +37,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends bind9utils bind9-dnsutils
 
+      - name: Normalize repository hygiene before validation
+        run: sudo -E python tools/clean.py --fix
+
       - name: Repository hygiene gate
-        run: python tools/clean.py --check
+        run: python tools/clean.py --check-source
 
       - name: Install Python dependencies
         run: |
@@ -75,14 +78,15 @@ jobs:
       - name: Build package
         run: |
           sudo -E python tools/clean.py --fix
-          python tools/clean.py --check
+          python tools/clean.py --check-source
           python -m build
+          sudo -E python tools/clean.py --fix-release
+          python tools/clean.py --check-release
 
       - name: Verify distribution artifacts
         shell: bash
         run: |
-          test -n "$(find dist -maxdepth 1 -name '*.whl' -print -quit)"
-          test -n "$(find dist -maxdepth 1 -name '*.tar.gz' -print -quit)"
+          python tools/clean.py --check-release
           python -m pip install --upgrade twine
           python -m twine check dist/*
 

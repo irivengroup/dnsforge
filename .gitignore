@@ -1,24 +1,25 @@
-# Python bytecode
+# Python bytecode/cache
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 
-# Test and coverage
+# Test/coverage/cache
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .coverage
 coverage.xml
 htmlcov/
 
-# Static analysis caches
-.mypy_cache/
-.ruff_cache/
-
-# Build artifacts
+# Build metadata and transient build outputs
 build/
-dist/
 *.egg-info/
 
+# Dist is not committed to source repositories, but is intentionally included
+# in DNSForge release archives after a clean build.
+dist/
+
 # IDE/editor
-.idea/
 .vscode/
+.idea/

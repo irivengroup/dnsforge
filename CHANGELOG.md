@@ -1,3 +1,10 @@
+## 11.0.1 - Release packaging policy
+
+- Keeps `dist/` in DNSForge release archives after a clean build.
+- Adds source/release repository hygiene modes to `tools/clean.py`.
+- CI now cleans transient artifacts before build and verifies release artifacts after build.
+- Updates packaging policy to exclude caches, build directories and egg metadata while shipping the wheel and source archive.
+
 ## 11.0.0 - DNSSync boundary preparation
 
 - Isolated authoritative synchronization logic into `domain/application/infrastructure/sync`.

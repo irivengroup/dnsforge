@@ -188,3 +188,24 @@ sudo dnsforge cluster sync --reason "Apply authoritative sync"
 
 Cluster sync is authoritative-only. Proxy nodes consume authoritative VIP/IP endpoints but are not HA cluster members.
 
+
+## Release archive packaging
+
+DNSForge release archives include the built wheel and source archive under `dist/`.
+The repository itself must remain free of caches, build directories and egg metadata.
+
+```bash
+sudo python tools/clean.py --fix
+python tools/clean.py --check-source
+python -m build
+sudo python tools/clean.py --fix-release
+python tools/clean.py --check-release
+```
+
+Install from a release archive:
+
+```bash
+sudo ./install/install.sh --profile authoritative
+sudo dnsforge initialize --render-only
+sudo dnsforge initialize --apply
+```
