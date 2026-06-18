@@ -1,3 +1,9 @@
+## 11.0.0 - DNSSync boundary preparation
+
+- Isolated authoritative synchronization logic into `domain/application/infrastructure/sync`.
+- Kept `dnsforge cluster diff/sync/peers` as stable orchestration commands.
+- Preserved sync manifest, checksum, SOA serial and drift detection behavior.
+
 # DNSForge 10.9.5
 
 ## Cluster sync hardening

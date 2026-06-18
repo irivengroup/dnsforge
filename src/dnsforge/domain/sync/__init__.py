@@ -1,7 +1,3 @@
-from __future__ import annotations
-
-# Backward-compatible import boundary for older internal imports.
-# New synchronization domain lives in dnsforge.domain.sync.model.
 from dnsforge.domain.sync.model import ClusterDrift, ClusterDriftSeverity, ClusterPeerState, ClusterSyncPlan
 
 __all__ = ["ClusterDrift", "ClusterDriftSeverity", "ClusterPeerState", "ClusterSyncPlan"]
