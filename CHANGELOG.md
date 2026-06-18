@@ -1,3 +1,11 @@
+## 11.0.2 - CLI alignment and proxy migration deploy
+
+- Audited command parser/dispatcher alignment for exposed CLI forms.
+- Enhanced `dnsforge migrate` so proxy-forwarder/proxy-hybrid migration renders and deploys the complete BIND layout for the target proxy mode.
+- Added `--target-root` and `--reason` handling for real migrations.
+- Added migration regression tests for setup rewrite, render, deploy, dry-run and authoritative refusal.
+- Preserved release archive hygiene and `dist/` release artifacts.
+
 ## 11.0.1 - Release packaging policy
 
 - Keeps `dist/` in DNSForge release archives after a clean build.

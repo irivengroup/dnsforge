@@ -80,7 +80,7 @@ dnsforge doctor [--setup-file <path>]
 dnsforge backup [--backup-root <path>] create [--setup-file <path>] [--dry-run]
 dnsforge backup [--backup-root <path>] list
 dnsforge restore --backup <archive.tar.gz> [--target-root <path>] [--dry-run]
-dnsforge migrate --to proxy-forwarder|proxy-hybrid [--setup-file <path>] [--dry-run]
+dnsforge migrate --to proxy-forwarder|proxy-hybrid [--setup-file <path>] [--target-root <path>] [--dry-run] [--reason <reason>]
 ```
 
 ## Cluster
@@ -133,3 +133,12 @@ dnsforge rpz [--setup-file <path>] enable
 dnsforge rpz [--setup-file <path>] update
 dnsforge rpz [--setup-file <path>] test <domain>
 ```
+
+
+## Migration behavior
+
+`dnsforge migrate` is implemented only for `proxy-forwarder <-> proxy-hybrid`. It refuses authoritative/proxy role changes.
+
+A real migration does more than update `/etc/dnsforge/setup.conf`: it snapshots the setup file, rewrites the proxy mode variables, renders the complete BIND tree for the target proxy type, deploys the rendered configuration/data into the native BIND layout, and then validates/restarts through the normal deploy path.
+
+`--reason` is required for real migrations. `--dry-run` shows the planned migration without changing setup.conf or BIND files.

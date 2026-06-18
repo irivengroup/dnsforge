@@ -246,6 +246,8 @@ class DnsForgeArgumentParserFactory:
         p = sub.add_parser("migrate", help="Migrate proxy-forwarder <-> proxy-hybrid")
         p.add_argument("--to", required=True, choices=["proxy-forwarder", "proxy-hybrid"], dest="target")
         p.add_argument("--setup-file", default="/etc/dnsforge/setup.conf")
+        p.add_argument("--target-root", default="/")
+        p.add_argument("--reason", default=None)
         p.add_argument("--dry-run", action="store_true")
 
     def _add_cluster(self, sub) -> None:
@@ -675,8 +677,12 @@ class DnsForgeCommandDispatcher:
             return 0
 
         if args.command == "migrate":
-            result = MigrationService().migrate(
-                Path(args.setup_file), MigrationTarget.from_value(args.target), dry_run=args.dry_run
+            result = MigrationService(paths).migrate(
+                Path(args.setup_file),
+                MigrationTarget.from_value(args.target),
+                dry_run=args.dry_run,
+                reason=args.reason,
+                target_root=Path(args.target_root),
             )
             print(result)
             return 0

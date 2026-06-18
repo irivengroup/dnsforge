@@ -87,6 +87,9 @@ class _BackupService:
 
 
 class _MigrationService:
+    def __init__(self, *_args, **_kwargs) -> None:
+        pass
+
     def migrate(self, *_args, **_kwargs) -> str:
         return "OK"
 
@@ -406,6 +409,7 @@ CLI_COMMANDS: list[list[str]] = [
     ["restore", "--backup", "backup.tar.gz", "--target-root", "/tmp", "--dry-run"],
     ["migrate", "--to", "proxy-forwarder", "--dry-run"],
     ["migrate", "--to", "proxy-hybrid", "--dry-run"],
+    ["migrate", "--to", "proxy-hybrid", "--target-root", "/tmp", "--reason", "unit test change"],
     ["cluster", "init", "--dry-run"],
     ["cluster", "status"],
     ["cluster", "validate"],
