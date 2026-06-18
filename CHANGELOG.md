@@ -1,3 +1,10 @@
+## 11.0.5 - Orphan command hardening
+
+- Hardened previously shallow security history rollback by replacing the placeholder response with validated rollback markers.
+- Added regression coverage for security history, rollback marker creation and invalid rollback references.
+- Added backup/restore safety tests for absolute paths, path traversal and safe relative archive members.
+- Preserved generated command documentation, transactional proxy migration and release archive hygiene.
+
 ## 11.0.4 - Generated command reference
 
 - Added `dnsforge generate commands-doc` to generate `docs/COMMANDS.md` from the live argparse CLI tree.
