@@ -139,6 +139,6 @@ dnsforge rpz [--setup-file <path>] test <domain>
 
 `dnsforge migrate` is implemented only for `proxy-forwarder <-> proxy-hybrid`. It refuses authoritative/proxy role changes.
 
-A real migration does more than update `/etc/dnsforge/setup.conf`: it snapshots the setup file, rewrites the proxy mode variables, renders the complete BIND tree for the target proxy type, deploys the rendered configuration/data into the native BIND layout, and then validates/restarts through the normal deploy path.
+A real migration is transactional and does more than update `/etc/dnsforge/setup.conf`: it snapshots the setup file and native BIND paths, rewrites the proxy mode variables, renders the complete BIND tree for the target proxy type, deploys the rendered configuration/data into the native BIND layout, and then validates/restarts through the normal deploy path. If render, deploy, validation, permission, SELinux, or service restart fails, DNSForge restores the pre-migration setup file and BIND snapshot before re-raising the original error.
 
-`--reason` is required for real migrations. `--dry-run` shows the planned migration without changing setup.conf or BIND files.
+`--reason` is required for real migrations. `--dry-run` shows the planned migration without changing setup.conf or BIND files. Migration snapshots are stored under `DNSFORGE_BACKUP_ROOT/migrations/<id>`; by default this resolves to the project backup root used by `ProjectPaths`.

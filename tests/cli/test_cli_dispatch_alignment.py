@@ -449,6 +449,7 @@ CLI_COMMANDS: list[list[str]] = [
     ["rpz", "enable"],
     ["rpz", "update"],
     ["rpz", "test", "malware.example"],
+    ["generate", "commands-doc", "--output", "generated/COMMANDS.md"],
 ]
 
 

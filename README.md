@@ -1,4 +1,4 @@
-# ZoneForge DNSaaS
+# DNSForge
 
 > Plateforme de Déploiement et de Configuration DNS as a Service
 
@@ -8,7 +8,7 @@
 
 ## Présentation
 
-ZoneForge DNSaaS est une plateforme de déploiement, de configuration et d'exploitation DNS destinée aux environnements entreprise.
+DNSForge est une plateforme de déploiement, de configuration et d'exploitation DNS destinée aux environnements entreprise.
 
 Elle permet de construire, sécuriser, automatiser et exploiter des infrastructures DNS modernes basées sur BIND 9, avec une approche orientée **DNS as a Service**, **Infrastructure as Code**, haute disponibilité, conformité et gouvernance DNS.
 
@@ -27,7 +27,7 @@ Le README présente le produit. La documentation détaillée de déploiement, d'
 - Multi-VIP.
 - Haute disponibilité avec Keepalived.
 - Catalogue centralisé des zones.
-- Gestion des Zones via `zone-manager.sh`.
+- Gestion des zones via le CLI `dnsforge zone`.
 
 ### Sécurité DNS
 
@@ -45,20 +45,21 @@ Le README présente le produit. La documentation détaillée de déploiement, d'
 - Production Gate.
 - Monitoring natif et healthchecks.
 - Tests de conformité.
+- Génération de la référence CLI réelle via `dnsforge generate commands-doc`.
 
 ---
 
 ## Architecture
 
-![Architecture ZoneForge DNSaaS](docs/images/zoneforge-dnsaas-architecture.png)
+![Architecture DNSForge](docs/images/zoneforge-dnsaas-architecture.png)
 
-ZoneForge DNSaaS sépare clairement les rôles DNS récursifs/proxy et autoritatifs :
+DNSForge sépare clairement les rôles DNS récursifs/proxy et autoritatifs :
 
 | Composant | Rôle |
 |---|---|
 | `dns-proxy` | Résolution récursive, cache, RPZ, filtrage, accès clients |
 | `dns-authoritative` | Publication des zones, transferts TSIG, DNSSEC, VIP authoritative |
-| `zone-manager.sh` | Gestion des Zones : create, read, update, disable, enable, delete |
+| `dnsforge zone` | Gestion des zones : create, read, update, disable, enable, delete, history, diff, rollback |
 | `settings/` | Paramètres par nœud et par rôle |
 | `catalog/zones.yml` | Source de vérité des zones DNS |
 | `tests/` | Contrôles de conformité, sécurité et rendu |
@@ -69,7 +70,7 @@ Pour les détails d'architecture, consulter [docs/ARCHITECTURE.md](./docs/ARCHIT
 
 ## Cas d'utilisation
 
-ZoneForge DNSaaS est adapté aux contextes suivants :
+DNSForge est adapté aux contextes suivants :
 
 - entreprise multi-sites ;
 - datacenters privés ;
@@ -84,7 +85,7 @@ ZoneForge DNSaaS est adapté aux contextes suivants :
 
 ## Sécurité
 
-ZoneForge DNSaaS applique une séparation stricte des responsabilités :
+DNSForge applique une séparation stricte des responsabilités :
 
 ```text
 dns-proxy         : RPZ autorisé

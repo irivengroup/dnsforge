@@ -14,7 +14,7 @@ dnsforge migrate --to proxy-forwarder --reason "Retour en mode forwarder"
 dnsforge migrate --to proxy-hybrid --reason "Activation proxy hybrid"
 ```
 
-Migration supportée uniquement entre `proxy-forwarder` et `proxy-hybrid`. La migration réelle sauvegarde `setup.conf`, rend le layout BIND complet du profil cible, puis déploie les fichiers de configuration et de données BIND via le pipeline `render -> deploy`.
+Migration supportée uniquement entre `proxy-forwarder` et `proxy-hybrid`. Depuis v11.0.3, la migration réelle est transactionnelle : validation du profil courant, snapshot filesystem de `setup.conf` et des chemins BIND natifs, modification contrôlée du profil proxy, render complet, deploy, validation via le pipeline de déploiement, puis commit du snapshot. En cas d'échec, DNSForge restaure automatiquement `setup.conf` et les fichiers BIND capturés avant migration.
 
 ---
 Copyright

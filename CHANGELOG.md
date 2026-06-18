@@ -1,3 +1,10 @@
+## 11.0.4 - Generated command reference
+
+- Added `dnsforge generate commands-doc` to generate `docs/COMMANDS.md` from the live argparse CLI tree.
+- Regenerated `docs/COMMANDS.md` from the code instead of maintaining command inventory manually.
+- Extended CLI dispatch alignment tests to cover the documentation generation command.
+- Preserved transactional proxy migration introduced in 11.0.3.
+
 ## 11.0.2 - CLI alignment and proxy migration deploy
 
 - Audited command parser/dispatcher alignment for exposed CLI forms.

@@ -71,7 +71,8 @@ def test_proxy_migration_updates_setup_renders_and_deploys(tmp_path: Path, monke
     assert renderer.calls == [("proxy01", "hybrid")]
     assert deployer.calls == [(paths.render_dir(DnsRole.PROXY, "proxy01"), tmp_path / "target", False)]
     assert "Migrated proxy-forwarder -> proxy-hybrid" in result
-    assert list(setup.parent.glob("setup.conf.backup.*"))
+    assert "snapshot=" in result
+    assert list((paths.backup_root / "migrations").glob("*/metadata.json"))
 
 
 def test_proxy_migration_dry_run_does_not_touch_setup_or_deploy(
@@ -113,3 +114,29 @@ def test_proxy_migration_refuses_authoritative_role(tmp_path: Path) -> None:
         MigrationService(paths=ProjectPaths(tmp_path), renderer=_Renderer(), deployer=_Deploy()).migrate(
             setup, MigrationTarget.PROXY_HYBRID, dry_run=True
         )
+
+
+class _FailingDeploy:
+    def deploy(self, render_root: Path, target_root: Path = Path("/"), dry_run: bool = False) -> None:
+        raise RuntimeError("deploy failed")
+
+
+def test_proxy_migration_rolls_back_setup_on_deploy_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    setup = _setup(tmp_path, "forwarder")
+    original = setup.read_text(encoding="utf-8")
+    monkeypatch.setenv("DNSFORGE_CONFIG_ROOT", str(setup.parent))
+    monkeypatch.setenv("DNSFORGE_SETUP_FILE", str(setup))
+    paths = ProjectPaths(tmp_path)
+
+    with pytest.raises(RuntimeError):
+        MigrationService(paths=paths, renderer=_Renderer(), deployer=_FailingDeploy()).migrate(
+            setup,
+            MigrationTarget.PROXY_HYBRID,
+            reason="unit test rollback",
+            target_root=tmp_path / "target",
+        )
+
+    assert setup.read_text(encoding="utf-8") == original
+    metadata_files = list((paths.backup_root / "migrations").glob("*/metadata.json"))
+    assert metadata_files
+    assert '"status": "rolled_back"' in metadata_files[0].read_text(encoding="utf-8")

@@ -11,6 +11,7 @@ from dnsforge.application.cluster.cluster_service import ClusterService
 from dnsforge.application.catalog.catalog_service import CatalogService
 from dnsforge.application.config.config_service import ConfigService
 from dnsforge.application.deploy.deploy_service import DeployService
+from dnsforge.application.docs.commands_doc_service import CommandDocumentationService
 from dnsforge.application.initialize.initialize_command import InitializeCommand
 from dnsforge.application.doctor.doctor_service import DoctorService
 from dnsforge.application.health.health_service import HealthService
@@ -68,11 +69,18 @@ class DnsForgeArgumentParserFactory:
         self._add_dnssec(sub)
         self._add_rpz(sub)
         self._add_version(sub)
+        self._add_generate(sub)
 
         return parser
 
     def _add_version(self, sub) -> None:
         sub.add_parser("version", help="Show DNSForge version")
+
+    def _add_generate(self, sub) -> None:
+        generate = sub.add_parser("generate", help="Generate documentation from runtime metadata")
+        inner = generate.add_subparsers(dest="action", required=True)
+        commands = inner.add_parser("commands-doc", help="Generate docs/COMMANDS.md from the real CLI parser")
+        commands.add_argument("--output", default="docs/COMMANDS.md")
 
     def _add_validate(self, sub) -> None:
         root = sub.add_parser("validate", help="Validate settings")
@@ -399,6 +407,17 @@ class DnsForgeCommandDispatcher:
         if args.command == "version":
             print(__version__)
             return 0
+
+        if args.command == "generate":
+            if args.action == "commands-doc":
+                output_path = Path(args.output)
+                if not output_path.is_absolute():
+                    output_path = paths.project_root / output_path
+                parser = DnsForgeArgumentParserFactory().build()
+                written = CommandDocumentationService().write(parser, output_path)
+                print(written)
+                return 0
+            return 2
 
         if args.command == "validate":
             resolved = self._resolve_role_from_setup(
