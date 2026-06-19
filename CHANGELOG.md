@@ -1,3 +1,13 @@
+# Changelog
+
+## 13.0.2 - Maintenance CI Closure
+
+- Keep the 13.0.x maintenance branch under feature freeze.
+- Clarify CI coverage closure by separating live BIND smoke validation from the coverage gate.
+- Keep live named and generated BIND validation as dedicated enterprise validation steps.
+- Preserve the 90% coverage threshold for product code.
+- Rebuild distribution artifacts for 13.0.2.
+
 # DNSForge v13.0.0 - Production GA
 
 ## 13.0.1 - Maintenance Baseline
