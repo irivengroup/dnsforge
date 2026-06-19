@@ -295,3 +295,7 @@ dnsforge dnssec policy show
 ### DNSForge v11.4.0 Product Hardening & Contract Stabilization
 
 This release freezes DNS feature growth and adds measurable product gates: CLI coverage, API coverage, event coverage, service coverage and release hygiene. It also introduces public contracts for future DNSForge Manager integration while keeping every local CLI command available on each installed server. All CLI commands continue to require elevated privileges except `dnsforge version`.
+
+## DNSForge Manager boundary
+
+DNSForge Manager is a central management plane for one or more DNSForge agents. It may run on a host without BIND installed. DNSBeat and DNSSync are Manager sub-modules; they observe and orchestrate through DNSForge agents, while DNSForge remains the only component that deploys or modifies local BIND configuration.

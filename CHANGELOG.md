@@ -137,6 +137,14 @@
 
 # Changelog
 
+## 12.0.0 - Manager Foundation
+
+- Added DNSForge Manager foundation package.
+- Added DNSBeat and DNSSync as Manager sub-modules.
+- Added product boundary documentation.
+- Preserved DNSForge as the only local BIND execution agent.
+
+
 ## 10.9.2 - Authoritative HA / Keepalived cluster
 
 - Added authoritative-only HA cluster validation for 2+ nodes.
