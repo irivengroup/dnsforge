@@ -75,6 +75,7 @@ jobs:
           PYTHONPATH=src python tools/check_service_coverage.py
           PYTHONPATH=src python tools/product_gate.py
           PYTHONPATH=src python tools/check_enterprise_validation.py
+          PYTHONPATH=src python tools/check_platform_support.py
 
       - name: Architecture gates
         run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" DNSFORGE_FORBID_SKIPS="$DNSFORGE_FORBID_SKIPS" python -m pytest -q -rs tests/architecture
@@ -98,6 +99,7 @@ jobs:
           python -m build
           PYTHONPATH=src python tools/product_gate.py
           PYTHONPATH=src python tools/check_enterprise_validation.py
+          PYTHONPATH=src python tools/check_platform_support.py
           PYTHONPATH=src python tools/release_check.py
           sudo -E python tools/clean.py --fix-release
           python tools/clean.py --check-release

@@ -242,6 +242,13 @@
 
 # Changelog
 
+## 12.8.0 - Enterprise CI Matrix Hardening
+
+- Added minimum supported platform certification policy.
+- Added platform support gate for RHEL/Rocky/Alma 8+, Ubuntu 22.04+, Debian 10+, and SLES 12+.
+- Documented enterprise CI matrix hardening around minimum versions instead of latest-only OS targets.
+- Integrated platform support checks into product and enterprise validation gates.
+
 ## 12.0.0 - Manager Foundation
 
 - Added DNSForge Manager foundation package.
@@ -281,6 +288,13 @@
 - Added regression coverage ensuring missing BIND tools fail under `GITHUB_ACTIONS=true`.
 
 # Changelog
+
+## 12.8.0 - Enterprise CI Matrix Hardening
+
+- Added minimum supported platform certification policy.
+- Added platform support gate for RHEL/Rocky/Alma 8+, Ubuntu 22.04+, Debian 10+, and SLES 12+.
+- Documented enterprise CI matrix hardening around minimum versions instead of latest-only OS targets.
+- Integrated platform support checks into product and enterprise validation gates.
 
 ## 10.8.2
 - Require explicit --reason on zone mutating operations.
@@ -781,6 +795,13 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 - Archive régénérée avec dossier racine `binddns-enterprise-redhat-v3.9`.
 
 # Changelog
+
+## 12.8.0 - Enterprise CI Matrix Hardening
+
+- Added minimum supported platform certification policy.
+- Added platform support gate for RHEL/Rocky/Alma 8+, Ubuntu 22.04+, Debian 10+, and SLES 12+.
+- Documented enterprise CI matrix hardening around minimum versions instead of latest-only OS targets.
+- Integrated platform support checks into product and enterprise validation gates.
 
 ## 10.8.2
 - Require explicit --reason on zone mutating operations.

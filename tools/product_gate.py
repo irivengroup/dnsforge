@@ -12,6 +12,7 @@ CHECKS = (
     ("Event Coverage", [sys.executable, "tools/check_event_coverage.py"]),
     ("Service Coverage", [sys.executable, "tools/check_service_coverage.py"]),
     ("Release Hygiene", [sys.executable, "tools/release_check.py", "--skip-dist"]),
+    ("Platform Support", [sys.executable, "tools/check_platform_support.py"]),
 )
 
 

@@ -8,6 +8,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_FILES = {
     "docs/ENTERPRISE_CI_VALIDATION.md": "enterprise validation policy",
+    "docs/PLATFORM_SUPPORT.md": "minimum platform support policy",
+    "docs/CERTIFICATION_MATRIX.md": "platform certification matrix",
+    "docs/CI_CERTIFICATION_POLICY.md": "CI certification policy",
     "tests/bind/test_generated_bind_config_validation.py": "real named-checkconf/named-checkzone validation",
     "tests/bind/test_live_named_smoke.py": "live named smoke validation",
     "tests/enterprise/test_manager_agent_integration.py": "Manager to DNSForge Agent integration",
@@ -24,6 +27,7 @@ CI_REQUIRED_SNIPPETS = {
     "tests/bind/test_generated_bind_config_validation.py": "explicit generated BIND validation",
     "tests/bind/test_live_named_smoke.py": "live named smoke test",
     "tools/check_enterprise_validation.py": "enterprise validation gate",
+    "tools/check_platform_support.py": "minimum platform support gate",
 }
 
 SECURITY_TEST_SNIPPETS = {
