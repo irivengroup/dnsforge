@@ -1,3 +1,10 @@
+# DNSForge v12.5.0 - Manager Operational Workflows
+
+- Added Manager change request lifecycle.
+- Added approval/apply/rollback workflow gates.
+- Enforced DNSSync dry-run hash and DNSBeat health blocking before apply.
+- Preserved DNSForge Agent local-only BIND modification boundary.
+
 # DNSForge v12.4.0 - Coverage Hardening
 
 - Added blocking coverage gate at 90%.

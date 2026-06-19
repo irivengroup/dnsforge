@@ -11,6 +11,9 @@ from dnsforge_manager.application.dnsbeat.dnsbeat_service import DNSBeatService
 from dnsforge_manager.domain.inventory.models import ManagedNode, NodeRole, NodeStatus
 from dnsforge_manager.application.inventory.node_registration_service import NodeRegistrationService
 from dnsforge_manager.application.rbac.rbac_service import RbacService
+from dnsforge_manager.application.workflows.change_workflow import ManagerChangeWorkflow
+from dnsforge_manager.domain.workflows.models import ManagerChangeRequest
+from dnsforge_manager.infrastructure.dnssync.client import DNSForgeNodeClient, RecordingDNSForgeNodeClient
 
 
 class ManagerApplication:
@@ -25,11 +28,15 @@ class ManagerApplication:
         dnsbeat_service: DNSBeatService | None = None,
         rbac_service: RbacService | None = None,
         audit_repository: ManagerAuditRepository | None = None,
+        change_workflow: ManagerChangeWorkflow | None = None,
+        node_client: DNSForgeNodeClient | None = None,
     ) -> None:
         self.registration_service = registration_service or NodeRegistrationService()
         self.dnsbeat_service = dnsbeat_service or DNSBeatService()
         self.rbac_service = rbac_service or RbacService()
         self.audit_repository = audit_repository or ManagerAuditRepository()
+        self.change_workflow = change_workflow or ManagerChangeWorkflow(dnsbeat_service=self.dnsbeat_service)
+        self.node_client = node_client or RecordingDNSForgeNodeClient()
 
     def _require(self, role: str, permission: str) -> None:
         self.rbac_service.require(role, permission)
@@ -109,6 +116,131 @@ class ManagerApplication:
         node = self.registration_service.set_status(node_id, NodeStatus(status))
         self._audit(actor=actor, action="node.status", target=node_id, result=status)
         return {"node": node.to_dict()}
+
+    def changes(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:changes:read")
+        return {"changes": [change.to_dict() for change in self.change_workflow.list_changes()]}
+
+    def create_change(
+        self,
+        payload: dict[str, Any],
+        *,
+        actor: str = "system",
+        role: str = "operator",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:changes:operate")
+        change = ManagerChangeRequest(
+            cluster_id=str(payload["cluster_id"]),
+            operation=str(payload["operation"]),
+            payload=dict(payload.get("payload", {})),
+            created_by=actor,
+        )
+        created = self.change_workflow.create_change(change)
+        self._audit(actor=actor, action="change.create", target=created.change_id, result=created.status.value)
+        return {"change": created.to_dict()}
+
+    def change(self, change_id: str, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:changes:read")
+        return {"change": self.change_workflow.get_change(change_id).to_dict()}
+
+    def dry_run_change(
+        self,
+        change_id: str,
+        *,
+        actor: str = "system",
+        role: str = "operator",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:changes:operate")
+        execution = self.change_workflow.dry_run_change(change_id, self.registration_service.list_nodes())
+        self._audit(
+            actor=actor,
+            action="change.dry_run",
+            target=change_id,
+            result="accepted" if execution.accepted else "failed",
+            metadata={"plan_hash": execution.plan_hash},
+        )
+        return {
+            "execution": {
+                "cluster_id": execution.cluster_id,
+                "mode": execution.mode.value,
+                "plan_hash": execution.plan_hash,
+                "accepted": execution.accepted,
+                "results": [result.__dict__ for result in execution.results],
+            }
+        }
+
+    def approve_change(
+        self,
+        change_id: str,
+        *,
+        actor: str = "system",
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:changes:admin")
+        change = self.change_workflow.approve_change(change_id, actor=actor)
+        self._audit(actor=actor, action="change.approve", target=change_id, result=change.status.value)
+        return {"change": change.to_dict()}
+
+    def reject_change(
+        self,
+        change_id: str,
+        *,
+        reason: str | None = None,
+        actor: str = "system",
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:changes:admin")
+        change = self.change_workflow.reject_change(change_id, reason=reason)
+        self._audit(actor=actor, action="change.reject", target=change_id, result=change.status.value)
+        return {"change": change.to_dict()}
+
+    def apply_change(
+        self,
+        change_id: str,
+        *,
+        approved_plan_hash: str | None = None,
+        actor: str = "system",
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:changes:admin")
+        execution = self.change_workflow.apply_change(
+            change_id,
+            self.registration_service.list_nodes(),
+            self.node_client,
+            approved_plan_hash=approved_plan_hash,
+        )
+        self._audit(
+            actor=actor,
+            action="change.apply",
+            target=change_id,
+            result="accepted" if execution.accepted else "failed",
+            metadata={"plan_hash": execution.plan_hash},
+        )
+        return {"change": self.change_workflow.get_change(change_id).to_dict()}
+
+    def rollback_change(
+        self,
+        change_id: str,
+        *,
+        approved_plan_hash: str | None = None,
+        actor: str = "system",
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:changes:admin")
+        execution = self.change_workflow.rollback_change(
+            change_id,
+            self.registration_service.list_nodes(),
+            self.node_client,
+            approved_plan_hash=approved_plan_hash,
+        )
+        self._audit(
+            actor=actor,
+            action="change.rollback",
+            target=change_id,
+            result="accepted" if execution.accepted else "failed",
+            metadata={"plan_hash": execution.plan_hash},
+        )
+        return {"change": self.change_workflow.get_change(change_id).to_dict()}
 
     def audit_events(self, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:audit:read")

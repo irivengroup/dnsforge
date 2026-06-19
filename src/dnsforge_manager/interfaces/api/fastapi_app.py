@@ -27,6 +27,14 @@ class FastAPIUnavailableApp:
             RouteSpec("GET", "/nodes/{node_id}"),
             RouteSpec("GET", "/nodes/{node_id}/status"),
             RouteSpec("GET", "/audit"),
+            RouteSpec("GET", "/changes"),
+            RouteSpec("POST", "/changes"),
+            RouteSpec("GET", "/changes/{change_id}"),
+            RouteSpec("POST", "/changes/{change_id}/dry-run"),
+            RouteSpec("POST", "/changes/{change_id}/approve"),
+            RouteSpec("POST", "/changes/{change_id}/reject"),
+            RouteSpec("POST", "/changes/{change_id}/apply"),
+            RouteSpec("POST", "/changes/{change_id}/rollback"),
         ]
 
 
@@ -78,5 +86,43 @@ def create_fastapi_app(core: ManagerApplication | None = None) -> Any:
     @app.get("/audit")
     def audit_events() -> dict[str, Any]:
         return manager.audit_events()
+
+    @app.get("/changes")
+    def list_changes() -> dict[str, Any]:
+        return manager.changes()
+
+    @app.post("/changes")
+    def create_change(payload: dict[str, Any]) -> dict[str, Any]:
+        return manager.create_change(payload)
+
+    @app.get("/changes/{change_id}")
+    def get_change(change_id: str) -> dict[str, Any]:
+        return manager.change(change_id)
+
+    @app.post("/changes/{change_id}/dry-run")
+    def dry_run_change(change_id: str) -> dict[str, Any]:
+        return manager.dry_run_change(change_id)
+
+    @app.post("/changes/{change_id}/approve")
+    def approve_change(change_id: str) -> dict[str, Any]:
+        return manager.approve_change(change_id)
+
+    @app.post("/changes/{change_id}/reject")
+    def reject_change(change_id: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        return manager.reject_change(change_id, reason=None if payload is None else str(payload.get("reason", "")))
+
+    @app.post("/changes/{change_id}/apply")
+    def apply_change(change_id: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        return manager.apply_change(
+            change_id,
+            approved_plan_hash=None if payload is None else str(payload.get("approved_plan_hash", "")),
+        )
+
+    @app.post("/changes/{change_id}/rollback")
+    def rollback_change(change_id: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        return manager.rollback_change(
+            change_id,
+            approved_plan_hash=None if payload is None else str(payload.get("approved_plan_hash", "")),
+        )
 
     return app
