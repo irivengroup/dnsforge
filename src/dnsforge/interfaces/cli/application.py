@@ -23,7 +23,7 @@ from dnsforge.application.reports.report_service import ReportService
 from dnsforge.application.drift.drift_service import DriftService
 from dnsforge.application.events.event_tail_service import EventTailService
 from dnsforge.application.metrics.metrics_service import MetricsCollector
-from dnsforge.application.sync_foundation.sync_service import SyncFoundationService
+from dnsforge.application.sync.provider_service import SyncProviderService
 from dnsforge.application.security.dnssec_policy_service import DnssecPolicyService
 from dnsforge.application.migration.migration_service import MigrationService
 from dnsforge.application.profile.profile_auditor import ProfileAuditor
@@ -86,7 +86,7 @@ class DnsForgeArgumentParserFactory:
         self._add_drift(sub)
         self._add_events(sub)
         self._add_metrics(sub)
-        self._add_sync_foundation(sub)
+        self._add_sync(sub)
 
         return parser
 
@@ -129,7 +129,7 @@ class DnsForgeArgumentParserFactory:
         inner = metrics.add_subparsers(dest="action", required=True)
         inner.add_parser("show")
 
-    def _add_sync_foundation(self, sub) -> None:
+    def _add_sync(self, sub) -> None:
         sync = sub.add_parser("sync", help="Show sync provider boundaries")
         inner = sync.add_subparsers(dest="action", required=True)
         inner.add_parser("providers")
@@ -565,7 +565,7 @@ class DnsForgeCommandDispatcher:
 
         if args.command == "sync":
             if args.action == "providers":
-                print(SyncFoundationService().providers_status())
+                print(SyncProviderService().providers_status())
                 return 0
             return 2
 

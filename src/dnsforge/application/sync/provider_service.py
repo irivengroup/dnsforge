@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import json
 
-from dnsforge.application.sync_foundation.sync_provider import ClusterSyncProvider, FutureDnsSyncProvider, SyncProvider
+from dnsforge.application.sync.sync_provider import ClusterSyncProvider, FutureDnsSyncProvider, SyncProvider
 
 
-class SyncFoundationService:
+class SyncProviderService:
     def __init__(self, providers: list[SyncProvider] | None = None) -> None:
         self.providers = providers or [ClusterSyncProvider(), FutureDnsSyncProvider()]
 

@@ -1,3 +1,10 @@
+## 11.3.1 - Sync Consolidation
+
+- Consolidated sync provider boundaries under `dnsforge.application.sync`.
+- Removed duplicate `sync_foundation` application package.
+- Kept `dnsforge sync providers` unchanged for CLI compatibility.
+- Updated tests and architecture documentation.
+
 ## 11.3.0 - Enterprise Operations
 
 - Added local job foundation with `dnsforge job list|show|run|cancel|history`.

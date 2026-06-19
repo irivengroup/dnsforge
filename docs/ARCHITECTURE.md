@@ -38,6 +38,6 @@ DNSForge keeps the CLI as the mandatory local administration interface on every 
 - `DriftService` for rendered-state drift detection.
 - `EventTailService` over the JSONL audit event repository.
 - `MetricsCollector` for DNSBeat preparation.
-- `SyncFoundationService` for ClusterSync and future DNSSync boundaries.
+- `SyncProviderService` in `dnsforge.application.sync` for ClusterSync and future DNSSync boundaries.
 
 No feature is API-only or GUI-only; the CLI remains operational without Manager, REST, database, or network connectivity.
