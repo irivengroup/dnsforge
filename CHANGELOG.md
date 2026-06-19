@@ -1,3 +1,14 @@
+# v12.7.4 - Live Named Smoke Distro Path Fix
+
+- Fixed the live BIND smoke test to derive its relocation root from the rendered distro BindLayout instead of hardcoding /etc/bind.
+- The live smoke test now renders the profile for the detected host BIND layout while generated-layout validation still covers RedHat, Debian and SUSE.
+
+
+## 12.7.4 - Live Named Smoke Distro Path Fix
+
+- Fixed the live BIND smoke test to derive its relocation root from the rendered distro BindLayout instead of hardcoding /etc/bind.
+- The test now renders the live profile for the detected host layout while keeping all static generated-layout validations across RedHat, Debian and SUSE.
+
 # v12.7.3 - Live Named Smoke AppArmor Path Fix
 
 - Move the generated live named smoke-test tree under /etc/bind when available so Ubuntu/AppArmor-confined BIND can read the generated configuration.

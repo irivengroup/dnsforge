@@ -22,16 +22,16 @@ def _load_generated_bind_validation_module() -> Any:
     return module
 
 
-def _relocate_generated_tree_to_bind_allowed_root(root: Path) -> Path:
-    """Move the generated tree to a path accepted by Ubuntu's BIND profile.
+def _relocate_generated_tree_to_bind_allowed_root(root: Path, layout: Any) -> Path:
+    """Move the generated tree below the rendered distro BIND config root.
 
-    GitHub hosted Ubuntu runners execute BIND under the distro AppArmor profile.
-    That profile can deny reading a valid configuration rendered under ``/tmp``
-    even when POSIX permissions are relaxed. Place the smoke-test tree below
-    ``/etc/bind`` when possible, which is inside the package's allowed config
-    area. Fall back to the original location outside confined CI hosts.
+    The live ``named`` smoke test must not assume Debian/Ubuntu paths.  The
+    sandbox location is derived from the rendered ``BindLayout``: Debian/Ubuntu
+    under ``/etc/bind``, RedHat/SUSE under ``/etc/named``.  This keeps the test
+    aligned with DNSForge's distro-specific layout model while still avoiding
+    ``/tmp`` paths that BIND confinement profiles commonly reject.
     """
-    bind_root = Path("/etc/bind")
+    bind_root = Path(layout.config_dir)
     if not bind_root.is_dir() or not os.access(bind_root, os.W_OK):
         return root
 
@@ -93,8 +93,11 @@ def _require_named() -> str:
 def test_named_starts_generated_authoritative_configuration_under_timeout() -> None:
     named = _require_named()
     helpers = _load_generated_bind_validation_module()
-    root, layout = helpers._render_profile("redhat", "authoritative")
-    root = _relocate_generated_tree_to_bind_allowed_root(root)
+    from dnsforge.infrastructure.bind.layout import BindLayoutDetector
+
+    host_family = BindLayoutDetector().detect().family
+    root, layout = helpers._render_profile(host_family, "authoritative")
+    root = _relocate_generated_tree_to_bind_allowed_root(root, layout)
     _make_generated_tree_accessible_to_named(root)
     named_conf = root / layout.named_conf.relative_to("/")
 
