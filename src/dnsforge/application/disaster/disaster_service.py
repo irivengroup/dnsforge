@@ -36,7 +36,9 @@ class DisasterRecoveryService:
         from dnsforge.application.transaction.transaction_manager import TransactionSnapshot
 
         metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
-        self.transactions.restore(TransactionSnapshot(metadata.get("id", snapshot.name), snapshot, files_root, metadata_file), target_root)
+        self.transactions.restore(
+            TransactionSnapshot(metadata.get("id", snapshot.name), snapshot, files_root, metadata_file), target_root
+        )
         return f"Disaster restore completed: {snapshot}"
 
     def verify(self, snapshot: Path) -> str:

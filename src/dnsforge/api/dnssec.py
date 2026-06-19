@@ -9,7 +9,9 @@ from dnsforge.infrastructure.audit.event_repository import AuditEventRepository
 
 
 class DnssecApi:
-    def __init__(self, setup_file: Path, event_bus: EventBus | None = None, audit: AuditEventRepository | None = None) -> None:
+    def __init__(
+        self, setup_file: Path, event_bus: EventBus | None = None, audit: AuditEventRepository | None = None
+    ) -> None:
         self.setup_file = setup_file
         self.service = DnssecService()
         self.event_bus = event_bus or EventBus()

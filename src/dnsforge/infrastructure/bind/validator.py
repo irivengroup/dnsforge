@@ -38,7 +38,9 @@ class BindConfigurationValidator:
             self._require_binary("rndc")
         return self.executor.run(command, dry_run=dry_run)
 
-    def validate_deployed_tree(self, dry_run: bool = True, target_root: Path = Path("/"), reload_named: bool = False) -> list[list[str]]:
+    def validate_deployed_tree(
+        self, dry_run: bool = True, target_root: Path = Path("/"), reload_named: bool = False
+    ) -> list[list[str]]:
         commands = [self.checkconf(dry_run=dry_run, target_root=target_root)]
         if reload_named:
             commands.append(self.rndc_reload(dry_run=dry_run))

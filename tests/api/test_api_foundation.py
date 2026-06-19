@@ -1,4 +1,12 @@
-from dnsforge.api import CatalogApi, ClusterApi, DisasterRecoveryApi, DnsForgeApplicationApi, DnssecApi, MigrationApi, ZoneApi
+from dnsforge.api import (
+    CatalogApi,
+    ClusterApi,
+    DisasterRecoveryApi,
+    DnsForgeApplicationApi,
+    DnssecApi,
+    MigrationApi,
+    ZoneApi,
+)
 from dnsforge.application.events.event_bus import RecordingEventBus
 from dnsforge.infrastructure.filesystem.paths import ProjectPaths
 

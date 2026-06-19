@@ -72,7 +72,9 @@ def test_catalog_repair_adds_missing_and_removes_stale_entries(tmp_path: Path, m
     from dnsforge.domain.catalog.model import CatalogZoneEntry
     from dataclasses import replace
 
-    repository.save(replace(document, entries=[CatalogZoneEntry("old.example", "master", ["external"], "old-example.zones")]))
+    repository.save(
+        replace(document, entries=[CatalogZoneEntry("old.example", "master", ["external"], "old-example.zones")])
+    )
 
     with pytest.raises(DnsForgeError) as excinfo:
         service.validate()

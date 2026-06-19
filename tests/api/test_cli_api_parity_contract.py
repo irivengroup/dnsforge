@@ -26,15 +26,10 @@ def test_cli_does_not_depend_on_api_facades_for_local_dispatch() -> None:
     source = Path("src/dnsforge/interfaces/cli/application.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
     imported_modules = {
-        node.module
-        for node in ast.walk(tree)
-        if isinstance(node, ast.ImportFrom) and node.module is not None
+        node.module for node in ast.walk(tree) if isinstance(node, ast.ImportFrom) and node.module is not None
     }
     imported_modules.update(
-        alias.name
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Import)
-        for alias in node.names
+        alias.name for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names
     )
 
     assert not any(module == "dnsforge.api" or module.startswith("dnsforge.api.") for module in imported_modules)

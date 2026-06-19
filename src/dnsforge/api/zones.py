@@ -8,7 +8,9 @@ from dnsforge.infrastructure.filesystem.paths import ProjectPaths
 
 
 class ZoneApi:
-    def __init__(self, paths: ProjectPaths, event_bus: EventBus | None = None, audit: AuditEventRepository | None = None) -> None:
+    def __init__(
+        self, paths: ProjectPaths, event_bus: EventBus | None = None, audit: AuditEventRepository | None = None
+    ) -> None:
         self.paths = paths
         self.manager = ZoneManager(paths)
         self.event_bus = event_bus or EventBus()
@@ -46,7 +48,9 @@ class ZoneApi:
         return result
 
     def _publish(self, event_type: str, subject: str, message: str, payload: dict | None = None) -> None:
-        event = AuditEvent(event_type=event_type, category="zone", subject=subject, message=message, payload=payload or {})
+        event = AuditEvent(
+            event_type=event_type, category="zone", subject=subject, message=message, payload=payload or {}
+        )
         self.event_bus.publish(event)
         if self.audit is not None:
             self.audit.append(event)

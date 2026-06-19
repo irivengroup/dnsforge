@@ -8,7 +8,9 @@ from dnsforge.infrastructure.filesystem.paths import ProjectPaths
 
 
 class CatalogApi:
-    def __init__(self, paths: ProjectPaths, event_bus: EventBus | None = None, audit: AuditEventRepository | None = None) -> None:
+    def __init__(
+        self, paths: ProjectPaths, event_bus: EventBus | None = None, audit: AuditEventRepository | None = None
+    ) -> None:
         self.service = CatalogService(paths)
         self.event_bus = event_bus or EventBus()
         self.audit = audit

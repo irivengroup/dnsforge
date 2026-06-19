@@ -505,17 +505,23 @@ class DnsForgeCommandDispatcher:
             if args.action == "list":
                 zones = manager.list(enabled_only=args.enabled)
                 if getattr(args, "format", "text") == "json":
-                    print(json.dumps([
-                        {
-                            "name": zone.name,
-                            "type": zone.zone_type.value,
-                            "enabled": zone.enabled,
-                            "lifecycle": zone.lifecycle.value,
-                            "business_owner": zone.business_owner,
-                            "technical_owner": zone.technical_owner,
-                        }
-                        for zone in zones
-                    ], indent=2, sort_keys=True))
+                    print(
+                        json.dumps(
+                            [
+                                {
+                                    "name": zone.name,
+                                    "type": zone.zone_type.value,
+                                    "enabled": zone.enabled,
+                                    "lifecycle": zone.lifecycle.value,
+                                    "business_owner": zone.business_owner,
+                                    "technical_owner": zone.technical_owner,
+                                }
+                                for zone in zones
+                            ],
+                            indent=2,
+                            sort_keys=True,
+                        )
+                    )
                     return 0
                 for zone in zones:
                     print(
@@ -841,7 +847,9 @@ class DnsForgeCommandDispatcher:
                     for line in output.splitlines()[1:]:
                         parts = line.split("\t")
                         if len(parts) == 4:
-                            rows.append({"zone": parts[0], "type": parts[1], "views": parts[2].split(","), "member": parts[3]})
+                            rows.append(
+                                {"zone": parts[0], "type": parts[1], "views": parts[2].split(","), "member": parts[3]}
+                            )
                     print(json.dumps(rows, indent=2, sort_keys=True))
                 else:
                     print(output)

@@ -10,7 +10,9 @@ from dnsforge.infrastructure.filesystem.paths import ProjectPaths
 
 
 class DisasterRecoveryApi:
-    def __init__(self, paths: ProjectPaths, event_bus: EventBus | None = None, audit: AuditEventRepository | None = None) -> None:
+    def __init__(
+        self, paths: ProjectPaths, event_bus: EventBus | None = None, audit: AuditEventRepository | None = None
+    ) -> None:
         self.service = DisasterRecoveryService(paths)
         self.event_bus = event_bus or EventBus()
         self.audit = audit

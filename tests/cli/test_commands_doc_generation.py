@@ -25,14 +25,16 @@ def test_commands_doc_is_generated_from_real_parser(tmp_path: Path) -> None:
 
 def test_generate_commands_doc_dispatch_writes_requested_file(tmp_path: Path) -> None:
     parser = DnsForgeArgumentParserFactory().build()
-    args = parser.parse_args([
-        "--project-root",
-        str(tmp_path),
-        "generate",
-        "commands-doc",
-        "--output",
-        "docs/COMMANDS.md",
-    ])
+    args = parser.parse_args(
+        [
+            "--project-root",
+            str(tmp_path),
+            "generate",
+            "commands-doc",
+            "--output",
+            "docs/COMMANDS.md",
+        ]
+    )
 
     assert DnsForgeCommandDispatcher().dispatch(args) == 0
     generated = tmp_path / "docs" / "COMMANDS.md"

@@ -17,7 +17,9 @@ class MigrationApi:
     a first-class interface and calls the same application services directly.
     """
 
-    def __init__(self, paths: ProjectPaths, event_bus: EventBus | None = None, audit: AuditEventRepository | None = None) -> None:
+    def __init__(
+        self, paths: ProjectPaths, event_bus: EventBus | None = None, audit: AuditEventRepository | None = None
+    ) -> None:
         self.paths = paths
         self.service = MigrationService(paths)
         self.event_bus = event_bus or EventBus()
