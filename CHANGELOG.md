@@ -1,3 +1,11 @@
+
+## v12.7.0 - CI Enterprise Validation
+
+- Added enterprise validation gate for real BIND checks, Manager-Agent workflows, disaster recovery, catalog zones, DNSSEC lifecycle and Manager security coverage.
+- Added live BIND smoke test support when the named binary is available.
+- Added Manager-Agent integration tests proving Manager routes changes through DNSSync and DNSForge Agent clients only.
+- Added docs/ENTERPRISE_CI_VALIDATION.md.
+
 # v12.6.1 - Release Hygiene Fix
 
 - Applied Ruff formatting to Manager persistence workflow files.
