@@ -1,3 +1,10 @@
+# DNSForge v13.0.0 - Production GA
+
+- Declared DNSForge Production General Availability after operational, platform, upgrade and GA readiness gates.
+- Added GA release notes and production GA checklist.
+- Kept feature freeze: no new DNS or Manager behavior in this release.
+- Rebuilt release artifacts for version 13.0.0.
+
 # DNSForge v12.10.4 - GA Readiness
 
 - Added GA readiness gate.

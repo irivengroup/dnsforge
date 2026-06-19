@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import re
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -16,6 +16,25 @@ def _env() -> dict[str, str]:
     current = env.get("PYTHONPATH")
     env["PYTHONPATH"] = src if not current else f"{src}{os.pathsep}{current}"
     return env
+
+
+REQUIRED_GA_DOCS = (
+    "docs/GA_RELEASE_NOTES.md",
+    "docs/PRODUCTION_GA_CHECKLIST.md",
+    "docs/PERFORMANCE_BASELINE.md",
+    "docs/OPERATIONS_GUIDE.md",
+    "docs/SECURITY_BASELINE.md",
+    "docs/PLATFORM_SUPPORT.md",
+    "docs/UPGRADE_CERTIFICATION.md",
+)
+
+
+def _check_ga_docs() -> list[str]:
+    missing = [path for path in REQUIRED_GA_DOCS if not (ROOT / path).exists()]
+    errors = [f"missing GA documentation: {path}" for path in missing]
+    if not (ROOT / "docs/RUNBOOKS.md").exists() and not (ROOT / "docs/RUNBOOKS").is_dir():
+        errors.append("missing GA documentation: docs/RUNBOOKS.md or docs/RUNBOOKS/")
+    return errors
 
 
 CHECKS = (
@@ -39,6 +58,15 @@ def _coverage_threshold() -> int:
 
 def main() -> int:
     failures: list[str] = []
+    doc_errors = _check_ga_docs()
+    if doc_errors:
+        failures.append("GA Documentation")
+        print("GA Documentation      FAILED")
+        for error in doc_errors:
+            print(error)
+    else:
+        print("GA Documentation      PASS")
+
     if _coverage_threshold() < 90:
         failures.append("Coverage policy")
         print("Coverage policy       FAILED")

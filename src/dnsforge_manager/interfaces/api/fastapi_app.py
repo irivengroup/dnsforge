@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from dnsforge_manager.application.core.manager_application import ManagerApplication, create_app as create_core_app
 
@@ -86,7 +86,7 @@ def create_fastapi_app(core: ManagerApplication | None = None) -> Any:
 
     @app.get("/nodes/{node_id}/readiness")
     def get_node_readiness(node_id: str) -> dict[str, Any]:
-        return manager.node_readiness(node_id)
+        return cast(Any, manager).node_readiness(node_id)
 
     @app.get("/audit")
     def audit_events() -> dict[str, Any]:
