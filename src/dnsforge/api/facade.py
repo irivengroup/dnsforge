@@ -6,6 +6,7 @@ from dnsforge.api.catalog import CatalogApi
 from dnsforge.api.cluster import ClusterApi
 from dnsforge.api.disaster import DisasterRecoveryApi
 from dnsforge.api.dnssec import DnssecApi
+from dnsforge.api.migration import MigrationApi
 from dnsforge.api.zones import ZoneApi
 from dnsforge.application.events.event_bus import EventBus
 from dnsforge.infrastructure.audit.event_repository import AuditEventRepository
@@ -22,6 +23,7 @@ class DnsForgeApplicationApi:
         self.zones = ZoneApi(self.paths, self.event_bus, self.audit_repository)
         self.catalog = CatalogApi(self.paths, self.event_bus, self.audit_repository)
         self.disaster = DisasterRecoveryApi(self.paths, self.event_bus, self.audit_repository)
+        self.migration = MigrationApi(self.paths, self.event_bus, self.audit_repository)
 
     def dnssec(self, setup_file: Path) -> DnssecApi:
         return DnssecApi(setup_file, self.event_bus, self.audit_repository)

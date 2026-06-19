@@ -255,3 +255,8 @@ Critical findings return a non-zero exit code. Warnings are reported without fai
 DNSForge v11.2.0 introduces stable internal API facades for zones, DNSSEC, catalog zones, cluster operations and disaster recovery. It also adds a synchronous EventBus plus append-only AuditEventRepository to prepare DNSForge Manager, DNSBeat and DNSSync without forcing future components to parse CLI output.
 
 Selected commands now support structured JSON output, including `dnsforge status --format json`, `dnsforge zone list --format json`, `dnsforge catalog status --format json` and `dnsforge catalog list --format json`.
+
+
+### DNSForge v11.2.1 CLI/API Parity Guard
+
+DNSForge v11.2.1 formalizes the rule that the local `dnsforge` CLI remains mandatory on every installed server, even after API and Manager integration. The API is an additional integration surface; no feature may become API-only or GUI-only. Release tests now protect the top-level CLI domains and ensure the CLI dispatcher does not depend on `dnsforge.api` for local execution.

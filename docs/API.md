@@ -28,3 +28,8 @@ Critical API operations publish `AuditEvent` objects through `EventBus`. When cr
 ```
 
 The repository is append-only JSONL and is intentionally simple so DNSForge Manager, DNSBeat and DNSSync can consume the same event stream later.
+
+
+## CLI/API parity
+
+The API is an additional integration surface. The local `dnsforge` CLI remains mandatory on every installed server and must keep using shared application services directly. No DNSForge feature may become API-only or GUI-only. See `docs/CLI_API_PARITY.md`.

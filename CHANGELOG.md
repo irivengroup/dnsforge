@@ -1,3 +1,11 @@
+## 11.2.1 - CLI/API Parity Guard
+
+- Added the DNSForge CLI/API parity contract.
+- Added `MigrationApi` to the internal API facade.
+- Added release tests protecting all local top-level CLI command domains.
+- Added a guard ensuring the local CLI dispatcher does not depend on `dnsforge.api`.
+- Documented that DNSForge Manager/API layers are optional adapters and cannot replace local CLI operations.
+
 ## 11.2.0 - API Foundation
 
 - Added stable internal API facades for zones, DNSSEC, catalog, cluster and disaster recovery.

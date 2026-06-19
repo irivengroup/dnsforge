@@ -1,4 +1,4 @@
-from dnsforge.api import CatalogApi, ClusterApi, DisasterRecoveryApi, DnsForgeApplicationApi, DnssecApi, ZoneApi
+from dnsforge.api import CatalogApi, ClusterApi, DisasterRecoveryApi, DnsForgeApplicationApi, DnssecApi, MigrationApi, ZoneApi
 from dnsforge.application.events.event_bus import RecordingEventBus
 from dnsforge.infrastructure.filesystem.paths import ProjectPaths
 
@@ -11,6 +11,7 @@ def test_application_api_exposes_stable_facades(tmp_path, monkeypatch):
     assert isinstance(api.zones, ZoneApi)
     assert isinstance(api.catalog, CatalogApi)
     assert isinstance(api.disaster, DisasterRecoveryApi)
+    assert isinstance(api.migration, MigrationApi)
     assert isinstance(api.cluster(tmp_path / "setup.conf"), ClusterApi)
     assert isinstance(api.dnssec(tmp_path / "setup.conf"), DnssecApi)
 

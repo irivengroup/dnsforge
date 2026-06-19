@@ -22,3 +22,8 @@ Application service action
 ```
 
 This prepares the product boundary for DNSForge Manager, DNSBeat and DNSSync without coupling the DNS engine to a web framework.
+
+
+## Local CLI remains mandatory
+
+DNSForge Manager and REST adapters are optional entry points. The installed `dnsforge` command remains available on every node and must not depend on HTTP APIs or Manager availability. CLI and API entry points share application services; neither wraps the other for core local operations.

@@ -152,8 +152,12 @@ Options:
 ### `dnsforge catalog list`
 
 ```bash
-dnsforge catalog list [-h]
+dnsforge catalog list [-h] [--format {text,json}]
 ```
+
+Options:
+
+- `--format FORMAT` default='text' choices=text,json:
 
 ### `dnsforge catalog repair`
 
@@ -168,8 +172,12 @@ Options:
 ### `dnsforge catalog status`
 
 ```bash
-dnsforge catalog status [-h]
+dnsforge catalog status [-h] [--format {text,json}]
 ```
+
+Options:
+
+- `--format FORMAT` default='text' choices=text,json:
 
 ### `dnsforge catalog sync`
 
@@ -204,11 +212,13 @@ Options:
 
 ```bash
 dnsforge cluster audit [-h] [--setup-file SETUP_FILE]
+                              [--format {text,json}]
 ```
 
 Options:
 
 - `--setup-file SETUP_FILE`:
+- `--format FORMAT` default='text' choices=text,json:
 
 ### `dnsforge cluster diff`
 
@@ -670,12 +680,13 @@ dnsforge security show [-h]
 ### `dnsforge status`
 
 ```bash
-dnsforge status [-h] [--setup-file SETUP_FILE]
+dnsforge status [-h] [--setup-file SETUP_FILE] [--format {text,json}]
 ```
 
 Options:
 
 - `--setup-file SETUP_FILE` default='/etc/dnsforge/setup.conf':
+- `--format FORMAT` default='text' choices=text,json:
 
 ### `dnsforge validate`
 
@@ -881,12 +892,13 @@ Options:
 ### `dnsforge zone list`
 
 ```bash
-dnsforge zone list [-h] [--enabled]
+dnsforge zone list [-h] [--enabled] [--format {text,json}]
 ```
 
 Options:
 
 - `--enabled`: Show enabled/active zones only
+- `--format FORMAT` default='text' choices=text,json:
 
 ### `dnsforge zone retire`
 
