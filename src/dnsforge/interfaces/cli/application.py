@@ -95,6 +95,7 @@ class DnsForgeArgumentParserFactory:
     def _add_readiness(self, sub) -> None:
         readiness = sub.add_parser("readiness", help="Assess local DNSForge operational readiness")
         readiness.add_argument("--format", choices=["text", "json"], default="text")
+        readiness.add_argument("--json", action="store_true", help="Emit the readiness report as JSON")
 
     def _add_job(self, sub) -> None:
         job = sub.add_parser("job", help="Manage local DNSForge operation jobs")
@@ -521,7 +522,7 @@ class DnsForgeCommandDispatcher:
 
         if args.command == "readiness":
             report = ReadinessService(paths).run()
-            if getattr(args, "format", "text") == "json":
+            if getattr(args, "json", False) or getattr(args, "format", "text") == "json":
                 print(json.dumps(report.as_dict(), indent=2, sort_keys=True))
             else:
                 print(report.render())
@@ -642,7 +643,7 @@ class DnsForgeCommandDispatcher:
             manager = ZoneManager(paths)
             if args.action == "list":
                 zones = manager.list(enabled_only=args.enabled)
-                if getattr(args, "format", "text") == "json":
+                if getattr(args, "json", False) or getattr(args, "format", "text") == "json":
                     print(
                         json.dumps(
                             [
@@ -855,7 +856,7 @@ class DnsForgeCommandDispatcher:
 
         if args.command == "status":
             output = StatusService().show(Path(args.setup_file))
-            if getattr(args, "format", "text") == "json":
+            if getattr(args, "json", False) or getattr(args, "format", "text") == "json":
                 data = {}
                 for line in output.splitlines():
                     if ":" in line:
@@ -959,7 +960,7 @@ class DnsForgeCommandDispatcher:
             service = CatalogService(paths)
             if args.action == "status":
                 output = service.status()
-                if getattr(args, "format", "text") == "json":
+                if getattr(args, "json", False) or getattr(args, "format", "text") == "json":
                     data = {}
                     for line in output.splitlines():
                         if ":" in line:
@@ -983,7 +984,7 @@ class DnsForgeCommandDispatcher:
                 return 0
             if args.action == "list":
                 output = service.list_published()
-                if getattr(args, "format", "text") == "json":
+                if getattr(args, "json", False) or getattr(args, "format", "text") == "json":
                     rows = []
                     for line in output.splitlines()[1:]:
                         parts = line.split("\t")

@@ -75,3 +75,8 @@ Manager changes follow the sequence:
 `Manager -> DNSSync dry-run -> approval -> DNSSync apply -> DNSForge agent -> BIND`
 
 Manager never edits `named.conf`, zone files, RNDC or BIND runtime files directly.
+
+
+## Operational Readiness JSON
+
+Use `dnsforge readiness --json` for CI, DNSForge Manager, DNSBeat and external supervision. The JSON contract exposes `status`, `score`, and `checks`.

@@ -683,12 +683,13 @@ dnsforge profile audit [-h]
 ### `dnsforge readiness`
 
 ```bash
-dnsforge readiness [-h] [--format {text,json}]
+dnsforge readiness [-h] [--format {text,json}] [--json]
 ```
 
 Options:
 
 - `--format FORMAT` default='text' choices=text,json:
+- `--json`: Emit the readiness report as JSON
 
 ### `dnsforge render`
 

@@ -39,15 +39,17 @@ REQUIRED_DOCS = {
 }
 
 REQUIRED_SOURCE_SNIPPETS = {
-    "src/dnsforge/interfaces/cli/application.py": ("readiness", "ReadinessService"),
+    "src/dnsforge/interfaces/cli/application.py": ("readiness", "ReadinessService", "--json"),
     "src/dnsforge/application/readiness/readiness_service.py": ("class ReadinessService",),
-    "src/dnsforge/domain/readiness/readiness_report.py": ("class ReadinessReport",),
+    "src/dnsforge/domain/readiness/readiness_report.py": ("class ReadinessReport", "status", "checks"),
 }
 
 REQUIRED_TESTS = {
     "tests/readiness/test_readiness_cli.py": ("readiness",),
+    "tests/readiness/test_readiness_json_and_features.py": ("--json", "ReadinessApi"),
     "tests/readiness/test_readiness_service.py": ("ReadinessService",),
     "tests/operational/test_operational_readiness_gate.py": ("check_operational_readiness.py",),
+    "tests/manager/test_manager_readiness_integration.py": ("node_readiness",),
 }
 
 CI_SNIPPETS = (

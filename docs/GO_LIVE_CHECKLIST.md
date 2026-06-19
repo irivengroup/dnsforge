@@ -40,3 +40,8 @@
 - [ ] DNSBeat health checks are green.
 - [ ] DNSSync dry-run reviewed.
 - [ ] RBAC roles validated.
+
+
+## Operational Readiness JSON
+
+Use `dnsforge readiness --json` for CI, DNSForge Manager, DNSBeat and external supervision. The JSON contract exposes `status`, `score`, and `checks`.

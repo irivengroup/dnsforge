@@ -26,6 +26,7 @@ class FastAPIUnavailableApp:
             RouteSpec("POST", "/nodes/{node_id}/rotate-token"),
             RouteSpec("GET", "/nodes/{node_id}"),
             RouteSpec("GET", "/nodes/{node_id}/status"),
+            RouteSpec("GET", "/nodes/{node_id}/readiness"),
             RouteSpec("GET", "/audit"),
             RouteSpec("GET", "/changes"),
             RouteSpec("POST", "/changes"),
@@ -82,6 +83,10 @@ def create_fastapi_app(core: ManagerApplication | None = None) -> Any:
     @app.get("/nodes/{node_id}/status")
     def get_node_status(node_id: str) -> dict[str, Any]:
         return manager.node_status(node_id)
+
+    @app.get("/nodes/{node_id}/readiness")
+    def get_node_readiness(node_id: str) -> dict[str, Any]:
+        return manager.node_readiness(node_id)
 
     @app.get("/audit")
     def audit_events() -> dict[str, Any]:

@@ -8,6 +8,11 @@ from dnsforge_manager.domain.dnssync.models import DNSForgeOperation, DNSForgeOp
 class DNSForgeNodeClient(Protocol):
     def submit(self, node_id: str, operation: DNSForgeOperation) -> DNSForgeOperationResult:
         """Submit one operation to the DNSForge agent API on a managed node."""
+        ...
+
+    def readiness(self, node_id: str) -> dict[str, object]:
+        """Return the operational readiness reported by one DNSForge agent."""
+        ...
 
 
 class RecordingDNSForgeNodeClient:
@@ -17,3 +22,18 @@ class RecordingDNSForgeNodeClient:
     def submit(self, node_id: str, operation: DNSForgeOperation) -> DNSForgeOperationResult:
         self.operations.append((node_id, operation))
         return DNSForgeOperationResult(node_id=node_id, accepted=True, message="queued")
+
+    def readiness(self, node_id: str) -> dict[str, object]:
+        return {
+            "node_id": node_id,
+            "status": "READY",
+            "score": 100,
+            "checks": [
+                {
+                    "name": "Agent Readiness",
+                    "status": "PASS",
+                    "message": "recording client reports agent ready",
+                    "critical": True,
+                }
+            ],
+        }

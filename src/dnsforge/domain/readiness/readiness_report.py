@@ -35,6 +35,7 @@ class ReadinessReport:
 
     def as_dict(self) -> dict[str, object]:
         return {
+            "status": self.overall_label,
             "overall_status": self.overall_label,
             "score": self.score,
             "checks": [check.as_dict() for check in self.checks],

@@ -1,5 +1,10 @@
 # Changelog
 
+## 12.10.3 - Operational Acceptance Sprint 3
+- Extended readiness checks with JSON output contract.
+- Added Manager node readiness integration.
+- Hardened operational readiness gate v2.
+
 ## 12.10.2 - Operational Acceptance Sprint 2
 
 - Added operational guide, runbooks, go-live checklist and security baseline.

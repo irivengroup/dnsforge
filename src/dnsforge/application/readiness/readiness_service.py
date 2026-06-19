@@ -4,6 +4,13 @@ from collections.abc import Iterable
 
 from dnsforge.application.readiness.checks.bind_installed import BindInstalledCheck
 from dnsforge.application.readiness.checks.initialization import InitializationCheck
+from dnsforge.application.readiness.checks.config_features import (
+    AclConfigurationCheck,
+    CatalogConfigurationCheck,
+    ClusterConfigurationCheck,
+    DnssecConfigurationCheck,
+    ViewsConfigurationCheck,
+)
 from dnsforge.application.readiness.checks.platform_support import PlatformSupportCheck
 from dnsforge.application.readiness.checks.python_version import PythonVersionCheck
 from dnsforge.application.readiness.checks.repositories import BackupRepositoryCheck, HistoryRepositoryCheck
@@ -41,4 +48,9 @@ class ReadinessService:
             InitializationCheck(self.paths),
             BackupRepositoryCheck(self.paths),
             HistoryRepositoryCheck(self.paths),
+            AclConfigurationCheck(self.paths),
+            ViewsConfigurationCheck(self.paths),
+            DnssecConfigurationCheck(self.paths),
+            CatalogConfigurationCheck(self.paths),
+            ClusterConfigurationCheck(self.paths),
         ]

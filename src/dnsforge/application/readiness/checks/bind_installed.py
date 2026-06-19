@@ -8,7 +8,7 @@ from dnsforge.domain.readiness import ReadinessResult, ReadinessStatus
 class BindInstalledCheck:
     name = "BIND Tools"
     critical = True
-    required_binaries = ("named", "named-checkconf", "rndc")
+    required_binaries = ("named", "named-checkconf", "named-checkzone", "rndc")
 
     def run(self) -> ReadinessResult:
         missing = [binary for binary in self.required_binaries if shutil.which(binary) is None]

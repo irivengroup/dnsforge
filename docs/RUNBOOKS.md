@@ -68,3 +68,8 @@ Only proxy migrations are supported:
 - `proxy-hybrid -> proxy-forwarder`
 
 Always use `dnsforge migrate --to <target> --reason "..."`; the migration workflow performs snapshot, render, deploy and rollback handling.
+
+
+## Operational Readiness JSON
+
+Use `dnsforge readiness --json` for CI, DNSForge Manager, DNSBeat and external supervision. The JSON contract exposes `status`, `score`, and `checks`.

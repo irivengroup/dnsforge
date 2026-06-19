@@ -99,6 +99,26 @@ class ManagerApplication:
         self._require(role, "manager:nodes:read")
         return {"node": self.registration_service.get_node(node_id).to_dict()}
 
+    def _agent_readiness(self, node_id: str) -> dict[str, object]:
+        readiness = getattr(self.node_client, "readiness", None)
+        if callable(readiness):
+            value = readiness(node_id)
+            if isinstance(value, dict):
+                return value
+        return {
+            "node_id": node_id,
+            "status": "WARNING",
+            "score": 50,
+            "checks": [
+                {
+                    "name": "Agent Readiness",
+                    "status": "WARNING",
+                    "message": "node client does not expose readiness",
+                    "critical": False,
+                }
+            ],
+        }
+
     def node_status(self, node_id: str, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:dnsbeat:read")
         node = self.registration_service.get_node(node_id)
@@ -107,7 +127,13 @@ class ManagerApplication:
             "node_id": node.node_id,
             "status": node.status.value,
             "dnsbeat": asdict(sample),
+            "readiness": self._agent_readiness(node.node_id),
         }
+
+    def node_readiness(self, node_id: str, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:dnsbeat:read")
+        node = self.registration_service.get_node(node_id)
+        return {"node_id": node.node_id, "readiness": self._agent_readiness(node.node_id)}
 
     def set_node_status(
         self, node_id: str, status: str, *, actor: str = "system", role: str = "operator"

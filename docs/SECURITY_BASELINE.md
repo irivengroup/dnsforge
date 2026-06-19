@@ -47,3 +47,8 @@ All DNSForge commands require root/sudo except `dnsforge version`.
 - Operator creates controlled change requests.
 - Admin approves and applies changes.
 - DNSSync apply requires a prior dry-run plan hash.
+
+
+## Operational Readiness JSON
+
+Use `dnsforge readiness --json` for CI, DNSForge Manager, DNSBeat and external supervision. The JSON contract exposes `status`, `score`, and `checks`.
