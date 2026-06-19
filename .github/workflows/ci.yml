@@ -83,6 +83,7 @@ jobs:
           PYTHONPATH=src python tools/check_dead_code.py
           PYTHONPATH=src python tools/check_ga_readiness.py
           PYTHONPATH=src python tools/check_release_verification.py
+          PYTHONPATH=src python tools/check_manager_postgresql.py
 
       - name: Architecture gates
         run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" DNSFORGE_FORBID_SKIPS="$DNSFORGE_FORBID_SKIPS" python -m pytest -q -rs tests/architecture
@@ -106,6 +107,7 @@ jobs:
           PYTHONPATH=src python tools/check_platform_support.py
           PYTHONPATH=src python tools/check_upgrade_certification.py
           PYTHONPATH=src python tools/check_operational_readiness.py
+          PYTHONPATH=src python tools/check_manager_postgresql.py
           PYTHONPATH=src python tools/release_check.py
           sudo -E python tools/clean.py --fix-release
           python tools/clean.py --check-release

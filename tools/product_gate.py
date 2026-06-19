@@ -26,6 +26,7 @@ CHECKS = (
     ("Platform Support", [sys.executable, "tools/check_platform_support.py"]),
     ("Upgrade Certification", [sys.executable, "tools/check_upgrade_certification.py"]),
     ("Operational Readiness", [sys.executable, "tools/check_operational_readiness.py"]),
+    ("Manager PostgreSQL", [sys.executable, "tools/check_manager_postgresql.py"]),
 )
 
 

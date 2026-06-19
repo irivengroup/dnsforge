@@ -4,13 +4,7 @@ from dnsforge_manager.domain.persistence.models import ManagerPersistenceConfig,
 
 
 class PostgreSQLPersistenceBackend:
-    """PostgreSQL backend readiness boundary.
-
-    JSON remains the default Manager backend. PostgreSQL is optional and is
-    selected only when the Manager persistence configuration explicitly requests
-    it and provides a DSN. Concrete connections are injected into the repository
-    adapters under ``dnsforge_manager.infrastructure.persistence.postgresql``.
-    """
+    """PostgreSQL backend readiness boundary."""
 
     def __init__(self, config: ManagerPersistenceConfig) -> None:
         if config.backend != PersistenceBackend.POSTGRESQL:

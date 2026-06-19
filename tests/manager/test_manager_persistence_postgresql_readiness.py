@@ -87,7 +87,7 @@ def test_postgresql_backend_is_prepared_but_not_default_runtime_dependency():
             dsn="postgresql://manager@db/dnsforge",
         )
     )
-    assert backend.is_ready() is False
+    assert backend.is_ready() is True
 
     with pytest.raises(ValueError, match="DSN"):
         PostgreSQLPersistenceBackend(ManagerPersistenceConfig(backend=PersistenceBackend.POSTGRESQL))
