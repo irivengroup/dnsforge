@@ -1,5 +1,12 @@
 # Changelog
 
+## 13.0.3 - Maintenance CI Runtime Stabilization
+
+- Removed redundant full pytest execution from CI when the coverage gate already runs the non-live test suite.
+- Kept live BIND validation isolated in its dedicated enterprise smoke step.
+- Removed duplicated product hardening gate invocations from the workflow.
+- Documented the 13.0.x CI runtime strategy.
+
 ## 13.0.2 - Maintenance CI Closure
 
 - Keep the 13.0.x maintenance branch under feature freeze.

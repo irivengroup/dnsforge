@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dnsforge"
-version = "13.0.2"
+version = "13.0.3"
 description = "DNSForge - Enterprise BIND deployment and configuration platform"
 requires-python = ">=3.9"
 readme = "README.md"

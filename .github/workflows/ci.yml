@@ -82,22 +82,15 @@ jobs:
           PYTHONPATH=src python tools/check_cli_api_parity.py
           PYTHONPATH=src python tools/check_dead_code.py
           PYTHONPATH=src python tools/check_ga_readiness.py
-          PYTHONPATH=src python tools/check_documentation_parity.py
-          PYTHONPATH=src python tools/check_cli_api_parity.py
-          PYTHONPATH=src python tools/check_dead_code.py
-          PYTHONPATH=src python tools/check_ga_readiness.py
 
       - name: Architecture gates
         run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" DNSFORGE_FORBID_SKIPS="$DNSFORGE_FORBID_SKIPS" python -m pytest -q -rs tests/architecture
 
-      - name: Run pytest suite
-        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" DNSFORGE_FORBID_SKIPS="$DNSFORGE_FORBID_SKIPS" python -m pytest -q -rs
+      - name: Coverage gate for non-live test suite
+        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" DNSFORGE_FORBID_SKIPS="$DNSFORGE_FORBID_SKIPS" python -m pytest -q -rs --ignore=tests/bind/test_live_named_smoke.py --ignore=tests/bind/test_generated_bind_config_validation.py --cov=src/dnsforge --cov=src/dnsforge_manager --cov-report=term-missing --cov-fail-under=90 --durations=20
 
       - name: Validate generated BIND configuration explicitly
-        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" DNSFORGE_FORBID_SKIPS="$DNSFORGE_FORBID_SKIPS" python -m pytest -q -rs tests/bind/test_generated_bind_config_validation.py tests/bind/test_live_named_smoke.py
-
-      - name: Coverage gate
-        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" DNSFORGE_FORBID_SKIPS="$DNSFORGE_FORBID_SKIPS" python -m pytest -q -rs --ignore=tests/bind/test_live_named_smoke.py --ignore=tests/bind/test_generated_bind_config_validation.py --cov=src/dnsforge --cov=src/dnsforge_manager --cov-report=term-missing --cov-fail-under=90
+        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" DNSFORGE_FORBID_SKIPS="$DNSFORGE_FORBID_SKIPS" python -m pytest -q -rs tests/bind/test_generated_bind_config_validation.py tests/bind/test_live_named_smoke.py --durations=10
 
       - name: Write quality report
         run: python tools/quality_report.py
