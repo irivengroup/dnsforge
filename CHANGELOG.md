@@ -1,3 +1,12 @@
+# DNSForge v12.10.4 - GA Readiness
+
+- Added GA readiness gate.
+- Added documentation/code parity checker.
+- Added CLI/API parity checker.
+- Added conservative dead-code audit gate.
+- Added performance baseline documentation.
+- Integrated GA readiness into CI and product gate.
+
 # Changelog
 
 ## 12.10.3 - Operational Acceptance Sprint 3

@@ -1,11 +1,22 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _env() -> dict[str, str]:
+    env = os.environ.copy()
+    src = str(ROOT / "src")
+    current = env.get("PYTHONPATH")
+    env["PYTHONPATH"] = src if not current else f"{src}{os.pathsep}{current}"
+    return env
+
+
 CHECKS = (
     ("CLI Coverage", [sys.executable, "tools/check_cli_coverage.py"]),
     ("API Coverage", [sys.executable, "tools/check_api_coverage.py"]),
@@ -21,9 +32,23 @@ CHECKS = (
 def main() -> int:
     failures: list[str] = []
     for name, command in CHECKS:
-        result = subprocess.run(
-            command, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False
-        )
+        try:
+            result = subprocess.run(
+                command,
+                cwd=ROOT,
+                env=_env(),
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=False,
+                timeout=60,
+            )
+        except subprocess.TimeoutExpired as exc:
+            print(f"{name:<24} FAILED")
+            stdout = exc.stdout or ""
+            print(str(stdout).rstrip())
+            failures.append(name)
+            continue
         if result.returncode == 0:
             print(f"{name:<24} 100%")
         else:
