@@ -4,7 +4,7 @@ from dnsforge_manager.dnssync.client import (
     DNSForgeOperationResult,
     RecordingDNSForgeNodeClient,
 )
-from dnsforge_manager.dnssync.service import DNSSyncService, SyncExecution, SyncPlan
+from dnsforge_manager.dnssync.service import DNSSyncService, SyncExecution, SyncMode, SyncPlan
 
 __all__ = [
     "DNSForgeNodeClient",
@@ -13,5 +13,6 @@ __all__ = [
     "DNSSyncService",
     "RecordingDNSForgeNodeClient",
     "SyncExecution",
+    "SyncMode",
     "SyncPlan",
 ]

@@ -13,6 +13,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("version", help="Show DNSForge Manager version")
     sub.add_parser("health", help="Show DNSForge Manager foundation health")
     sub.add_parser("boundaries", help="Show product responsibility boundaries")
+    nodes = sub.add_parser("nodes", help="List managed DNSForge nodes")
+    nodes.add_argument("--format", choices=("json",), default="json")
     return parser
 
 
@@ -28,6 +30,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "boundaries":
         print(json.dumps(app.boundaries(), sort_keys=True))
+        return 0
+    if args.command == "nodes":
+        print(json.dumps(app.nodes(), sort_keys=True))
         return 0
     return 2
 

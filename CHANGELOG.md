@@ -1,3 +1,12 @@
+## v12.1.0 - Manager API & Node Lifecycle
+
+- Added Manager API lifecycle foundation.
+- Added persistent JSON node inventory backend.
+- Added node registration tokens and status lifecycle.
+- Added DNSSync dry-run/apply/rollback workflow modes.
+- Added DNSBeat node health status fields.
+- Added RBAC admin/operator/viewer roles.
+
 ## 11.4.0 - Product Hardening & Contract Stabilization
 
 - Added product hardening gates for CLI, API, event, service and release coverage.
