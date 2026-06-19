@@ -13,6 +13,7 @@ REQUIRED_APIS = {
     "DnssecApi": "dnsforge.interfaces.api.dnssec",
     "MigrationApi": "dnsforge.interfaces.api.migration",
     "DisasterRecoveryApi": "dnsforge.interfaces.api.disaster",
+    "ReadinessApi": "dnsforge.interfaces.api.readiness",
 }
 
 

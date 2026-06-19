@@ -1,5 +1,12 @@
 # Changelog
 
+## 12.10.0 - Operational Acceptance Readiness Sprint 1
+
+- Added `dnsforge readiness` as the first operational acceptance command.
+- Added DDD readiness domain/application structures with platform, Python, BIND tools, initialization, backup and history checks.
+- Added `ReadinessApi` under `dnsforge.interfaces.api` and aligned API coverage contracts.
+- Regenerated `docs/COMMANDS.md` from the real CLI parser.
+
 ## 12.9.0 - Upgrade & Migration Certification
 
 - Added upgrade/migration certification gates and documentation.

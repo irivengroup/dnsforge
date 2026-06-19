@@ -35,5 +35,6 @@ PUBLIC_API_CONTRACT = PublicApiContract(
         ApiCapability("disaster", "snapshot", "DisasterRecoveryApi.snapshot"),
         ApiCapability("disaster", "restore", "DisasterRecoveryApi.restore"),
         ApiCapability("disaster", "verify", "DisasterRecoveryApi.verify"),
+        ApiCapability("readiness", "status", "ReadinessApi.status"),
     )
 )

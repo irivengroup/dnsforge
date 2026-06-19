@@ -37,6 +37,7 @@ Le README présente le produit. La documentation détaillée de déploiement, d'
 - Haute disponibilité avec Keepalived.
 - Catalogue centralisé des zones.
 - Gestion des zones via le CLI `dnsforge zone`.
+- Évaluation de readiness locale via `dnsforge readiness`.
 
 ### Sécurité DNS
 

@@ -27,6 +27,7 @@ from dnsforge.application.sync.provider_service import SyncProviderService
 from dnsforge.application.security.dnssec_policy_service import DnssecPolicyService
 from dnsforge.application.migration.migration_service import MigrationService
 from dnsforge.application.profile.profile_auditor import ProfileAuditor
+from dnsforge.application.readiness import ReadinessService
 from dnsforge.application.render.render_authoritative import RenderAuthoritative
 from dnsforge.application.render.render_proxy import RenderProxy
 from dnsforge.application.security.security_service import SecurityService
@@ -87,8 +88,13 @@ class DnsForgeArgumentParserFactory:
         self._add_events(sub)
         self._add_metrics(sub)
         self._add_sync(sub)
+        self._add_readiness(sub)
 
         return parser
+
+    def _add_readiness(self, sub) -> None:
+        readiness = sub.add_parser("readiness", help="Assess local DNSForge operational readiness")
+        readiness.add_argument("--format", choices=["text", "json"], default="text")
 
     def _add_job(self, sub) -> None:
         job = sub.add_parser("job", help="Manage local DNSForge operation jobs")
@@ -512,6 +518,14 @@ class DnsForgeCommandDispatcher:
                 print(written)
                 return 0
             return 2
+
+        if args.command == "readiness":
+            report = ReadinessService(paths).run()
+            if getattr(args, "format", "text") == "json":
+                print(json.dumps(report.as_dict(), indent=2, sort_keys=True))
+            else:
+                print(report.render())
+            return 0 if report.overall_label != "FAILED" else 1
 
         if args.command == "job":
             service = JobService(paths)

@@ -680,6 +680,16 @@ Options:
 dnsforge profile audit [-h]
 ```
 
+### `dnsforge readiness`
+
+```bash
+dnsforge readiness [-h] [--format {text,json}]
+```
+
+Options:
+
+- `--format FORMAT` default='text' choices=text,json:
+
 ### `dnsforge render`
 
 ```bash
