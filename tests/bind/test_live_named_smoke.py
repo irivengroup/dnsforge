@@ -90,16 +90,39 @@ def _require_named() -> str:
     pytest.skip("BIND validation tools are not installed: named")
 
 
+def _detect_host_bind_family() -> str:
+    """Detect the actual host BIND layout, ignoring test overrides.
+
+    Other BIND tests deliberately set ``DNSFORGE_BIND_LAYOUT`` to validate all
+    supported distributions. The live ``named`` smoke test is different: it
+    starts the host package's ``named`` binary, so it must render and relocate
+    the configuration for the real host layout, not for a leftover synthetic
+    override such as ``redhat``.
+    """
+    from dnsforge.infrastructure.bind.layout import BindLayoutDetector
+
+    original = os.environ.pop("DNSFORGE_BIND_LAYOUT", None)
+    try:
+        return BindLayoutDetector().detect().family
+    finally:
+        if original is not None:
+            os.environ["DNSFORGE_BIND_LAYOUT"] = original
+
+
 def test_named_starts_generated_authoritative_configuration_under_timeout() -> None:
     named = _require_named()
     helpers = _load_generated_bind_validation_module()
-    from dnsforge.infrastructure.bind.layout import BindLayoutDetector
 
-    host_family = BindLayoutDetector().detect().family
+    host_family = _detect_host_bind_family()
     root, layout = helpers._render_profile(host_family, "authoritative")
     root = _relocate_generated_tree_to_bind_allowed_root(root, layout)
     _make_generated_tree_accessible_to_named(root)
     named_conf = root / layout.named_conf.relative_to("/")
+
+    assert named_conf.exists(), f"generated named.conf not found after relocation: {named_conf}"
+    assert not str(named_conf).startswith("/tmp/"), (
+        f"live named smoke test must not use /tmp because host confinement profiles may deny it: {named_conf}"
+    )
 
     try:
         completed = subprocess.run(
