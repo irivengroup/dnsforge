@@ -1,3 +1,10 @@
+## v12.3.2 - Agent DDD Alignment
+
+- Moved DNSForge Agent API facades from `dnsforge.api` to `dnsforge.interfaces.api`.
+- Removed the legacy top-level `dnsforge.api` package.
+- Updated API coverage tooling, docs and tests to enforce the DDD interface boundary.
+- Preserved CLI/API parity and the secure CLI privilege rule.
+
 ## v12.3.1 - Manager DDD Cleanup
 
 - Removed legacy Manager facade packages created during the v12.3.0 DDD transition.

@@ -1,11 +1,11 @@
 # DNSForge Internal API
 
-DNSForge v11.2.0 introduces stable internal Python facades under `dnsforge.api` so the CLI, future REST adapters and DNSForge Manager can use the same application services.
+DNSForge v11.2.0 introduces stable internal Python facades under `dnsforge.interfaces.api` so the CLI, future REST adapters and DNSForge Manager can use the same application services.
 
 ## Facade
 
 ```python
-from dnsforge.api import DnsForgeApplicationApi
+from dnsforge.interfaces.api import DnsForgeApplicationApi
 from dnsforge.infrastructure.filesystem.paths import ProjectPaths
 
 api = DnsForgeApplicationApi(ProjectPaths())

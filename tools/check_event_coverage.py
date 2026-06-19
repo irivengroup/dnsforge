@@ -6,7 +6,7 @@ from pathlib import Path
 from dnsforge.contracts.event_contracts import PUBLIC_EVENT_CONTRACT
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_ROOTS = (ROOT / "src" / "dnsforge" / "api", ROOT / "src" / "dnsforge" / "application")
+SOURCE_ROOTS = (ROOT / "src" / "dnsforge" / "interfaces" / "api", ROOT / "src" / "dnsforge" / "application")
 
 
 def main() -> int:

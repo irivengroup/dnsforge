@@ -9,7 +9,7 @@ The API layer introduced for DNSForge Manager, REST adapters, DNSBeat and DNSSyn
 1. Every installed DNSForge node must remain locally administrable with `dnsforge ...`.
 2. No operational feature may exist only in the API, REST layer or GUI.
 3. CLI and API entry points must call shared application services.
-4. The CLI must not import `dnsforge.api` to execute local operations.
+4. The CLI must not import `dnsforge.interfaces.api` to execute local operations.
 5. DNSForge Manager is optional. Loss of Manager/API connectivity must not block local operations.
 
 ## Required local CLI domains

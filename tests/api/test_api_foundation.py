@@ -1,4 +1,4 @@
-from dnsforge.api import (
+from dnsforge.interfaces.api import (
     CatalogApi,
     ClusterApi,
     DisasterRecoveryApi,

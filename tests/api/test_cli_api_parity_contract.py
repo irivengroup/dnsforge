@@ -3,8 +3,8 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from dnsforge.api import DnsForgeApplicationApi, MigrationApi
-from dnsforge.api.parity import CLI_API_PARITY_PRINCIPLES, LOCAL_CLI_COMMANDS
+from dnsforge.interfaces.api import DnsForgeApplicationApi, MigrationApi
+from dnsforge.interfaces.api.parity import CLI_API_PARITY_PRINCIPLES, LOCAL_CLI_COMMANDS
 from dnsforge.infrastructure.filesystem.paths import ProjectPaths
 from dnsforge.interfaces.cli.application import DnsForgeArgumentParserFactory
 
@@ -32,7 +32,10 @@ def test_cli_does_not_depend_on_api_facades_for_local_dispatch() -> None:
         alias.name for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names
     )
 
-    assert not any(module == "dnsforge.api" or module.startswith("dnsforge.api.") for module in imported_modules)
+    assert not any(
+        module == "dnsforge.interfaces.api" or module.startswith("dnsforge.interfaces.api.")
+        for module in imported_modules
+    )
 
 
 def test_application_api_exposes_migration_facade(tmp_path: Path, monkeypatch) -> None:

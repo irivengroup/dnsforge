@@ -7,12 +7,12 @@ from dnsforge.contracts.api_contracts import PUBLIC_API_CONTRACT
 
 
 REQUIRED_APIS = {
-    "ZoneApi": "dnsforge.api.zones",
-    "CatalogApi": "dnsforge.api.catalog",
-    "ClusterApi": "dnsforge.api.cluster",
-    "DnssecApi": "dnsforge.api.dnssec",
-    "MigrationApi": "dnsforge.api.migration",
-    "DisasterRecoveryApi": "dnsforge.api.disaster",
+    "ZoneApi": "dnsforge.interfaces.api.zones",
+    "CatalogApi": "dnsforge.interfaces.api.catalog",
+    "ClusterApi": "dnsforge.interfaces.api.cluster",
+    "DnssecApi": "dnsforge.interfaces.api.dnssec",
+    "MigrationApi": "dnsforge.interfaces.api.migration",
+    "DisasterRecoveryApi": "dnsforge.interfaces.api.disaster",
 }
 
 

@@ -4,13 +4,13 @@ DNSForge follows a layered architecture:
 
 ```text
 CLI / future REST / DNSForge Manager
-  -> dnsforge.api facades
+  -> dnsforge.interfaces.api facades
   -> application services
   -> domain model
   -> infrastructure adapters
 ```
 
-The CLI remains backward compatible. Starting with v11.2.0, new integrations should use `dnsforge.api` instead of parsing CLI output.
+The CLI remains backward compatible. Starting with v11.2.0, new integrations should use `dnsforge.interfaces.api` instead of parsing CLI output.
 
 ## Event flow
 

@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dnsforge.api.catalog import CatalogApi
-from dnsforge.api.cluster import ClusterApi
-from dnsforge.api.disaster import DisasterRecoveryApi
-from dnsforge.api.dnssec import DnssecApi
-from dnsforge.api.migration import MigrationApi
-from dnsforge.api.zones import ZoneApi
+from dnsforge.interfaces.api.catalog import CatalogApi
+from dnsforge.interfaces.api.cluster import ClusterApi
+from dnsforge.interfaces.api.disaster import DisasterRecoveryApi
+from dnsforge.interfaces.api.dnssec import DnssecApi
+from dnsforge.interfaces.api.migration import MigrationApi
+from dnsforge.interfaces.api.zones import ZoneApi
 from dnsforge.application.events.event_bus import EventBus
 from dnsforge.infrastructure.audit.event_repository import AuditEventRepository
 from dnsforge.infrastructure.filesystem.paths import ProjectPaths
