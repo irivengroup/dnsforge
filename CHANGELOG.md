@@ -1,6 +1,6 @@
 # Changelog
 
-## 12.10.0 - Operational Acceptance Readiness Sprint 1
+## 12.10.1 - Operational Readiness Coverage Gate Fix
 
 - Added `dnsforge readiness` as the first operational acceptance command.
 - Added DDD readiness domain/application structures with platform, Python, BIND tools, initialization, backup and history checks.
