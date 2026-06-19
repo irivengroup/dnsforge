@@ -15,7 +15,7 @@ def main() -> int:
         "- Mypy: blocking",
         "- Pytest: blocking",
         "- Skips in CI: forbidden",
-        "- Coverage gate: 60% minimum",
+        "- Coverage gate: 90% minimum",
         "- BIND tools validation: blocking in CI",
         "- Bandit: blocking",
         "- pip-audit: blocking",

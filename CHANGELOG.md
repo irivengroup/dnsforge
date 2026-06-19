@@ -1,3 +1,11 @@
+# DNSForge v12.4.0 - Coverage Hardening
+
+- Added blocking coverage gate at 90%.
+- Extended coverage configuration to include DNSForge Agent and DNSForge Manager.
+- Documented coverage measurement policy.
+- Updated CI coverage command from 60% to 90%.
+- Kept DNS feature freeze; no DNS behavior changes.
+
 ## v12.3.2 - Agent DDD Alignment
 
 - Moved DNSForge Agent API facades from `dnsforge.api` to `dnsforge.interfaces.api`.

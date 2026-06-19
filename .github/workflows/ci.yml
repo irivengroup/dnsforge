@@ -85,7 +85,7 @@ jobs:
         run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" DNSFORGE_FORBID_SKIPS="$DNSFORGE_FORBID_SKIPS" python -m pytest -q -rs tests/bind/test_generated_bind_config_validation.py
 
       - name: Coverage gate
-        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" DNSFORGE_FORBID_SKIPS="$DNSFORGE_FORBID_SKIPS" python -m pytest -q -rs --cov=src/dnsforge --cov-report=term-missing --cov-fail-under=60
+        run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" DNSFORGE_FORBID_SKIPS="$DNSFORGE_FORBID_SKIPS" python -m pytest -q -rs --cov=src/dnsforge --cov=src/dnsforge_manager --cov-report=term-missing --cov-fail-under=90
 
       - name: Write quality report
         run: python tools/quality_report.py
