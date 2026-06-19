@@ -21,6 +21,7 @@ jobs:
     env:
       DNSFORGE_FORBID_SKIPS: "1"
       PYTHON_VERSION: ${{ matrix.python-version }}
+      PYTHONDONTWRITEBYTECODE: "1"
 
     steps:
       - name: Checkout
@@ -60,6 +61,9 @@ jobs:
       - name: Mypy type check
         run: mypy src/dnsforge
 
+      - name: Regenerate commands documentation
+        run: PYTHONPATH=src python -m dnsforge.interfaces.cli.main generate commands-doc
+
       - name: Release consistency gate
         run: PYTHONPATH=src python tools/release_check.py --skip-dist
 
@@ -83,9 +87,9 @@ jobs:
           sudo -E python tools/clean.py --fix
           python tools/clean.py --check-source
           python -m build
+          PYTHONPATH=src python tools/release_check.py
           sudo -E python tools/clean.py --fix-release
           python tools/clean.py --check-release
-          PYTHONPATH=src python tools/release_check.py
 
       - name: Verify distribution artifacts
         shell: bash
@@ -118,6 +122,8 @@ jobs:
   security:
     name: Blocking security checks
     runs-on: ubuntu-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
