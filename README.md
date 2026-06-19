@@ -266,6 +266,11 @@ DNSForge v11.2.2 strengthens the release chain after the CLI/API parity guard. T
 
 DNSForge v11.2.1 formalizes the rule that the local `dnsforge` CLI remains mandatory on every installed server, even after API and Manager integration. The API is an additional integration surface; no feature may become API-only or GUI-only. Release tests now protect the top-level CLI domains and ensure the CLI dispatcher does not depend on `dnsforge.api` for local execution.
 
+
+### DNSForge v11.3.2 Secure CLI / Build Tool Separation
+
+DNSForge keeps the security rule that every CLI command requires elevated privileges except `dnsforge version`. Build and CI documentation generation uses `tools/generate_commands_doc.py` instead of invoking `dnsforge generate commands-doc`, so the local CLI security model remains intact.
+
 ### DNSForge v11.3.1 Sync Consolidation
 
 DNSForge v11.3.1 removes the duplicate `sync_foundation` package and consolidates sync provider boundaries under the existing `sync` application module. The CLI remains unchanged: `dnsforge sync providers`.

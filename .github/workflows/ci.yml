@@ -62,7 +62,7 @@ jobs:
         run: mypy src/dnsforge
 
       - name: Regenerate commands documentation
-        run: PYTHONPATH=src python -m dnsforge.interfaces.cli.main generate commands-doc
+        run: PYTHONPATH=src python tools/generate_commands_doc.py
 
       - name: Release consistency gate
         run: PYTHONPATH=src python tools/release_check.py --skip-dist

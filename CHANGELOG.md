@@ -1,3 +1,10 @@
+## 11.3.2 - Secure CLI / Build Tool Separation
+
+- Keep all CLI commands privileged except `dnsforge version`.
+- Add `tools/generate_commands_doc.py` for CI/build-time COMMANDS.md generation without invoking the privileged CLI.
+- Update release checks to point to the build tool instead of the CLI command.
+- Regenerate docs/COMMANDS.md and rebuild distribution artifacts.
+
 ## 11.3.1 - Sync Consolidation
 
 - Consolidated sync provider boundaries under `dnsforge.application.sync`.

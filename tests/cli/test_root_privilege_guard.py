@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from dnsforge.infrastructure.system.privilege_guard import PrivilegeError, RootPrivilegeGuard
+from dnsforge.infrastructure.system.privilege_guard import RootPrivilegeGuard
 from dnsforge.interfaces.cli.application import DnsForgeCli
 
 
@@ -21,10 +21,10 @@ class _Dispatcher:
         return 0
 
 
-def test_dnsforge_command_requires_root(capsys: pytest.CaptureFixture[str]) -> None:
+def test_dnsforge_non_version_command_requires_root(capsys: pytest.CaptureFixture[str]) -> None:
     cli = DnsForgeCli(dispatcher=_Dispatcher(), privilege_guard=_NonRootGuard())
 
-    result = cli.run(["version"])
+    result = cli.run(["status"])
 
     captured = capsys.readouterr()
     assert result == 1
@@ -43,7 +43,13 @@ def test_dnsforge_help_remains_available_without_root(capsys: pytest.CaptureFixt
     assert "DNSForge" in captured.out
 
 
+def test_dnsforge_version_runs_without_root() -> None:
+    cli = DnsForgeCli(dispatcher=_Dispatcher(), privilege_guard=_NonRootGuard())
+
+    assert cli.run(["version"]) == 0
+
+
 def test_dnsforge_command_runs_when_root() -> None:
     cli = DnsForgeCli(dispatcher=_Dispatcher(), privilege_guard=_RootGuard())
 
-    assert cli.run(["version"]) == 0
+    assert cli.run(["status"]) == 0

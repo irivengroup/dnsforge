@@ -114,7 +114,9 @@ def check_commands_doc() -> list[str]:
     current_path = ROOT / "docs" / "COMMANDS.md"
     current = current_path.read_text(encoding="utf-8") if current_path.exists() else ""
     if current != expected:
-        return ["docs/COMMANDS.md is not synchronized with the CLI parser; run: dnsforge generate commands-doc"]
+        return [
+            "docs/COMMANDS.md is not synchronized with the CLI parser; run: PYTHONPATH=src python tools/generate_commands_doc.py"
+        ]
     return []
 
 

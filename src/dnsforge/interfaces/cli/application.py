@@ -1131,11 +1131,15 @@ class DnsForgeCli:
         normalized_argv = self._normalize_argv(list(sys.argv[1:] if argv is None else argv))
         args = parser.parse_args(normalized_argv)
         try:
-            self.privilege_guard.require_root()
+            if self._requires_root(args):
+                self.privilege_guard.require_root()
             return self.dispatcher.dispatch(args)
         except DnsForgeError as exc:
             print(f"ERROR: {exc}", file=sys.stderr)
             return 1
+
+    def _requires_root(self, args: argparse.Namespace) -> bool:
+        return getattr(args, "command", None) != "version"
 
     def _normalize_argv(self, argv: list[str]) -> list[str]:
         return argv
