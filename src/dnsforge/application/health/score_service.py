@@ -30,7 +30,8 @@ class HealthScoreService:
             return json.dumps(data, indent=2, sort_keys=True)
         rows = [f"DNSForge Health Score: {data['score']}/100", ""]
         categories = data["categories"]
-        assert isinstance(categories, dict)
+        if not isinstance(categories, dict):
+            raise TypeError("health score categories must be a dictionary")
         for name, value in categories.items():
             rows.append(f"{name.upper():<12} {value}")
         return "\n".join(rows)
