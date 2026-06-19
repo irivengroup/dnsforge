@@ -37,6 +37,23 @@ def _relocate_generated_tree_to_bind_allowed_root(root: Path) -> Path:
 
     destination = Path(tempfile.mkdtemp(prefix="dnsforge-ci-", dir=bind_root))
     shutil.copytree(root, destination, dirs_exist_ok=True)
+
+    # _render_profile rewrites native absolute paths to the original temporary
+    # root so named-checkconf can validate without chroot. After relocating the
+    # generated tree into /etc/bind for the live named smoke test, all rendered
+    # include/file/directory references must point to the relocated root as well.
+    # Otherwise named reads /etc/bind/.../etc/named.conf and immediately fails
+    # on includes that still reference the old /tmp/dnsforge-* location.
+    original_root = str(root)
+    relocated_root = str(destination)
+    for path in destination.rglob("*"):
+        if not path.is_file():
+            continue
+        content = path.read_text(encoding="utf-8")
+        rewritten = content.replace(original_root, relocated_root)
+        if rewritten != content:
+            path.write_text(rewritten, encoding="utf-8")
+
     shutil.rmtree(root)
     return destination
 
