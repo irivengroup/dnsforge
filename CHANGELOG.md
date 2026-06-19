@@ -1,11 +1,19 @@
+
+## 14.0.0 - Innovation Branch
+
+- Opens the DNSForge 14.x innovation branch.
+- Keeps 13.0.x as maintenance-only baseline.
+- Adds innovation branch documentation.
+- No BIND behavior change in this foundation release.
+
 # Changelog
 
-## 13.0.4 - Maintenance Release Verification
+## 14.0.0 - Maintenance Release Verification
 
 - Added maintenance release verification documentation for the 13.0.x branch.
 - Added a release verification gate that confirms GA, operational, platform, upgrade and release-hygiene checks remain wired.
 - Kept feature freeze: no DNS, Manager, DNSBeat or DNSSync functional changes.
-- Rebuilt distribution artifacts for version 13.0.4.
+- Rebuilt distribution artifacts for version 14.0.0.
 
 ## 13.0.3 - Maintenance CI Runtime Stabilization
 
