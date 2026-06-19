@@ -72,7 +72,7 @@ class CommandDocumentationService:
         options = tuple(self._option_lines(parser))
         return CommandDocumentationEntry(command=parser.prog, usage=usage, description=description, options=options)
 
-    def _find_subparser_action(self, parser: argparse.ArgumentParser) -> argparse._SubParsersAction | None:  # type: ignore[name-defined]
+    def _find_subparser_action(self, parser: argparse.ArgumentParser) -> argparse._SubParsersAction | None:
         for action in parser._actions:
             if isinstance(action, argparse._SubParsersAction):
                 return action
