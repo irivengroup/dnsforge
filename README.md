@@ -229,3 +229,22 @@ dnsforge disaster verify --snapshot <path>
 dnsforge disaster restore --snapshot <path> --dry-run
 ```
 
+
+
+### DNSForge v11.1.2 Cluster Consistency Hardening
+
+DNSForge v11.1.2 strengthens `dnsforge cluster audit` for production automation. The command now emits a structured consistency report covering peer manifests, zone counts, catalog serial visibility, DNSSEC alignment, zone checksums, SOA serial checksums and critical drift.
+
+Text output remains the default:
+
+```bash
+dnsforge cluster audit
+```
+
+Machine-readable output is available for pipelines and external monitoring:
+
+```bash
+dnsforge cluster audit --format json
+```
+
+Critical findings return a non-zero exit code. Warnings are reported without failing the command, which allows operators to distinguish production blockers from advisory drift.

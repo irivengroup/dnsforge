@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 from enum import Enum
 
 
@@ -51,3 +52,52 @@ class ClusterSyncPlan:
     @property
     def zone_count(self) -> int:
         return len(self.zones)
+
+
+@dataclass(frozen=True)
+class ClusterAuditFinding:
+    severity: ClusterDriftSeverity
+    area: str
+    target: str
+    message: str
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "severity": self.severity.value,
+            "area": self.area,
+            "target": self.target,
+            "message": self.message,
+        }
+
+
+@dataclass(frozen=True)
+class ClusterAuditReport:
+    ok: bool
+    local_node: str
+    peer_count: int
+    zone_count: int
+    manifest_checksum: str
+    zone_checksum: str
+    soa_serials_checksum: str
+    findings: list[ClusterAuditFinding] = field(default_factory=list)
+
+    @property
+    def highest_severity(self) -> str:
+        if any(f.severity is ClusterDriftSeverity.CRITICAL for f in self.findings):
+            return ClusterDriftSeverity.CRITICAL.value
+        if any(f.severity is ClusterDriftSeverity.WARNING for f in self.findings):
+            return ClusterDriftSeverity.WARNING.value
+        return ClusterDriftSeverity.INFO.value
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "ok": self.ok,
+            "highest_severity": self.highest_severity,
+            "local_node": self.local_node,
+            "peer_count": self.peer_count,
+            "zone_count": self.zone_count,
+            "manifest_checksum": self.manifest_checksum,
+            "zone_checksum": self.zone_checksum,
+            "soa_serials_checksum": self.soa_serials_checksum,
+            "findings": [finding.to_dict() for finding in self.findings],
+        }

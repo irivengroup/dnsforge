@@ -306,6 +306,7 @@ class DnsForgeArgumentParserFactory:
         peers.add_argument("--setup-file", default=None)
         audit = inner.add_parser("audit")
         audit.add_argument("--setup-file", default=None)
+        audit.add_argument("--format", choices=["text", "json"], default="text")
 
     def _add_catalog(self, sub) -> None:
         catalog = sub.add_parser("catalog", help="Manage BIND catalog zones")
@@ -774,7 +775,7 @@ class DnsForgeCommandDispatcher:
                 print(service.peers(setup_file))
                 return 0
             if args.action == "audit":
-                ok, output = service.audit(setup_file)
+                ok, output = service.audit(setup_file, output_format=args.format)
                 print(output)
                 return 0 if ok else 1
             return 2

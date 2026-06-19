@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from dnsforge.application.zone.zone_manager import require_reason
 from dnsforge.application.sync.sync_service import SyncService
 from dnsforge.domain.cluster.model import ClusterConfig, ClusterRole
 from dnsforge.domain.cluster.validator import ClusterValidator
+from dnsforge.domain.sync.model import ClusterAuditFinding, ClusterAuditReport, ClusterDriftSeverity
 from dnsforge.infrastructure.cluster.keepalived_renderer import KeepalivedRenderer
 from dnsforge.infrastructure.settings.env_loader import EnvSettingsLoader
 from dnsforge.shared.errors import SettingsError
@@ -106,26 +108,141 @@ class ClusterService:
         target.write_text(rendered, encoding="utf-8")
         return f"Keepalived configuration applied: {target}"
 
-    def audit(self, setup_file: Path) -> tuple[bool, str]:
-        findings: list[str] = []
+    def audit(self, setup_file: Path, output_format: str = "text") -> tuple[bool, str]:
+        report = self.audit_report(setup_file)
+        if output_format == "json":
+            return report.ok, json.dumps(report.to_dict(), indent=2, sort_keys=True)
+        if output_format != "text":
+            raise SettingsError(f"unsupported cluster audit output format: {output_format}")
+        return report.ok, self._format_audit_report(report)
+
+    def audit_report(self, setup_file: Path) -> ClusterAuditReport:
+        findings: list[ClusterAuditFinding] = []
         config = self.load(setup_file)
         try:
             self.validator.validate(config)
         except Exception as exc:
-            findings.append(f"ERROR cluster validation: {exc}")
+            findings.append(
+                ClusterAuditFinding(
+                    ClusterDriftSeverity.CRITICAL,
+                    "configuration",
+                    config.local_node or "local",
+                    str(exc),
+                )
+            )
+
         if not config.enabled:
-            findings.append("WARNING cluster disabled")
-        elif config.dns_role != "dns-authoritative":
-            findings.append("ERROR cluster is only supported on authoritative nodes")
-        if config.enabled and not config.peers:
-            findings.append("WARNING no cluster peers declared")
-        if config.enabled and not config.vip:
-            findings.append("ERROR missing cluster VIP")
-        if config.enabled and not config.auth_pass:
-            findings.append("ERROR missing keepalived authentication secret")
-        if findings:
-            return False, "\n".join(findings)
-        return True, "Cluster audit OK"
+            findings.append(
+                ClusterAuditFinding(
+                    ClusterDriftSeverity.WARNING,
+                    "cluster",
+                    config.local_node or "local",
+                    "cluster disabled",
+                )
+            )
+        else:
+            if config.dns_role != "dns-authoritative":
+                findings.append(
+                    ClusterAuditFinding(
+                        ClusterDriftSeverity.CRITICAL,
+                        "role",
+                        config.local_node or "local",
+                        "cluster is only supported on authoritative nodes",
+                    )
+                )
+            if not config.peers:
+                findings.append(
+                    ClusterAuditFinding(
+                        ClusterDriftSeverity.WARNING,
+                        "peers",
+                        config.local_node or "local",
+                        "no cluster peers declared",
+                    )
+                )
+            if not config.vip:
+                findings.append(
+                    ClusterAuditFinding(
+                        ClusterDriftSeverity.CRITICAL,
+                        "vip",
+                        config.local_node or "local",
+                        "missing cluster VIP",
+                    )
+                )
+            if not config.auth_pass:
+                findings.append(
+                    ClusterAuditFinding(
+                        ClusterDriftSeverity.CRITICAL,
+                        "keepalived",
+                        config.local_node or "local",
+                        "missing keepalived authentication secret",
+                    )
+                )
+
+        plan = self.sync_plan(setup_file, dry_run=True) if config.enabled and config.peers else None
+        if plan is not None and not plan.zones:
+            findings.append(
+                ClusterAuditFinding(
+                    ClusterDriftSeverity.WARNING,
+                    "zones",
+                    config.local_node or "local",
+                    "no active zones discovered for cluster publication",
+                )
+            )
+        for state in self.peer_states(setup_file) if config.enabled else []:
+            if not state.reachable:
+                findings.append(
+                    ClusterAuditFinding(
+                        ClusterDriftSeverity.WARNING,
+                        "reachability",
+                        state.address,
+                        state.message or "peer manifest unavailable",
+                    )
+                )
+            if state.reachable and state.catalog_serial == "unknown":
+                findings.append(
+                    ClusterAuditFinding(
+                        ClusterDriftSeverity.WARNING,
+                        "catalog",
+                        state.address,
+                        "peer catalog serial unknown",
+                    )
+                )
+        for drift in self.drift_report(setup_file) if config.enabled and config.peers else []:
+            findings.append(ClusterAuditFinding(drift.severity, drift.area, drift.peer, drift.message))
+
+        ok = not any(finding.severity is ClusterDriftSeverity.CRITICAL for finding in findings)
+        return ClusterAuditReport(
+            ok=ok,
+            local_node=config.local_node or "local",
+            peer_count=len(config.peers),
+            zone_count=plan.zone_count if plan is not None else 0,
+            manifest_checksum=plan.manifest_checksum if plan is not None else "",
+            zone_checksum=plan.zone_checksum if plan is not None else "",
+            soa_serials_checksum=plan.soa_serials_checksum if plan is not None else "",
+            findings=findings,
+        )
+
+    def _format_audit_report(self, report: ClusterAuditReport) -> str:
+        lines = [
+            "Cluster audit OK" if report.ok else "Cluster audit FAILED",
+            f"Local Node: {report.local_node}",
+            f"Peers: {report.peer_count}",
+            f"Zones: {report.zone_count}",
+            f"Highest Severity: {report.highest_severity}",
+        ]
+        if report.manifest_checksum:
+            lines.append(f"Manifest SHA256: {report.manifest_checksum}")
+        if report.zone_checksum:
+            lines.append(f"Zone Checksum: {report.zone_checksum}")
+        if report.soa_serials_checksum:
+            lines.append(f"SOA Serials Checksum: {report.soa_serials_checksum}")
+        if report.findings:
+            lines.append("Findings:")
+            lines.extend(
+                f"- {finding.severity.value.upper()} {finding.area} {finding.target}: {finding.message}"
+                for finding in report.findings
+            )
+        return "\n".join(lines)
 
     def peers(self, setup_file: Path) -> str:
         return self.sync_service.peers(setup_file)

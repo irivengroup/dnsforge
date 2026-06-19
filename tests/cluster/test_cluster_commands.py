@@ -289,3 +289,57 @@ def test_cluster_sync_uses_peer_authoritative_addresses_when_cluster_peers_absen
 
     plan = ClusterService().sync_plan(setup_file)
     assert plan.peers == ["10.10.10.11", "10.10.10.12"]
+
+
+def test_cluster_audit_json_report_contains_checksums(tmp_path: Path) -> None:
+    setup_file = tmp_path / "setup.conf"
+    _write_cluster_setup(setup_file, peers="10.10.10.11")
+    (tmp_path / "zones.yml").write_text("zones:\n", encoding="utf-8")
+    peer_dir = tmp_path / "cluster-sync" / "peers"
+    peer_dir.mkdir(parents=True)
+    (peer_dir / "10.10.10.11.manifest").write_text(
+        "zone_count=0\ncatalog_serial=local\ndnssec_state=aligned\n",
+        encoding="utf-8",
+    )
+
+    ok, output = ClusterService().audit(setup_file, output_format="json")
+
+    import json
+
+    payload = json.loads(output)
+    assert ok is True
+    assert payload["ok"] is True
+    assert payload["local_node"] == "auth01"
+    assert payload["peer_count"] == 1
+    assert payload["manifest_checksum"]
+    assert payload["highest_severity"] == "warning"
+    assert payload["findings"][0]["area"] == "zones"
+
+
+def test_cluster_audit_fails_on_critical_drift(tmp_path: Path) -> None:
+    setup_file = tmp_path / "setup.conf"
+    _write_cluster_setup(setup_file, peers="10.10.10.11")
+    (tmp_path / "zones.yml").write_text(
+        """
+zones:
+  - name: example.com
+    type: master
+    enabled: yes
+    views:
+      - external
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+    peer_dir = tmp_path / "cluster-sync" / "peers"
+    peer_dir.mkdir(parents=True)
+    (peer_dir / "10.10.10.11.manifest").write_text(
+        "zone_count=99\ncatalog_serial=local\ndnssec_state=aligned\n",
+        encoding="utf-8",
+    )
+
+    ok, output = ClusterService().audit(setup_file)
+
+    assert ok is False
+    assert "Cluster audit FAILED" in output
+    assert "CRITICAL zones 10.10.10.11" in output

@@ -1,3 +1,17 @@
-from dnsforge.domain.sync.model import ClusterDrift, ClusterDriftSeverity, ClusterPeerState, ClusterSyncPlan
+from dnsforge.domain.sync.model import (
+    ClusterAuditFinding,
+    ClusterAuditReport,
+    ClusterDrift,
+    ClusterDriftSeverity,
+    ClusterPeerState,
+    ClusterSyncPlan,
+)
 
-__all__ = ["ClusterDrift", "ClusterDriftSeverity", "ClusterPeerState", "ClusterSyncPlan"]
+__all__ = [
+    "ClusterAuditFinding",
+    "ClusterAuditReport",
+    "ClusterDrift",
+    "ClusterDriftSeverity",
+    "ClusterPeerState",
+    "ClusterSyncPlan",
+]

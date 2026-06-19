@@ -204,11 +204,13 @@ Options:
 
 ```bash
 dnsforge cluster audit [-h] [--setup-file SETUP_FILE]
+                              [--format {text,json}]
 ```
 
 Options:
 
 - `--setup-file SETUP_FILE`:
+- `--format FORMAT` default='text' choices=text,json:
 
 ### `dnsforge cluster diff`
 

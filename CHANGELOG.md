@@ -1,5 +1,13 @@
 ## 11.0.5 - Orphan command hardening
 
+## 11.1.2 - Cluster Consistency Hardening
+
+- Hardened `dnsforge cluster audit` with structured audit reports.
+- Added `dnsforge cluster audit --format json` for automation and CI/CD consumption.
+- Added peer manifest, catalog serial, zone checksum, SOA serial checksum and drift findings to cluster audit output.
+- Preserved authoritative-only cluster enforcement and non-zero exit on critical findings.
+
+
 - Hardened previously shallow security history rollback by replacing the placeholder response with validated rollback markers.
 - Added regression coverage for security history, rollback marker creation and invalid rollback references.
 - Added backup/restore safety tests for absolute paths, path traversal and safe relative archive members.
