@@ -1,3 +1,11 @@
+## 11.4.0 - Product Hardening & Contract Stabilization
+
+- Added product hardening gates for CLI, API, event, service and release coverage.
+- Added stable CLI compatibility documentation and public contract declarations.
+- Added centralized output formatter contracts for JSON/table output.
+- Added future DNSForge Manager contract scaffolding without changing DNS engine behaviour.
+- Preserved the secure CLI privilege rule: every command requires root/sudo except `dnsforge version`.
+
 ## 11.3.2 - Secure CLI / Build Tool Separation
 
 - Keep all CLI commands privileged except `dnsforge version`.

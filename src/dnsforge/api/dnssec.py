@@ -32,12 +32,12 @@ class DnssecApi:
 
     def rotate_ksk(self, zone: str, reason: str) -> str:
         result = self.service.rotate_ksk(self.setup_file, zone, reason)
-        self._publish("DnssecKskRotated", zone, result)
+        self._publish("DNSSECRotationCompleted", zone, result)
         return result
 
     def rotate_zsk(self, zone: str, reason: str) -> str:
         result = self.service.rotate_zsk(self.setup_file, zone, reason)
-        self._publish("DnssecZskRotated", zone, result)
+        self._publish("DNSSECRotationCompleted", zone, result)
         return result
 
     def _publish(self, event_type: str, subject: str, message: str) -> None:

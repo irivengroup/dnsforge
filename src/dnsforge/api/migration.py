@@ -34,13 +34,18 @@ class MigrationApi:
         dry_run: bool = False,
     ) -> str:
         migration_target = target if isinstance(target, MigrationTarget) else MigrationTarget.from_value(target)
-        result = self.service.migrate(
-            setup_file,
-            migration_target,
-            dry_run=dry_run,
-            reason=reason,
-            target_root=target_root,
-        )
+        self._publish("MigrationStarted", migration_target.value, f"migration started: {migration_target.value}")
+        try:
+            result = self.service.migrate(
+                setup_file,
+                migration_target,
+                dry_run=dry_run,
+                reason=reason,
+                target_root=target_root,
+            )
+        except Exception as exc:
+            self._publish("MigrationFailed", migration_target.value, str(exc))
+            raise
         self._publish("MigrationCompleted", migration_target.value, result)
         return result
 

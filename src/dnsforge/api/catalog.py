@@ -20,12 +20,12 @@ class CatalogApi:
 
     def sync(self, reason: str) -> str:
         result = self.service.sync(reason)
-        self._publish("CatalogSynced", result)
+        self._publish("CatalogSyncCompleted", result)
         return result
 
     def repair(self, reason: str) -> str:
         result = self.service.repair(reason)
-        self._publish("CatalogRepaired", result)
+        self._publish("CatalogRepairCompleted", result)
         return result
 
     def validate(self) -> str:

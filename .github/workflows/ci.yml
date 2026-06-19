@@ -67,6 +67,14 @@ jobs:
       - name: Release consistency gate
         run: PYTHONPATH=src python tools/release_check.py --skip-dist
 
+      - name: Product hardening gates
+        run: |
+          PYTHONPATH=src python tools/check_cli_coverage.py
+          PYTHONPATH=src python tools/check_api_coverage.py
+          PYTHONPATH=src python tools/check_event_coverage.py
+          PYTHONPATH=src python tools/check_service_coverage.py
+          PYTHONPATH=src python tools/product_gate.py
+
       - name: Architecture gates
         run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" DNSFORGE_FORBID_SKIPS="$DNSFORGE_FORBID_SKIPS" python -m pytest -q -rs tests/architecture
 
@@ -87,6 +95,7 @@ jobs:
           sudo -E python tools/clean.py --fix
           python tools/clean.py --check-source
           python -m build
+          PYTHONPATH=src python tools/product_gate.py
           PYTHONPATH=src python tools/release_check.py
           sudo -E python tools/clean.py --fix-release
           python tools/clean.py --check-release
