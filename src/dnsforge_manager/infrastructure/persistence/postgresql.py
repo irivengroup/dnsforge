@@ -6,7 +6,7 @@ from dnsforge_manager.domain.persistence.models import ManagerPersistenceConfig,
 class PostgreSQLPersistenceBackend:
     """Prepared PostgreSQL backend boundary.
 
-    The v12.6.0 release keeps JSON as the operational default and exposes a
+    The v12.6.1 release keeps JSON as the operational default and exposes a
     typed PostgreSQL readiness object so future migrations can implement the
     adapter without changing application services.
     """

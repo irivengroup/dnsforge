@@ -1,3 +1,8 @@
+# v12.6.1 - Release Hygiene Fix
+
+- Applied Ruff formatting to Manager persistence workflow files.
+- Rebuilt release artifacts and preserved Manager persistence behavior.
+
 # v12.6.0 - Manager Persistence & PostgreSQL Readiness
 
 - Added Manager persistence repository boundaries.

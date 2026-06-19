@@ -3,7 +3,10 @@ from __future__ import annotations
 import pytest
 
 from dnsforge_manager.application.persistence import ChangeRequestLock
-from dnsforge_manager.application.workflows import JsonChangeRequestRepository, ManagerChangeWorkflow
+from dnsforge_manager.application.workflows import (
+    JsonChangeRequestRepository,
+    ManagerChangeWorkflow,
+)
 from dnsforge_manager.domain.inventory.models import ManagedNode, NodeRole
 from dnsforge_manager.domain.persistence import ManagerPersistenceConfig, PersistenceBackend
 from dnsforge_manager.domain.workflows.models import ChangeRequestStatus, ManagerChangeRequest
@@ -62,10 +65,15 @@ def test_change_request_lock_rejects_concurrent_mutation(tmp_path):
 def test_manager_workflow_accepts_json_change_repository(tmp_path):
     workflow = ManagerChangeWorkflow(repository=JsonChangeRequestRepository(tmp_path / "changes.json"))
     change = workflow.create_change(
-        ManagerChangeRequest(cluster_id="cluster-a", operation="zone.create", payload={"zone": "example.test"})
+        ManagerChangeRequest(
+            cluster_id="cluster-a",
+            operation="zone.create",
+            payload={"zone": "example.test"},
+        )
     )
 
-    assert JsonChangeRequestRepository(tmp_path / "changes.json").get(change.change_id).status is ChangeRequestStatus.PENDING
+    persisted_change = JsonChangeRequestRepository(tmp_path / "changes.json").get(change.change_id)
+    assert persisted_change.status is ChangeRequestStatus.PENDING
 
 
 def test_postgresql_backend_is_prepared_but_not_default_runtime_dependency():
@@ -74,7 +82,10 @@ def test_postgresql_backend_is_prepared_but_not_default_runtime_dependency():
     assert "manager_nodes" in MANAGER_SCHEMA_MIGRATIONS[0].statements[0]
 
     backend = PostgreSQLPersistenceBackend(
-        ManagerPersistenceConfig(backend=PersistenceBackend.POSTGRESQL, dsn="postgresql://manager@db/dnsforge")
+        ManagerPersistenceConfig(
+            backend=PersistenceBackend.POSTGRESQL,
+            dsn="postgresql://manager@db/dnsforge",
+        )
     )
     assert backend.is_ready() is False
 

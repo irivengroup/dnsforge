@@ -24,7 +24,7 @@ PostgreSQL is represented by:
 - `PostgreSQLPersistenceBackend`
 - `MANAGER_SCHEMA_MIGRATIONS`
 
-The v12.6.0 release intentionally does not require PostgreSQL at runtime. The Manager can still run without any BIND installation and without a database server.
+The v12.6.1 release intentionally does not require PostgreSQL at runtime. The Manager can still run without any BIND installation and without a database server.
 
 ## Boundary rule
 
