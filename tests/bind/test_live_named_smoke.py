@@ -5,6 +5,7 @@ import os
 import shutil
 import stat
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -21,15 +22,33 @@ def _load_generated_bind_validation_module() -> Any:
     return module
 
 
+def _relocate_generated_tree_to_bind_allowed_root(root: Path) -> Path:
+    """Move the generated tree to a path accepted by Ubuntu's BIND profile.
+
+    GitHub hosted Ubuntu runners execute BIND under the distro AppArmor profile.
+    That profile can deny reading a valid configuration rendered under ``/tmp``
+    even when POSIX permissions are relaxed. Place the smoke-test tree below
+    ``/etc/bind`` when possible, which is inside the package's allowed config
+    area. Fall back to the original location outside confined CI hosts.
+    """
+    bind_root = Path("/etc/bind")
+    if not bind_root.is_dir() or not os.access(bind_root, os.W_OK):
+        return root
+
+    destination = Path(tempfile.mkdtemp(prefix="dnsforge-ci-", dir=bind_root))
+    shutil.copytree(root, destination, dirs_exist_ok=True)
+    shutil.rmtree(root)
+    return destination
+
+
 def _make_generated_tree_accessible_to_named(root: Path) -> None:
     """Allow named to traverse/read the generated tree during CI smoke tests.
 
     The test suite may run through sudo, and tempfile.mkdtemp creates the
-    profile root with mode 0700. Ubuntu BIND drops privileges before loading
-    the configuration, so named can fail with ``permission denied`` even when
-    the rendered configuration is valid. Keep the generated files read-only for
-    others, but make directories traversable and writable where BIND may create
-    runtime files during startup.
+    profile root with mode 0700. Ubuntu BIND may also drop privileges before
+    loading the configuration. Keep generated files read-only for others, but
+    make directories traversable and writable where BIND may create runtime
+    files during startup.
     """
     writable_directory_names = {"run", "cache", "log", "logs", "dynamic"}
     for path in [root, *root.rglob("*")]:
@@ -58,15 +77,19 @@ def test_named_starts_generated_authoritative_configuration_under_timeout() -> N
     named = _require_named()
     helpers = _load_generated_bind_validation_module()
     root, layout = helpers._render_profile("redhat", "authoritative")
+    root = _relocate_generated_tree_to_bind_allowed_root(root)
     _make_generated_tree_accessible_to_named(root)
     named_conf = root / layout.named_conf.relative_to("/")
 
-    completed = subprocess.run(
-        ["timeout", "3", named, "-g", "-c", str(named_conf), "-p", "1053"],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+    try:
+        completed = subprocess.run(
+            ["timeout", "3", named, "-g", "-c", str(named_conf), "-p", "1053"],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
 
     assert completed.returncode in {0, 124}, "\n".join(
         [

@@ -1,3 +1,9 @@
+# v12.7.2 - Live Named Smoke AppArmor Path Fix
+
+- Move the generated live named smoke-test tree under /etc/bind when available so Ubuntu/AppArmor-confined BIND can read the generated configuration.
+- Keep POSIX readability/traversal hardening and clean up the temporary tree after the smoke test.
+- Preserve the real BIND startup smoke validation without weakening the assertion.
+
 # v12.7.1 - Live Named Smoke Permission Fix
 
 - Fix live named smoke test on sudo-driven CI by making the generated temporary BIND tree traversable/readable before BIND drops privileges.
