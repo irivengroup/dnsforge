@@ -1,3 +1,10 @@
+
+## 12.7.6 - Live Named Runtime Isolation
+
+- Isolated live `named` smoke runtime from host RNDC, statistics, logging, PID and session-key resources.
+- Rewrote smoke-test listen ports to non-privileged CI ports while preserving real BIND startup validation.
+- Kept distribution-aware BIND layout handling and generated configuration validation intact.
+
 # v12.7.4 - Live Named Smoke Distro Path Fix
 
 - Fixed the live BIND smoke test to derive its relocation root from the rendered distro BindLayout instead of hardcoding /etc/bind.

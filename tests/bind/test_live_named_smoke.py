@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -67,17 +68,74 @@ def _make_generated_tree_accessible_to_named(root: Path) -> None:
     make directories traversable and writable where BIND may create runtime
     files during startup.
     """
-    writable_directory_names = {"run", "cache", "log", "logs", "dynamic"}
     for path in [root, *root.rglob("*")]:
         if path.is_dir():
-            mode = stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR
-            mode |= stat.S_IRGRP | stat.S_IXGRP
-            mode |= stat.S_IROTH | stat.S_IXOTH
-            if path.name in writable_directory_names:
-                mode |= stat.S_IWGRP | stat.S_IWOTH
-            path.chmod(mode)
+            # The live smoke test starts the host named package, which commonly
+            # drops privileges before creating pid/session/managed-key files.
+            # The relocated tree is disposable and removed at test teardown, so
+            # make directories writable by the runtime user while keeping files
+            # read-only for non-owners unless BIND explicitly rewrites them.
+            path.chmod(
+                stat.S_IRUSR
+                | stat.S_IWUSR
+                | stat.S_IXUSR
+                | stat.S_IRGRP
+                | stat.S_IWGRP
+                | stat.S_IXGRP
+                | stat.S_IROTH
+                | stat.S_IWOTH
+                | stat.S_IXOTH
+            )
         elif path.is_file():
             path.chmod(stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+
+
+def _isolate_named_runtime_for_smoke(root: Path, layout: Any) -> None:
+    """Neutralize host runtime resources that make live named smoke flaky.
+
+    The live smoke test validates that BIND can parse and start with the
+    generated DNSForge views/zones/options. It must not compete with the host
+    resolver for RNDC/statistics sockets, port 53, or production log paths.
+    """
+    config_dir = root / layout.config_dir.relative_to("/")
+    controls = config_dir / "conf.d" / "40-controls.conf"
+    if controls.exists():
+        controls.write_text("// DNSForge CI live smoke: RNDC controls disabled.\n", encoding="utf-8")
+
+    statistics = config_dir / "conf.d" / "45-statistics.conf"
+    if statistics.exists():
+        statistics.write_text("// DNSForge CI live smoke: statistics channel disabled.\n", encoding="utf-8")
+
+    logging = config_dir / "conf.d" / "30-logging.conf"
+    if logging.exists():
+        logging.write_text(
+            "// DNSForge CI live smoke: stderr-only logging.\n"
+            "logging {\n"
+            "    channel dnsforge_ci_stderr { stderr; severity info; };\n"
+            "    category default { dnsforge_ci_stderr; };\n"
+            "};\n",
+            encoding="utf-8",
+        )
+
+    options = config_dir / "conf.d" / "20-options.conf"
+    if options.exists():
+        content = options.read_text(encoding="utf-8")
+        # The command line -p flag does not override explicit listen-on port 53
+        # statements. Use a non-privileged port so the smoke test cannot collide
+        # with a host BIND/systemd-resolved listener.
+        content = re.sub(r"listen-on\s+port\s+53", "listen-on port 1053", content)
+        content = content.replace("listen-on-v6 port 53", "listen-on-v6 port 1053")
+        options.write_text(content, encoding="utf-8")
+
+    runtime_dirs = [
+        root / layout.run_dir.relative_to("/"),
+        root / layout.log_dir.relative_to("/"),
+        root / layout.data_dir.relative_to("/") / "dynamic",
+        root / layout.data_dir.relative_to("/") / "data",
+        root / layout.cache_dir.relative_to("/"),
+    ]
+    for directory in runtime_dirs:
+        directory.mkdir(parents=True, exist_ok=True)
 
 
 def _require_named() -> str:
@@ -116,6 +174,7 @@ def test_named_starts_generated_authoritative_configuration_under_timeout() -> N
     host_family = _detect_host_bind_family()
     root, layout = helpers._render_profile(host_family, "authoritative")
     root = _relocate_generated_tree_to_bind_allowed_root(root, layout)
+    _isolate_named_runtime_for_smoke(root, layout)
     _make_generated_tree_accessible_to_named(root)
     named_conf = root / layout.named_conf.relative_to("/")
 
