@@ -1,10 +1,19 @@
 from __future__ import annotations
 
-from dnsforge_manager.api import create_app
-from dnsforge_manager.core import DNSBEAT_BOUNDARY, DNSFORGE_BOUNDARY, DNSFORGE_MANAGER_BOUNDARY, DNSSYNC_BOUNDARY
-from dnsforge_manager.dnssync import DNSForgeOperation, DNSSyncService, RecordingDNSForgeNodeClient
-from dnsforge_manager.inventory import ManagedNode, NodeRegistrationService, NodeRole
-from dnsforge_manager.workflows import ManagerChangeRequest, ManagerChangeWorkflow
+from dnsforge_manager.application.core.manager_application import create_app
+from dnsforge_manager.domain.core import (
+    DNSBEAT_BOUNDARY,
+    DNSFORGE_BOUNDARY,
+    DNSFORGE_MANAGER_BOUNDARY,
+    DNSSYNC_BOUNDARY,
+)
+from dnsforge_manager.application.dnssync.dnssync_service import DNSSyncService
+from dnsforge_manager.domain.dnssync import DNSForgeOperation
+from dnsforge_manager.infrastructure.dnssync import RecordingDNSForgeNodeClient
+from dnsforge_manager.application.inventory.node_registration_service import NodeRegistrationService
+from dnsforge_manager.domain.inventory import ManagedNode, NodeRole
+from dnsforge_manager.application.workflows.change_workflow import ManagerChangeWorkflow
+from dnsforge_manager.domain.workflows.models import ManagerChangeRequest
 
 
 def test_product_boundaries_keep_bind_writes_local_to_dnsforge() -> None:

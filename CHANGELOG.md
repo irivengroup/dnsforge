@@ -1,3 +1,10 @@
+## v12.3.1 - Manager DDD Cleanup
+
+- Removed legacy Manager facade packages created during the v12.3.0 DDD transition.
+- Consolidated Manager imports to canonical DDD paths only: domain, application, infrastructure, interfaces.
+- Updated Manager tests and documentation to reject reintroduction of pre-DDD package roots.
+- Preserved DNSForge local-agent responsibility and Manager/DNSBeat/DNSSync boundaries.
+
 ## v12.3.0 - Manager DDD Refactor
 
 - Refactored DNSForge Manager into DDD layers aligned with the DNSForge agent: domain, application, infrastructure and interfaces.

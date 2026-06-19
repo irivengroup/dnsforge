@@ -2,17 +2,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dnsforge_manager.api import create_app, create_fastapi_app
-from dnsforge_manager.dnssync import RecordingDNSForgeNodeClient, SyncMode
-from dnsforge_manager.inventory import (
-    JsonNodeInventoryRepository,
-    ManagedNode,
-    NodeRegistrationService,
-    NodeRole,
-    NodeStatus,
-)
-from dnsforge_manager.rbac import MANAGER_ADMIN_ROLE, MANAGER_OPERATOR_ROLE, MANAGER_VIEWER_ROLE
-from dnsforge_manager.workflows import ManagerChangeRequest, ManagerChangeWorkflow
+from dnsforge_manager.application.core.manager_application import create_app
+from dnsforge_manager.interfaces.api.fastapi_app import create_fastapi_app
+from dnsforge_manager.domain.dnssync import SyncMode
+from dnsforge_manager.infrastructure.dnssync import RecordingDNSForgeNodeClient
+from dnsforge_manager.application.inventory.node_registration_service import NodeRegistrationService
+from dnsforge_manager.domain.inventory import ManagedNode, NodeRole, NodeStatus
+from dnsforge_manager.infrastructure.inventory import JsonNodeInventoryRepository
+from dnsforge_manager.domain.rbac import MANAGER_ADMIN_ROLE, MANAGER_OPERATOR_ROLE, MANAGER_VIEWER_ROLE
+from dnsforge_manager.application.workflows.change_workflow import ManagerChangeWorkflow
+from dnsforge_manager.domain.workflows.models import ManagerChangeRequest
 
 
 def test_manager_api_registers_and_reads_node() -> None:

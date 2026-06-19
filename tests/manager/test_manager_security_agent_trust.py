@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import pytest
 
-from dnsforge_manager.api import create_app, create_fastapi_app
-from dnsforge_manager.audit import ManagerAuditRepository
-from dnsforge_manager.dnssync import DNSForgeOperation, DNSSyncService, RecordingDNSForgeNodeClient, SyncMode
-from dnsforge_manager.inventory import ManagedNode, NodeRegistrationService, NodeRole
-from dnsforge_manager.rbac import RbacService
+from dnsforge_manager.application.core.manager_application import create_app
+from dnsforge_manager.interfaces.api.fastapi_app import create_fastapi_app
+from dnsforge_manager.infrastructure.audit.repository import ManagerAuditRepository
+from dnsforge_manager.application.dnssync.dnssync_service import DNSSyncService
+from dnsforge_manager.domain.dnssync import DNSForgeOperation, SyncMode
+from dnsforge_manager.infrastructure.dnssync import RecordingDNSForgeNodeClient
+from dnsforge_manager.application.inventory.node_registration_service import NodeRegistrationService
+from dnsforge_manager.domain.inventory import ManagedNode, NodeRole
+from dnsforge_manager.application.rbac.rbac_service import RbacService
 
 
 def test_node_registration_is_pending_until_approved() -> None:

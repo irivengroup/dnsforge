@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dnsforge_manager.api import create_app as legacy_create_app
+from dnsforge_manager.application.core.manager_application import create_app as legacy_create_app
 from dnsforge_manager.application.core.manager_application import ManagerApplication, create_app
 from dnsforge_manager.application.dnssync.dnssync_service import DNSSyncService
 from dnsforge_manager.application.inventory.node_registration_service import NodeRegistrationService
@@ -8,19 +8,21 @@ from dnsforge_manager.domain.core import DNSFORGE_MANAGER_BOUNDARY
 from dnsforge_manager.domain.dnssync import DNSForgeOperation, SyncMode
 from dnsforge_manager.domain.inventory import ManagedNode, NodeRole
 from dnsforge_manager.infrastructure.dnssync import RecordingDNSForgeNodeClient
-from dnsforge_manager.inventory import NodeRegistrationService as LegacyNodeRegistrationService
 
 
 def test_manager_public_app_is_now_application_layer() -> None:
     app = create_app()
-    legacy = legacy_create_app()
     assert isinstance(app, ManagerApplication)
-    assert isinstance(legacy, ManagerApplication)
     assert app.health()["component"] == "dnsforge-manager"
 
 
-def test_legacy_import_paths_remain_compatibility_facades() -> None:
-    assert LegacyNodeRegistrationService is NodeRegistrationService
+def test_legacy_manager_import_paths_are_removed_after_ddd_cleanup() -> None:
+    from pathlib import Path
+
+    manager_root = Path("src/dnsforge_manager")
+    legacy_roots = {"api", "audit", "core", "dnsbeat", "dnssync", "inventory", "rbac", "security", "workflows"}
+    present = {path.name for path in manager_root.iterdir() if path.is_dir()}
+    assert legacy_roots.isdisjoint(present)
 
 
 def test_manager_domain_boundary_still_forbids_direct_bind_modification() -> None:

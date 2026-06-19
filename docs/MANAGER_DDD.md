@@ -77,7 +77,7 @@ The interfaces layer exposes Manager capabilities:
 - FastAPI adapter;
 - CLI adapter.
 
-The legacy import paths under `dnsforge_manager.api`, `dnsforge_manager.inventory`, `dnsforge_manager.rbac`, `dnsforge_manager.dnsbeat`, `dnsforge_manager.dnssync`, `dnsforge_manager.security`, `dnsforge_manager.audit`, and `dnsforge_manager.workflows` remain compatibility facades to avoid regressions.
+The transitional legacy import paths under `dnsforge_manager.api`, `dnsforge_manager.inventory`, `dnsforge_manager.rbac`, `dnsforge_manager.dnsbeat`, `dnsforge_manager.dnssync`, `dnsforge_manager.security`, `dnsforge_manager.audit`, and `dnsforge_manager.workflows` have been removed after the DDD refactor stabilization. Manager code must import from canonical DDD packages only: `domain`, `application`, `infrastructure`, and `interfaces`.
 
 ## Non-regression rule
 
