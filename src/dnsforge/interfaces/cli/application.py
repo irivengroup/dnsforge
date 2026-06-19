@@ -17,6 +17,14 @@ from dnsforge.application.disaster.disaster_service import DisasterRecoveryServi
 from dnsforge.application.initialize.initialize_command import InitializeCommand
 from dnsforge.application.doctor.doctor_service import DoctorService
 from dnsforge.application.health.health_service import HealthService
+from dnsforge.application.jobs.job_service import JobService
+from dnsforge.application.health.score_service import HealthScoreService
+from dnsforge.application.reports.report_service import ReportService
+from dnsforge.application.drift.drift_service import DriftService
+from dnsforge.application.events.event_tail_service import EventTailService
+from dnsforge.application.metrics.metrics_service import MetricsCollector
+from dnsforge.application.sync_foundation.sync_service import SyncFoundationService
+from dnsforge.application.security.dnssec_policy_service import DnssecPolicyService
 from dnsforge.application.migration.migration_service import MigrationService
 from dnsforge.application.profile.profile_auditor import ProfileAuditor
 from dnsforge.application.render.render_authoritative import RenderAuthoritative
@@ -73,8 +81,58 @@ class DnsForgeArgumentParserFactory:
         self._add_version(sub)
         self._add_generate(sub)
         self._add_disaster(sub)
+        self._add_job(sub)
+        self._add_report(sub)
+        self._add_drift(sub)
+        self._add_events(sub)
+        self._add_metrics(sub)
+        self._add_sync_foundation(sub)
 
         return parser
+
+    def _add_job(self, sub) -> None:
+        job = sub.add_parser("job", help="Manage local DNSForge operation jobs")
+        inner = job.add_subparsers(dest="action", required=True)
+        inner.add_parser("list", help="List registered jobs")
+        show = inner.add_parser("show", help="Show one job definition")
+        show.add_argument("job_id")
+        run = inner.add_parser("run", help="Queue or dry-run one local job")
+        run.add_argument("job_id")
+        run.add_argument("--dry-run", action="store_true")
+        cancel = inner.add_parser("cancel", help="Cancel a queued local job")
+        cancel.add_argument("job_id")
+        inner.add_parser("history", help="Show local job run history")
+
+    def _add_report(self, sub) -> None:
+        report = sub.add_parser("report", help="Generate unified DNSForge operational reports")
+        inner = report.add_subparsers(dest="action", required=True)
+        generate = inner.add_parser("generate")
+        generate.add_argument("--format", choices=["json", "yaml", "html"], default="json")
+        generate.add_argument("--output")
+
+    def _add_drift(self, sub) -> None:
+        drift = sub.add_parser("drift", help="Detect configuration drift against rendered DNSForge state")
+        inner = drift.add_subparsers(dest="action", required=True)
+        audit = inner.add_parser("audit")
+        audit.add_argument("--target-root", default="/")
+
+    def _add_events(self, sub) -> None:
+        events = sub.add_parser("events", help="Read local DNSForge audit events")
+        events.add_argument("--event-log", default=None)
+        inner = events.add_subparsers(dest="action", required=True)
+        tail = inner.add_parser("tail")
+        tail.add_argument("--limit", type=int, default=20)
+        tail.add_argument("--category")
+
+    def _add_metrics(self, sub) -> None:
+        metrics = sub.add_parser("metrics", help="Collect local DNSForge metrics")
+        inner = metrics.add_subparsers(dest="action", required=True)
+        inner.add_parser("show")
+
+    def _add_sync_foundation(self, sub) -> None:
+        sync = sub.add_parser("sync", help="Show sync provider boundaries")
+        inner = sync.add_subparsers(dest="action", required=True)
+        inner.add_parser("providers")
 
     def _add_disaster(self, sub) -> None:
         disaster = sub.add_parser("disaster", help="Manage full-node disaster recovery snapshots")
@@ -249,6 +307,9 @@ class DnsForgeArgumentParserFactory:
     def _add_health(self, sub) -> None:
         p = sub.add_parser("health", help="Run local health checks")
         p.add_argument("--setup-file", default="/etc/dnsforge/setup.conf")
+        inner = p.add_subparsers(dest="action", required=False)
+        score = inner.add_parser("score")
+        score.add_argument("--format", choices=["text", "json"], default="text")
 
     def _add_doctor(self, sub) -> None:
         p = sub.add_parser("doctor", help="Show recommendations")
@@ -394,6 +455,13 @@ class DnsForgeArgumentParserFactory:
             parser.add_argument("--zone", required=True)
             parser.add_argument("--reason", required=True)
 
+        policy = inner.add_parser("policy")
+        policy_inner = policy.add_subparsers(dest="policy_action", required=True)
+        policy_inner.add_parser("show")
+        policy_apply = policy_inner.add_parser("apply")
+        policy_apply.add_argument("--zsk-rotation-days", type=int, default=30)
+        policy_apply.add_argument("--ksk-rotation-days", type=int, default=365)
+
         check = inner.add_parser("check-expiry")
         check.add_argument("--warn-days", type=int, default=30)
 
@@ -442,6 +510,62 @@ class DnsForgeCommandDispatcher:
                 parser = DnsForgeArgumentParserFactory().build()
                 written = CommandDocumentationService().write(parser, output_path)
                 print(written)
+                return 0
+            return 2
+
+        if args.command == "job":
+            service = JobService(paths)
+            if args.action == "list":
+                print(service.list())
+                return 0
+            if args.action == "show":
+                print(service.show(args.job_id))
+                return 0
+            if args.action == "run":
+                print(service.run(args.job_id, dry_run=args.dry_run))
+                return 0
+            if args.action == "cancel":
+                print(service.cancel(args.job_id))
+                return 0
+            if args.action == "history":
+                print(service.history())
+                return 0
+            return 2
+
+        if args.command == "report":
+            if args.action == "generate":
+                output = Path(args.output) if getattr(args, "output", None) else None
+                print(ReportService(paths).generate(output_format=args.format, output=output))
+                return 0
+            return 2
+
+        if args.command == "drift":
+            if args.action == "audit":
+                ok, output = DriftService(paths).audit(target_root=Path(args.target_root))
+                print(output)
+                return 0 if ok else 1
+            return 2
+
+        if args.command == "events":
+            event_log = (
+                Path(args.event_log)
+                if getattr(args, "event_log", None)
+                else paths.settings_root / "audit" / "events.jsonl"
+            )
+            if args.action == "tail":
+                print(EventTailService(event_log).tail(limit=args.limit, category=args.category))
+                return 0
+            return 2
+
+        if args.command == "metrics":
+            if args.action == "show":
+                print(MetricsCollector(paths).render_text())
+                return 0
+            return 2
+
+        if args.command == "sync":
+            if args.action == "providers":
+                print(SyncFoundationService().providers_status())
                 return 0
             return 2
 
@@ -729,6 +853,9 @@ class DnsForgeCommandDispatcher:
             return 0
 
         if args.command == "health":
+            if getattr(args, "action", None) == "score":
+                print(HealthScoreService().render(paths, output_format=args.format))
+                return 0
             report = HealthService().check(Path(args.setup_file), paths.project_root)
             print(report.render())
             return 0 if report.ok else 1
@@ -928,6 +1055,20 @@ class DnsForgeCommandDispatcher:
         if args.command == "dnssec":
             service = DnssecService()
             setup_file = Path(args.setup_file)
+            if args.action == "policy":
+                policy = DnssecPolicyService(setup_file.parent / "dnssec-policy.json")
+                if args.policy_action == "show":
+                    print(policy.show())
+                    return 0
+                if args.policy_action == "apply":
+                    print(
+                        policy.apply(
+                            zsk_rotation_days=args.zsk_rotation_days,
+                            ksk_rotation_days=args.ksk_rotation_days,
+                        )
+                    )
+                    return 0
+                return 2
             if args.action == "status":
                 print(service.status(setup_file, getattr(args, "zone", None)))
                 return 0

@@ -1,3 +1,14 @@
+## 11.3.0 - Enterprise Operations
+
+- Added local job foundation with `dnsforge job list|show|run|cancel|history`.
+- Added `dnsforge health score` for NOC-oriented health scoring.
+- Added unified `dnsforge report generate` with JSON, YAML and HTML output.
+- Added `dnsforge drift audit` for rendered-vs-target configuration drift detection.
+- Added `dnsforge events tail` over the local audit event repository.
+- Added metrics and sync provider foundations for DNSBeat and DNSSync preparation.
+- Added DNSSEC policy show/apply commands.
+- Regenerated command documentation from the CLI parser.
+
 ## 11.2.2 - Release Hardening
 
 - Added `tools/release_check.py` to validate version synchronization, generated command documentation, dist artifact naming, and forbidden generated artifacts inside release outputs.

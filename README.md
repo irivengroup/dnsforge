@@ -265,3 +265,19 @@ DNSForge v11.2.2 strengthens the release chain after the CLI/API parity guard. T
 ### DNSForge v11.2.1 CLI/API Parity Guard
 
 DNSForge v11.2.1 formalizes the rule that the local `dnsforge` CLI remains mandatory on every installed server, even after API and Manager integration. The API is an additional integration surface; no feature may become API-only or GUI-only. Release tests now protect the top-level CLI domains and ensure the CLI dispatcher does not depend on `dnsforge.api` for local execution.
+
+### DNSForge v11.3.0 Enterprise Operations
+
+DNSForge v11.3.0 introduces production operations foundations while preserving full local CLI administration on every installed server. It adds a local job engine foundation, health scoring, unified operational reporting, configuration drift detection, audit event tailing, metrics collection, sync provider boundaries for future DNSSync, and DNSSEC policy management. These features are implemented as application services and exposed through the CLI without requiring DNSForge Manager or an HTTP API.
+
+```bash
+dnsforge job list
+dnsforge health score
+dnsforge report generate --format json
+dnsforge drift audit
+dnsforge events tail
+dnsforge metrics show
+dnsforge sync providers
+dnsforge dnssec policy show
+```
+

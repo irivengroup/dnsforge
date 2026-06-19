@@ -464,6 +464,25 @@ Options:
 - `--zone ZONE` required:
 - `--reason REASON` required:
 
+### `dnsforge dnssec policy apply`
+
+```bash
+dnsforge dnssec policy apply [-h]
+                                    [--zsk-rotation-days ZSK_ROTATION_DAYS]
+                                    [--ksk-rotation-days KSK_ROTATION_DAYS]
+```
+
+Options:
+
+- `--zsk-rotation-days ZSK_ROTATION_DAYS` default=30:
+- `--ksk-rotation-days KSK_ROTATION_DAYS` default=365:
+
+### `dnsforge dnssec policy show`
+
+```bash
+dnsforge dnssec policy show [-h]
+```
+
 ### `dnsforge dnssec rotate-ksk`
 
 ```bash
@@ -527,6 +546,27 @@ Options:
 
 - `--setup-file SETUP_FILE` default='/etc/dnsforge/setup.conf':
 
+### `dnsforge drift audit`
+
+```bash
+dnsforge drift audit [-h] [--target-root TARGET_ROOT]
+```
+
+Options:
+
+- `--target-root TARGET_ROOT` default='/':
+
+### `dnsforge events tail`
+
+```bash
+dnsforge events tail [-h] [--limit LIMIT] [--category CATEGORY]
+```
+
+Options:
+
+- `--limit LIMIT` default=20:
+- `--category CATEGORY`:
+
 ### `dnsforge generate commands-doc`
 
 ```bash
@@ -540,12 +580,22 @@ Options:
 ### `dnsforge health`
 
 ```bash
-dnsforge health [-h] [--setup-file SETUP_FILE]
+dnsforge health [-h] [--setup-file SETUP_FILE] {score} ...
 ```
 
 Options:
 
 - `--setup-file SETUP_FILE` default='/etc/dnsforge/setup.conf':
+
+### `dnsforge health score`
+
+```bash
+dnsforge health score [-h] [--format {text,json}]
+```
+
+Options:
+
+- `--format FORMAT` default='text' choices=text,json:
 
 ### `dnsforge initialize`
 
@@ -558,6 +608,55 @@ Options:
 - `--render-only`:
 - `--apply`: Apply a previously rendered DNSForge BIND configuration
 - `--dry-run`:
+
+### `dnsforge job cancel`
+
+```bash
+dnsforge job cancel [-h] job_id
+```
+
+Options:
+
+- `job_id` required:
+
+### `dnsforge job history`
+
+```bash
+dnsforge job history [-h]
+```
+
+### `dnsforge job list`
+
+```bash
+dnsforge job list [-h]
+```
+
+### `dnsforge job run`
+
+```bash
+dnsforge job run [-h] [--dry-run] job_id
+```
+
+Options:
+
+- `job_id` required:
+- `--dry-run`:
+
+### `dnsforge job show`
+
+```bash
+dnsforge job show [-h] job_id
+```
+
+Options:
+
+- `job_id` required:
+
+### `dnsforge metrics show`
+
+```bash
+dnsforge metrics show [-h]
+```
 
 ### `dnsforge migrate`
 
@@ -607,6 +706,18 @@ Options:
 
 - `node`:
 - `--type PROXY_TYPE` choices=forwarder,hybrid:
+
+### `dnsforge report generate`
+
+```bash
+dnsforge report generate [-h] [--format {json,yaml,html}]
+                                [--output OUTPUT]
+```
+
+Options:
+
+- `--format FORMAT` default='json' choices=json,yaml,html:
+- `--output OUTPUT`:
 
 ### `dnsforge restore`
 
@@ -687,6 +798,12 @@ Options:
 
 - `--setup-file SETUP_FILE` default='/etc/dnsforge/setup.conf':
 - `--format FORMAT` default='text' choices=text,json:
+
+### `dnsforge sync providers`
+
+```bash
+dnsforge sync providers [-h]
+```
 
 ### `dnsforge validate`
 
