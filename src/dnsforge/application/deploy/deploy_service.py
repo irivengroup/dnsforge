@@ -45,7 +45,7 @@ class DeployService:
         self.file_installer.install_tree(render_root, target_root=target_root, dry_run=dry_run)
         self.permission_applier.apply(target_root=target_root, dry_run=dry_run)
         self.selinux.ensure_named_contexts(dry_run=dry_run)
-        self.bind_validator.checkconf(dry_run=dry_run)
+        self.bind_validator.validate_deployed_tree(dry_run=dry_run, target_root=target_root, reload_named=not dry_run)
         self.systemd.daemon_reload(dry_run=dry_run)
         self.systemd.enable_now(self.layout.service_name, dry_run=dry_run)
         self.systemd.restart(self.layout.service_name, dry_run=dry_run)

@@ -212,6 +212,20 @@ class _DnssecService:
         return "OK"
 
 
+class _DisasterRecoveryService:
+    def __init__(self, *_args, **_kwargs) -> None:
+        pass
+
+    def snapshot(self, *_args, **_kwargs) -> str:
+        return "OK"
+
+    def restore(self, *_args, **_kwargs) -> str:
+        return "OK"
+
+    def verify(self, *_args, **_kwargs) -> str:
+        return "OK"
+
+
 class _RpzService:
     def status(self, *_args, **_kwargs) -> str:
         return "OK"
@@ -296,6 +310,9 @@ class _ZoneManager:
     def audit_zones(self) -> tuple[bool, str]:
         return True, "OK"
 
+    def audit_zone(self, *_args, **_kwargs) -> tuple[bool, str]:
+        return True, "OK"
+
 
 @pytest.fixture(autouse=True)
 def _patch_services(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -327,6 +344,7 @@ def _patch_services(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(app, "ViewService", _ViewService)
     monkeypatch.setattr(app, "DnssecService", _DnssecService)
     monkeypatch.setattr(app, "RpzService", _RpzService)
+    monkeypatch.setattr(app, "DisasterRecoveryService", _DisasterRecoveryService)
 
 
 CLI_COMMANDS: list[list[str]] = [
@@ -396,6 +414,7 @@ CLI_COMMANDS: list[list[str]] = [
     ["audit"],
     ["audit", "--strict"],
     ["audit", "zones"],
+    ["audit", "zone", "example.com"],
     ["profile", "audit"],
     ["security", "show"],
     ["security", "audit"],
@@ -417,6 +436,7 @@ CLI_COMMANDS: list[list[str]] = [
     ["cluster", "render", "--reason", "unit test change", "--dry-run"],
     ["cluster", "apply", "--reason", "unit test change", "--dry-run"],
     ["cluster", "sync", "--reason", "unit test change", "--dry-run"],
+    ["cluster", "audit"],
     ["catalog", "status"],
     ["catalog", "enable", "--reason", "unit test change"],
     ["catalog", "disable", "--reason", "unit test change"],
@@ -450,6 +470,9 @@ CLI_COMMANDS: list[list[str]] = [
     ["rpz", "update"],
     ["rpz", "test", "malware.example"],
     ["generate", "commands-doc", "--output", "generated/COMMANDS.md"],
+    ["disaster", "snapshot", "--reason", "unit test change"],
+    ["disaster", "restore", "--snapshot", "snapshots/1", "--dry-run"],
+    ["disaster", "verify", "--snapshot", "snapshots/1"],
 ]
 
 

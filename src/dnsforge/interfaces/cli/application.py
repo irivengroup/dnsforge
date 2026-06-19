@@ -12,6 +12,7 @@ from dnsforge.application.catalog.catalog_service import CatalogService
 from dnsforge.application.config.config_service import ConfigService
 from dnsforge.application.deploy.deploy_service import DeployService
 from dnsforge.application.docs.commands_doc_service import CommandDocumentationService
+from dnsforge.application.disaster.disaster_service import DisasterRecoveryService
 from dnsforge.application.initialize.initialize_command import InitializeCommand
 from dnsforge.application.doctor.doctor_service import DoctorService
 from dnsforge.application.health.health_service import HealthService
@@ -70,8 +71,21 @@ class DnsForgeArgumentParserFactory:
         self._add_rpz(sub)
         self._add_version(sub)
         self._add_generate(sub)
+        self._add_disaster(sub)
 
         return parser
+
+    def _add_disaster(self, sub) -> None:
+        disaster = sub.add_parser("disaster", help="Manage full-node disaster recovery snapshots")
+        disaster.add_argument("--target-root", default="/")
+        inner = disaster.add_subparsers(dest="action", required=True)
+        snapshot = inner.add_parser("snapshot")
+        snapshot.add_argument("--reason", required=True)
+        restore = inner.add_parser("restore")
+        restore.add_argument("--snapshot", required=True)
+        restore.add_argument("--dry-run", action="store_true")
+        verify = inner.add_parser("verify")
+        verify.add_argument("--snapshot", required=True)
 
     def _add_version(self, sub) -> None:
         sub.add_parser("version", help="Show DNSForge version")
@@ -207,6 +221,8 @@ class DnsForgeArgumentParserFactory:
         inner.add_parser("config", help="Audit DNSForge node configuration")
         inner.add_parser("catalog", help="Audit catalog zone publication")
         inner.add_parser("cluster", help="Audit authoritative HA cluster")
+        zone = inner.add_parser("zone", help="Audit one DNS zone integrity")
+        zone.add_argument("name")
 
     def _add_profile(self, sub) -> None:
         profile = sub.add_parser("profile", help="Audit configuration profiles")
@@ -288,6 +304,8 @@ class DnsForgeArgumentParserFactory:
         diff.add_argument("--setup-file", default=None)
         peers = inner.add_parser("peers")
         peers.add_argument("--setup-file", default=None)
+        audit = inner.add_parser("audit")
+        audit.add_argument("--setup-file", default=None)
 
     def _add_catalog(self, sub) -> None:
         catalog = sub.add_parser("catalog", help="Manage BIND catalog zones")
@@ -299,6 +317,8 @@ class DnsForgeArgumentParserFactory:
         disable.add_argument("--reason", required=True)
         sync = inner.add_parser("sync", help="Synchronize active zones into the catalog zone")
         sync.add_argument("--reason", required=True)
+        repair = inner.add_parser("repair", help="Repair catalog publications from active zones")
+        repair.add_argument("--reason", required=True)
         inner.add_parser("list", help="List published catalog members")
         inner.add_parser("validate", help="Validate catalog state against active zones")
 
@@ -625,7 +645,11 @@ class DnsForgeCommandDispatcher:
                 print(output)
                 return 0 if ok else 1
             if getattr(args, "action", None) == "cluster":
-                ok, output = ClusterService().audit(Path("/etc/dnsforge/setup.conf"))
+                ok, output = ClusterService().audit(paths.setup_file)
+                print(output)
+                return 0 if ok else 1
+            if getattr(args, "action", None) == "zone":
+                ok, output = ZoneManager(paths).audit_zone(args.name)
                 print(output)
                 return 0 if ok else 1
             report = ProductAuditor().audit(paths.project_root)
@@ -706,6 +730,19 @@ class DnsForgeCommandDispatcher:
             print(result)
             return 0
 
+        if args.command == "disaster":
+            service = DisasterRecoveryService(paths)
+            if args.action == "snapshot":
+                print(service.snapshot(args.reason, target_root=Path(args.target_root)))
+                return 0
+            if args.action == "restore":
+                print(service.restore(Path(args.snapshot), target_root=Path(args.target_root), dry_run=args.dry_run))
+                return 0
+            if args.action == "verify":
+                print(service.verify(Path(args.snapshot)))
+                return 0
+            return 2
+
         if args.command == "cluster":
             service = ClusterService()
             setup_file = Path(args.setup_file or "/etc/dnsforge/setup.conf")
@@ -736,6 +773,10 @@ class DnsForgeCommandDispatcher:
             if args.action == "peers":
                 print(service.peers(setup_file))
                 return 0
+            if args.action == "audit":
+                ok, output = service.audit(setup_file)
+                print(output)
+                return 0 if ok else 1
             return 2
 
         if args.command == "catalog":
@@ -751,6 +792,9 @@ class DnsForgeCommandDispatcher:
                 return 0
             if args.action == "sync":
                 print(service.sync(args.reason))
+                return 0
+            if args.action == "repair":
+                print(service.repair(args.reason))
                 return 0
             if args.action == "list":
                 print(service.list_published())

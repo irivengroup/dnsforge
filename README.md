@@ -210,3 +210,22 @@ sudo ./install/install.sh --profile authoritative
 sudo dnsforge initialize --render-only
 sudo dnsforge initialize --apply
 ```
+
+### DNSForge v11.1.1 Catalog Self-Healing
+
+DNSForge v11.1.1 adds controlled catalog zone self-healing through `dnsforge catalog repair`. The command reconciles the catalog state against active authoritative zones, adds missing catalog members, removes stale publications, and rewrites the generated catalog zone file.
+
+### DNSForge v11.1.0 Production Readiness
+
+This release introduces production-readiness foundations: a reusable filesystem transaction manager, real BIND validation hooks, cluster audit, per-zone integrity audit, disaster recovery snapshot/restore/verify commands, and an internal application API facade for future DNSForge Manager integration.
+
+Key commands:
+
+```bash
+dnsforge cluster audit
+dnsforge audit zone <zone>
+dnsforge disaster snapshot --reason "planned recovery checkpoint"
+dnsforge disaster verify --snapshot <path>
+dnsforge disaster restore --snapshot <path> --dry-run
+```
+

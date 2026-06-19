@@ -41,6 +41,7 @@ def test_cli_parser_accepts_active_commands() -> None:
         ["catalog", "status"],
         ["catalog", "enable", "--reason", "unit test change"],
         ["catalog", "sync", "--reason", "unit test change"],
+        ["catalog", "repair", "--reason", "unit test change"],
         ["catalog", "disable", "--reason", "unit test change"],
         ["catalog", "list"],
         ["catalog", "validate"],

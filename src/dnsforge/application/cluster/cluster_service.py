@@ -106,6 +106,27 @@ class ClusterService:
         target.write_text(rendered, encoding="utf-8")
         return f"Keepalived configuration applied: {target}"
 
+    def audit(self, setup_file: Path) -> tuple[bool, str]:
+        findings: list[str] = []
+        config = self.load(setup_file)
+        try:
+            self.validator.validate(config)
+        except Exception as exc:
+            findings.append(f"ERROR cluster validation: {exc}")
+        if not config.enabled:
+            findings.append("WARNING cluster disabled")
+        elif config.dns_role != "dns-authoritative":
+            findings.append("ERROR cluster is only supported on authoritative nodes")
+        if config.enabled and not config.peers:
+            findings.append("WARNING no cluster peers declared")
+        if config.enabled and not config.vip:
+            findings.append("ERROR missing cluster VIP")
+        if config.enabled and not config.auth_pass:
+            findings.append("ERROR missing keepalived authentication secret")
+        if findings:
+            return False, "\n".join(findings)
+        return True, "Cluster audit OK"
+
     def peers(self, setup_file: Path) -> str:
         return self.sync_service.peers(setup_file)
 

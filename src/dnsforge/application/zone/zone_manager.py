@@ -217,6 +217,33 @@ class ZoneManager:
         self.transactions.commit(plan)
         self.history.snapshot_current(zone.name, action_with_reason(action, reason))
 
+    def audit_zone(self, name: str) -> tuple[bool, str]:
+        zone = self.get(name)
+        findings: list[str] = []
+        if not zone.name.endswith("."):
+            findings.append("WARNING zone name is not fully-qualified")
+        has_soa = any(record.record_type.value == "SOA" for record in zone.records)
+        has_ns = any(record.record_type.value == "NS" for record in zone.records)
+        if zone.zone_type is ZoneType.MASTER and not has_soa:
+            findings.append("ERROR missing SOA record")
+        if zone.zone_type is ZoneType.MASTER and not has_ns:
+            findings.append("ERROR missing NS record")
+        for record in zone.records:
+            if record.record_type.value == "CNAME":
+                owner_records = [item for item in zone.records if item.name == record.name]
+                if len(owner_records) > 1:
+                    findings.append(f"ERROR CNAME owner has additional records: {record.name}")
+            if record.record_type.value == "MX" and not record.value.endswith("."):
+                findings.append(f"WARNING MX target should be absolute: {record.name} -> {record.value}")
+            if record.record_type.value in {"A", "AAAA"}:
+                try:
+                    ipaddress.ip_address(record.value)
+                except ValueError:
+                    findings.append(f"ERROR invalid address: {record.name} {record.value}")
+        if not findings:
+            return True, f"Zone audit OK: {zone.name}"
+        return False, f"Zone audit findings: {zone.name}\n" + "\n".join(findings)
+
     def audit_zones(self) -> tuple[bool, str]:
         findings: list[str] = []
         zone_names = {zone.name for zone in self.catalog.list()}

@@ -71,7 +71,7 @@ Options:
 ### `dnsforge audit`
 
 ```bash
-dnsforge audit [-h] [--strict] {zones,config,catalog,cluster} ...
+dnsforge audit [-h] [--strict] {zones,config,catalog,cluster,zone} ...
 ```
 
 Options:
@@ -95,6 +95,16 @@ dnsforge audit cluster [-h]
 ```bash
 dnsforge audit config [-h]
 ```
+
+### `dnsforge audit zone`
+
+```bash
+dnsforge audit zone [-h] name
+```
+
+Options:
+
+- `name` required:
 
 ### `dnsforge audit zones`
 
@@ -145,6 +155,16 @@ Options:
 dnsforge catalog list [-h]
 ```
 
+### `dnsforge catalog repair`
+
+```bash
+dnsforge catalog repair [-h] --reason REASON
+```
+
+Options:
+
+- `--reason REASON` required:
+
 ### `dnsforge catalog status`
 
 ```bash
@@ -179,6 +199,16 @@ Options:
 - `--setup-file SETUP_FILE`:
 - `--reason REASON` required:
 - `--dry-run`:
+
+### `dnsforge cluster audit`
+
+```bash
+dnsforge cluster audit [-h] [--setup-file SETUP_FILE]
+```
+
+Options:
+
+- `--setup-file SETUP_FILE`:
 
 ### `dnsforge cluster diff`
 
@@ -360,6 +390,37 @@ Options:
 - `--type PROXY_TYPE` choices=forwarder,hybrid:
 - `--target-root TARGET_ROOT`:
 - `--dry-run`:
+
+### `dnsforge disaster restore`
+
+```bash
+dnsforge disaster restore [-h] --snapshot SNAPSHOT [--dry-run]
+```
+
+Options:
+
+- `--snapshot SNAPSHOT` required:
+- `--dry-run`:
+
+### `dnsforge disaster snapshot`
+
+```bash
+dnsforge disaster snapshot [-h] --reason REASON
+```
+
+Options:
+
+- `--reason REASON` required:
+
+### `dnsforge disaster verify`
+
+```bash
+dnsforge disaster verify [-h] --snapshot SNAPSHOT
+```
+
+Options:
+
+- `--snapshot SNAPSHOT` required:
 
 ### `dnsforge dnssec check-expiry`
 

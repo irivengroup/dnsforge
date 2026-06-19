@@ -78,15 +78,24 @@ class CatalogService:
         document = self.repository.load()
         findings: list[str] = []
         if document.state is CatalogState.ENABLED:
-            published = {entry.zone_name for entry in document.active_entries()}
-            expected = {entry.zone_name for entry in self._published_entries()}
-            missing = expected - published
-            stale = published - expected
-            findings.extend(f"missing catalog publication: {zone}" for zone in sorted(missing))
-            findings.extend(f"stale catalog publication: {zone}" for zone in sorted(stale))
+            missing, stale = self._diff(document)
+            findings.extend(f"missing catalog publication: {zone}" for zone in missing)
+            findings.extend(f"stale catalog publication: {zone}" for zone in stale)
         if findings:
             raise DnsForgeError("\n".join(findings))
         return "Catalog validation OK"
+
+    def repair(self, reason: str) -> str:
+        normalized = require_reason(reason)
+        document = self.repository.load()
+        if document.state is not CatalogState.ENABLED:
+            raise DnsForgeError("catalog zones must be enabled before repair")
+        missing, stale = self._diff(document)
+        entries = self._published_entries()
+        updated = replace(document, last_reason=normalized, entries=entries)
+        self.repository.save(updated)
+        self._write_catalog_zone(entries)
+        return f"Catalog repaired: {len(missing)} missing added, {len(stale)} stale removed"
 
     def audit(self) -> tuple[bool, str]:
         document = self.repository.load()
@@ -95,12 +104,17 @@ class CatalogService:
             return False, "Catalog zones disabled"
         if not expected:
             return False, "Catalog enabled but no active zones are eligible for publication"
-        published = {entry.zone_name for entry in document.active_entries()}
-        expected_names = {entry.zone_name for entry in expected}
-        missing = sorted(expected_names - published)
+        missing, stale = self._diff(document)
         if missing:
             return False, "Missing catalog publications:\n" + "\n".join(f"- {zone}" for zone in missing)
+        if stale:
+            return False, "Stale catalog publications:\n" + "\n".join(f"- {zone}" for zone in stale)
         return True, "Catalog audit OK"
+
+    def _diff(self, document: CatalogStateDocument) -> tuple[list[str], list[str]]:
+        published = {entry.zone_name for entry in document.active_entries()}
+        expected = {entry.zone_name for entry in self._published_entries()}
+        return sorted(expected - published), sorted(published - expected)
 
     def _published_entries(self) -> list[CatalogZoneEntry]:
         entries: list[CatalogZoneEntry] = []

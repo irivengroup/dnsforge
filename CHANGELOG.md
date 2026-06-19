@@ -5,6 +5,22 @@
 - Added backup/restore safety tests for absolute paths, path traversal and safe relative archive members.
 - Preserved generated command documentation, transactional proxy migration and release archive hygiene.
 
+## 11.1.1 - Catalog Self-Healing
+
+- Added `dnsforge catalog repair` to self-heal catalog zone publications from active authoritative zones.
+- Catalog repair now adds missing catalog members, removes stale members, and rewrites the catalog zone file.
+- Added targeted tests for catalog repair and CLI parser alignment.
+
+## 11.1.0 - Production Readiness
+
+- Added generic `FilesystemTransactionManager` for critical filesystem operations.
+- Added real BIND validation hooks for deployed trees: `named-checkconf`, `named-checkzone`, `rndc status`, `rndc reload`.
+- Added `dnsforge cluster audit` for authoritative cluster consistency checks.
+- Added `dnsforge audit zone <zone>` for per-zone integrity checks.
+- Added `dnsforge disaster snapshot|restore|verify` for full-node disaster recovery snapshots.
+- Added internal `dnsforge.api` facade to prepare DNSForge Manager/API adapters.
+- Extended CLI, transaction and disaster recovery tests.
+
 ## 11.0.4 - Generated command reference
 
 - Added `dnsforge generate commands-doc` to generate `docs/COMMANDS.md` from the live argparse CLI tree.
