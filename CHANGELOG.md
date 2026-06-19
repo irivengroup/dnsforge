@@ -1,5 +1,13 @@
 # DNSForge v13.0.0 - Production GA
 
+## 13.0.1 - Maintenance Baseline
+
+- Establishes the 13.0.x maintenance branch baseline after Production GA.
+- No functional DNS changes.
+- Keeps the GA gates, product gates, release hygiene and platform certification policy intact.
+- Adds production maintenance policy documentation.
+
+
 - Declared DNSForge Production General Availability after operational, platform, upgrade and GA readiness gates.
 - Added GA release notes and production GA checklist.
 - Kept feature freeze: no new DNS or Manager behavior in this release.
