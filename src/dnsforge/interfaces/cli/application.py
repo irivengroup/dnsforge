@@ -2,6 +2,7 @@ from __future__ import annotations
 
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -143,6 +144,7 @@ class DnsForgeArgumentParserFactory:
 
         list_parser = inner.add_parser("list", help="Inventory configured zones")
         list_parser.add_argument("--enabled", action="store_true", help="Show enabled/active zones only")
+        list_parser.add_argument("--format", choices=["text", "json"], default="text")
 
         history = inner.add_parser("history", help="Show zone change history")
         history.add_argument("name")
@@ -242,6 +244,7 @@ class DnsForgeArgumentParserFactory:
     def _add_status(self, sub) -> None:
         p = sub.add_parser("status", help="Show local DNSForge status")
         p.add_argument("--setup-file", default="/etc/dnsforge/setup.conf")
+        p.add_argument("--format", choices=["text", "json"], default="text")
 
     def _add_health(self, sub) -> None:
         p = sub.add_parser("health", help="Run local health checks")
@@ -311,7 +314,8 @@ class DnsForgeArgumentParserFactory:
     def _add_catalog(self, sub) -> None:
         catalog = sub.add_parser("catalog", help="Manage BIND catalog zones")
         inner = catalog.add_subparsers(dest="action", required=True)
-        inner.add_parser("status", help="Show catalog publication status")
+        status = inner.add_parser("status", help="Show catalog publication status")
+        status.add_argument("--format", choices=["text", "json"], default="text")
         enable = inner.add_parser("enable", help="Enable catalog zone publication")
         enable.add_argument("--reason", required=True)
         disable = inner.add_parser("disable", help="Disable catalog zone publication")
@@ -320,7 +324,8 @@ class DnsForgeArgumentParserFactory:
         sync.add_argument("--reason", required=True)
         repair = inner.add_parser("repair", help="Repair catalog publications from active zones")
         repair.add_argument("--reason", required=True)
-        inner.add_parser("list", help="List published catalog members")
+        list_parser = inner.add_parser("list", help="List published catalog members")
+        list_parser.add_argument("--format", choices=["text", "json"], default="text")
         inner.add_parser("validate", help="Validate catalog state against active zones")
 
     def _add_config(self, sub) -> None:
@@ -498,7 +503,21 @@ class DnsForgeCommandDispatcher:
         if args.command == "zone":
             manager = ZoneManager(paths)
             if args.action == "list":
-                for zone in manager.list(enabled_only=args.enabled):
+                zones = manager.list(enabled_only=args.enabled)
+                if getattr(args, "format", "text") == "json":
+                    print(json.dumps([
+                        {
+                            "name": zone.name,
+                            "type": zone.zone_type.value,
+                            "enabled": zone.enabled,
+                            "lifecycle": zone.lifecycle.value,
+                            "business_owner": zone.business_owner,
+                            "technical_owner": zone.technical_owner,
+                        }
+                        for zone in zones
+                    ], indent=2, sort_keys=True))
+                    return 0
+                for zone in zones:
                     print(
                         f"{zone.name}\t{zone.zone_type.value}\t{'enabled' if zone.enabled else 'disabled'}\t{zone.lifecycle.value}\t{zone.business_owner or '-'}\t{zone.technical_owner or '-'}"
                     )
@@ -691,7 +710,16 @@ class DnsForgeCommandDispatcher:
             return 2
 
         if args.command == "status":
-            print(StatusService().show(Path(args.setup_file)))
+            output = StatusService().show(Path(args.setup_file))
+            if getattr(args, "format", "text") == "json":
+                data = {}
+                for line in output.splitlines():
+                    if ":" in line:
+                        key, value = line.split(":", 1)
+                        data[key.strip().lower().replace(" ", "_")] = value.strip()
+                print(json.dumps(data, indent=2, sort_keys=True))
+            else:
+                print(output)
             return 0
 
         if args.command == "health":
@@ -783,7 +811,16 @@ class DnsForgeCommandDispatcher:
         if args.command == "catalog":
             service = CatalogService(paths)
             if args.action == "status":
-                print(service.status())
+                output = service.status()
+                if getattr(args, "format", "text") == "json":
+                    data = {}
+                    for line in output.splitlines():
+                        if ":" in line:
+                            key, value = line.split(":", 1)
+                            data[key.strip().lower().replace(" ", "_")] = value.strip()
+                    print(json.dumps(data, indent=2, sort_keys=True))
+                else:
+                    print(output)
                 return 0
             if args.action == "enable":
                 print(service.enable(args.reason))
@@ -798,7 +835,16 @@ class DnsForgeCommandDispatcher:
                 print(service.repair(args.reason))
                 return 0
             if args.action == "list":
-                print(service.list_published())
+                output = service.list_published()
+                if getattr(args, "format", "text") == "json":
+                    rows = []
+                    for line in output.splitlines()[1:]:
+                        parts = line.split("\t")
+                        if len(parts) == 4:
+                            rows.append({"zone": parts[0], "type": parts[1], "views": parts[2].split(","), "member": parts[3]})
+                    print(json.dumps(rows, indent=2, sort_keys=True))
+                else:
+                    print(output)
                 return 0
             if args.action == "validate":
                 print(service.validate())

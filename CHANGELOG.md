@@ -1,3 +1,11 @@
+## 11.2.0 - API Foundation
+
+- Added stable internal API facades for zones, DNSSEC, catalog, cluster and disaster recovery.
+- Added synchronous EventBus and append-only AuditEventRepository.
+- Added docs/API.md and docs/ARCHITECTURE.md for future DNSForge Manager integration.
+- Added JSON output support for selected operational commands.
+- Regenerated docs/COMMANDS.md from the runtime CLI parser.
+
 ## 11.0.5 - Orphan command hardening
 
 ## 11.1.2 - Cluster Consistency Hardening

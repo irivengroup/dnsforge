@@ -248,3 +248,10 @@ dnsforge cluster audit --format json
 ```
 
 Critical findings return a non-zero exit code. Warnings are reported without failing the command, which allows operators to distinguish production blockers from advisory drift.
+
+
+### DNSForge v11.2.0 API Foundation
+
+DNSForge v11.2.0 introduces stable internal API facades for zones, DNSSEC, catalog zones, cluster operations and disaster recovery. It also adds a synchronous EventBus plus append-only AuditEventRepository to prepare DNSForge Manager, DNSBeat and DNSSync without forcing future components to parse CLI output.
+
+Selected commands now support structured JSON output, including `dnsforge status --format json`, `dnsforge zone list --format json`, `dnsforge catalog status --format json` and `dnsforge catalog list --format json`.
