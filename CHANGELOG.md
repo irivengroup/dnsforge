@@ -1,3 +1,11 @@
+# v12.6.0 - Manager Persistence & PostgreSQL Readiness
+
+- Added Manager persistence repository boundaries.
+- Kept JSON as the default Manager backend.
+- Added JSON-backed change request persistence with local locking.
+- Added PostgreSQL readiness contracts and schema migrations.
+- Added Manager persistence documentation and tests.
+
 # DNSForge v12.5.0 - Manager Operational Workflows
 
 - Added Manager change request lifecycle.

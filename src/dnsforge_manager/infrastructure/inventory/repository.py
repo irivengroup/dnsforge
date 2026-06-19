@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import json
 from dataclasses import replace
 from pathlib import Path
 
 from dnsforge_manager.domain.inventory.models import ManagedNode, NodeStatus
+from dnsforge_manager.infrastructure.persistence import JsonDocumentStore
 
 
 class NodeInventoryRepository:
@@ -50,32 +50,19 @@ class InMemoryNodeInventoryRepository(NodeInventoryRepository):
 
 
 class JsonNodeInventoryRepository(NodeInventoryRepository):
-    """Small JSON inventory backend; production storage can later be PostgreSQL behind this same port."""
+    """JSON inventory backend retained as the Manager default persistence adapter."""
 
     def __init__(self, path: Path) -> None:
-        self.path = path
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.store = JsonDocumentStore(path)
 
     def _read(self) -> dict[str, ManagedNode]:
-        if not self.path.exists():
-            return {}
-        raw = json.loads(self.path.read_text(encoding="utf-8"))
-        if not isinstance(raw, dict):
-            raise ValueError("manager node inventory must be a JSON object")
-        nodes = raw.get("nodes", [])
-        if not isinstance(nodes, list):
-            raise ValueError("manager node inventory 'nodes' must be a list")
-        return {node.node_id: node for node in (ManagedNode.from_dict(item) for item in nodes)}
+        return self.store.read_items("nodes", ManagedNode.from_dict)
 
     def _write(self, nodes: dict[str, ManagedNode]) -> None:
-        payload = {
-            "nodes": [
-                node.to_dict(include_token=True) for node in sorted(nodes.values(), key=lambda item: item.node_id)
-            ]
-        }
-        tmp = self.path.with_suffix(self.path.suffix + ".tmp")
-        tmp.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        tmp.replace(self.path)
+        self.store.write_items(
+            "nodes",
+            (node.to_dict(include_token=True) for node in sorted(nodes.values(), key=lambda item: item.node_id)),
+        )
 
     def register(self, node: ManagedNode) -> ManagedNode:
         nodes = self._read()
