@@ -82,6 +82,7 @@ jobs:
           PYTHONPATH=src python tools/check_cli_api_parity.py
           PYTHONPATH=src python tools/check_dead_code.py
           PYTHONPATH=src python tools/check_ga_readiness.py
+          PYTHONPATH=src python tools/check_release_verification.py
 
       - name: Architecture gates
         run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" DNSFORGE_FORBID_SKIPS="$DNSFORGE_FORBID_SKIPS" python -m pytest -q -rs tests/architecture

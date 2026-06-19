@@ -1,5 +1,12 @@
 # Changelog
 
+## 13.0.4 - Maintenance Release Verification
+
+- Added maintenance release verification documentation for the 13.0.x branch.
+- Added a release verification gate that confirms GA, operational, platform, upgrade and release-hygiene checks remain wired.
+- Kept feature freeze: no DNS, Manager, DNSBeat or DNSSync functional changes.
+- Rebuilt distribution artifacts for version 13.0.4.
+
 ## 13.0.3 - Maintenance CI Runtime Stabilization
 
 - Removed redundant full pytest execution from CI when the coverage gate already runs the non-live test suite.
