@@ -60,6 +60,9 @@ jobs:
       - name: Mypy type check
         run: mypy src/dnsforge
 
+      - name: Release consistency gate
+        run: PYTHONPATH=src python tools/release_check.py --skip-dist
+
       - name: Architecture gates
         run: sudo -E env PATH="$PATH" PYTHONPATH="$PYTHONPATH" DNSFORGE_FORBID_SKIPS="$DNSFORGE_FORBID_SKIPS" python -m pytest -q -rs tests/architecture
 
@@ -82,6 +85,7 @@ jobs:
           python -m build
           sudo -E python tools/clean.py --fix-release
           python tools/clean.py --check-release
+          PYTHONPATH=src python tools/release_check.py
 
       - name: Verify distribution artifacts
         shell: bash

@@ -1,3 +1,10 @@
+## 11.2.2 - Release Hardening
+
+- Added `tools/release_check.py` to validate version synchronization, generated command documentation, dist artifact naming, and forbidden generated artifacts inside release outputs.
+- Added a pre-commit configuration for Ruff formatting/linting and the DNSForge source release gate.
+- Extended CI with release consistency checks before and after package build.
+- Synchronized `VERSION`, `pyproject.toml`, and `dnsforge.__version__`.
+
 ## 11.2.1 - CLI/API Parity Guard
 
 - Added the DNSForge CLI/API parity contract.

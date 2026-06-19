@@ -257,6 +257,11 @@ DNSForge v11.2.0 introduces stable internal API facades for zones, DNSSEC, catal
 Selected commands now support structured JSON output, including `dnsforge status --format json`, `dnsforge zone list --format json`, `dnsforge catalog status --format json` and `dnsforge catalog list --format json`.
 
 
+
+### DNSForge v11.2.2 Release Hardening
+
+DNSForge v11.2.2 strengthens the release chain after the CLI/API parity guard. The release gate now verifies version synchronization, generated command documentation, distribution artifact naming, and absence of generated caches inside shipped artifacts. A pre-commit configuration is included for local Ruff formatting/linting and source release checks.
+
 ### DNSForge v11.2.1 CLI/API Parity Guard
 
 DNSForge v11.2.1 formalizes the rule that the local `dnsforge` CLI remains mandatory on every installed server, even after API and Manager integration. The API is an additional integration surface; no feature may become API-only or GUI-only. Release tests now protect the top-level CLI domains and ensure the CLI dispatcher does not depend on `dnsforge.api` for local execution.
