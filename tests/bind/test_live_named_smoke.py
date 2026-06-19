@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import os
 import shutil
+import stat
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,29 @@ def _load_generated_bind_validation_module() -> Any:
     return module
 
 
+def _make_generated_tree_accessible_to_named(root: Path) -> None:
+    """Allow named to traverse/read the generated tree during CI smoke tests.
+
+    The test suite may run through sudo, and tempfile.mkdtemp creates the
+    profile root with mode 0700. Ubuntu BIND drops privileges before loading
+    the configuration, so named can fail with ``permission denied`` even when
+    the rendered configuration is valid. Keep the generated files read-only for
+    others, but make directories traversable and writable where BIND may create
+    runtime files during startup.
+    """
+    writable_directory_names = {"run", "cache", "log", "logs", "dynamic"}
+    for path in [root, *root.rglob("*")]:
+        if path.is_dir():
+            mode = stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR
+            mode |= stat.S_IRGRP | stat.S_IXGRP
+            mode |= stat.S_IROTH | stat.S_IXOTH
+            if path.name in writable_directory_names:
+                mode |= stat.S_IWGRP | stat.S_IWOTH
+            path.chmod(mode)
+        elif path.is_file():
+            path.chmod(stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+
+
 def _require_named() -> str:
     named = shutil.which("named")
     if named:
@@ -34,6 +58,7 @@ def test_named_starts_generated_authoritative_configuration_under_timeout() -> N
     named = _require_named()
     helpers = _load_generated_bind_validation_module()
     root, layout = helpers._render_profile("redhat", "authoritative")
+    _make_generated_tree_accessible_to_named(root)
     named_conf = root / layout.named_conf.relative_to("/")
 
     completed = subprocess.run(

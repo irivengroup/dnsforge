@@ -1,3 +1,8 @@
+# v12.7.1 - Live Named Smoke Permission Fix
+
+- Fix live named smoke test on sudo-driven CI by making the generated temporary BIND tree traversable/readable before BIND drops privileges.
+- Preserve enterprise validation gates without weakening generated BIND checks.
+
 
 ## v12.7.0 - CI Enterprise Validation
 
