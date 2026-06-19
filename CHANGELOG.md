@@ -1,3 +1,9 @@
+# Changelog
+
+## 12.9.0 - Upgrade & Migration Certification
+
+- Added upgrade/migration certification gates and documentation.
+
 
 ## 12.7.6 - Live Named Runtime Isolation
 

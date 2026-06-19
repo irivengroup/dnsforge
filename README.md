@@ -308,3 +308,15 @@ This release freezes DNS feature growth and adds measurable product gates: CLI c
 ## DNSForge Manager boundary
 
 DNSForge Manager is a central management plane for one or more DNSForge agents. It may run on a host without BIND installed. DNSBeat and DNSSync are Manager sub-modules; they observe and orchestrate through DNSForge agents, while DNSForge remains the only component that deploys or modifies local BIND configuration.
+
+
+## Upgrade and Migration Certification
+
+DNSForge 12.9.0 adds release gates for upgrade and migration certification:
+
+- `11.x -> 12.x`
+- `12.0.x -> 12.9.x`
+- `proxy-forwarder -> proxy-hybrid`
+- `proxy-hybrid -> proxy-forwarder`
+
+The certification baseline remains RHEL/Rocky/Alma 8+, Ubuntu 22.04+, Debian 10+, and SUSE/SLES 12+.

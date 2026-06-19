@@ -13,6 +13,7 @@ CHECKS = (
     ("Service Coverage", [sys.executable, "tools/check_service_coverage.py"]),
     ("Release Hygiene", [sys.executable, "tools/release_check.py", "--skip-dist"]),
     ("Platform Support", [sys.executable, "tools/check_platform_support.py"]),
+    ("Upgrade Certification", [sys.executable, "tools/check_upgrade_certification.py"]),
 )
 
 
