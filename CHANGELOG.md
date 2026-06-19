@@ -1,5 +1,11 @@
 # Changelog
 
+## 12.10.2 - Operational Acceptance Sprint 2
+
+- Added operational guide, runbooks, go-live checklist and security baseline.
+- Added operational readiness gate.
+- Integrated operational readiness into Product Gate and CI.
+
 ## 12.10.1 - Operational Readiness Coverage Gate Fix
 
 - Added `dnsforge readiness` as the first operational acceptance command.

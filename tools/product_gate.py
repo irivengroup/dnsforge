@@ -14,6 +14,7 @@ CHECKS = (
     ("Release Hygiene", [sys.executable, "tools/release_check.py", "--skip-dist"]),
     ("Platform Support", [sys.executable, "tools/check_platform_support.py"]),
     ("Upgrade Certification", [sys.executable, "tools/check_upgrade_certification.py"]),
+    ("Operational Readiness", [sys.executable, "tools/check_operational_readiness.py"]),
 )
 
 

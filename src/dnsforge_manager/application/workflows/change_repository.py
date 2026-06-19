@@ -9,6 +9,10 @@ from dnsforge_manager.domain.workflows.models import ChangeRequestStatus, Manage
 from dnsforge_manager.infrastructure.persistence import JsonDocumentStore
 
 
+def _optional_str(value: object) -> str | None:
+    return None if value is None else str(value)
+
+
 class ChangeRequestRepository:
     def save(self, change: ManagerChangeRequest) -> ManagerChangeRequest:  # pragma: no cover - protocol-style base
         raise NotImplementedError
@@ -26,7 +30,24 @@ class ChangeRequestRepository:
         **fields: object,
     ) -> ManagerChangeRequest:
         change = self.get(change_id)
-        updated = replace(change, status=status, updated_at=datetime.now(timezone.utc).isoformat(), **fields)
+        allowed_fields = {
+            "approved_by",
+            "plan_hash",
+            "rollback_plan_hash",
+            "failure_reason",
+        }
+        unknown_fields = sorted(set(fields) - allowed_fields)
+        if unknown_fields:
+            raise ValueError("unsupported change status fields: " + ", ".join(unknown_fields))
+        updated = replace(
+            change,
+            status=status,
+            approved_by=_optional_str(fields.get("approved_by", change.approved_by)),
+            plan_hash=_optional_str(fields.get("plan_hash", change.plan_hash)),
+            rollback_plan_hash=_optional_str(fields.get("rollback_plan_hash", change.rollback_plan_hash)),
+            failure_reason=_optional_str(fields.get("failure_reason", change.failure_reason)),
+            updated_at=datetime.now(timezone.utc).isoformat(),
+        )
         return self.save(updated)
 
 
