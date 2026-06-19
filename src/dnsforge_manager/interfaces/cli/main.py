@@ -4,7 +4,7 @@ import argparse
 import json
 
 from dnsforge_manager import __version__
-from dnsforge_manager.api import create_app
+from dnsforge_manager.application.core.manager_application import create_app
 
 
 def build_parser() -> argparse.ArgumentParser:

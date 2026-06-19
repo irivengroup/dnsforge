@@ -96,3 +96,5 @@ Copyright
 - [Cluster](./CLUSTER.md)
 
 - [Source de configuration](./CONFIGURATION-SOURCE.md)
+
+- [Manager DDD Architecture](MANAGER_DDD.md)

@@ -1,3 +1,20 @@
+## v12.3.0 - Manager DDD Refactor
+
+- Refactored DNSForge Manager into DDD layers aligned with the DNSForge agent: domain, application, infrastructure and interfaces.
+- Preserved legacy Manager import paths as compatibility facades to avoid regressions.
+- Kept DNSBeat and DNSSync as Manager sub-modules while moving their models/use cases into DDD boundaries.
+- Added docs/MANAGER_DDD.md.
+- Preserved the product boundary: DNSForge agents remain the only components allowed to modify BIND.
+
+## v12.2.0 - Manager Security & Agent Trust
+
+- Added Manager agent trust model with pending approval, fingerprinting, revocation and token rotation.
+- Enforced RBAC permissions on Manager node, trust, DNSBeat and audit operations.
+- Added Manager audit repository for security-sensitive operations.
+- Hardened DNSSync with approved dry-run plan hashes before apply/rollback.
+- Kept DNSBeat strictly read-only.
+- Added docs/MANAGER_SECURITY.md.
+
 ## v12.1.0 - Manager API & Node Lifecycle
 
 - Added Manager API lifecycle foundation.

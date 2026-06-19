@@ -47,7 +47,8 @@ def test_dnssync_orchestrates_through_dnsforge_node_client() -> None:
     service = DNSSyncService()
     plan = service.build_cluster_plan(cluster_id="cluster-a", operation=operation, nodes=nodes)
     client = RecordingDNSForgeNodeClient()
-    result = service.execute(plan, client)
+    dry_run = service.dry_run(plan)
+    result = service.execute(plan, client, approved_plan_hash=dry_run.plan_hash)
     assert result.accepted is True
     assert [node_id for node_id, _ in client.operations] == ["dns01", "dns02"]
 
@@ -56,6 +57,8 @@ def test_manager_change_workflow_routes_changes_through_dnssync() -> None:
     nodes = (ManagedNode("dns01", "dns01", "https://dns01:1073", NodeRole.AUTHORITATIVE, cluster_id="cluster-a"),)
     client = RecordingDNSForgeNodeClient()
     request = ManagerChangeRequest(cluster_id="cluster-a", operation="catalog.sync", payload={"scope": "cluster"})
-    result = ManagerChangeWorkflow().submit_cluster_change(request, nodes, client)
+    workflow = ManagerChangeWorkflow()
+    workflow.dry_run_cluster_change(request, nodes)
+    result = workflow.submit_cluster_change(request, nodes, client)
     assert result.accepted is True
     assert client.operations[0][1].operation == "catalog.sync"

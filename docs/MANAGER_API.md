@@ -1,6 +1,6 @@
 # DNSForge Manager API
 
-DNSForge Manager v12.1.0 introduces the first Manager API lifecycle contract.
+DNSForge Manager v12.2.0 introduces the first Manager API lifecycle contract.
 
 ## Scope
 
@@ -44,3 +44,11 @@ Supported workflow stages:
 ## DNSBeat
 
 DNSBeat is a Manager sub-module. It reports per-node health score, last seen and drift status, without modifying configuration.
+
+
+## Security lifecycle endpoints
+
+- `POST /nodes/{id}/approve` approves a pending DNSForge agent.
+- `POST /nodes/{id}/revoke` revokes and disables an agent.
+- `POST /nodes/{id}/rotate-token` rotates the agent token.
+- `GET /audit` exposes Manager audit events according to RBAC.

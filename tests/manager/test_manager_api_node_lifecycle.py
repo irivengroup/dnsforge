@@ -4,7 +4,13 @@ from pathlib import Path
 
 from dnsforge_manager.api import create_app, create_fastapi_app
 from dnsforge_manager.dnssync import RecordingDNSForgeNodeClient, SyncMode
-from dnsforge_manager.inventory import JsonNodeInventoryRepository, ManagedNode, NodeRegistrationService, NodeRole, NodeStatus
+from dnsforge_manager.inventory import (
+    JsonNodeInventoryRepository,
+    ManagedNode,
+    NodeRegistrationService,
+    NodeRole,
+    NodeStatus,
+)
 from dnsforge_manager.rbac import MANAGER_ADMIN_ROLE, MANAGER_OPERATOR_ROLE, MANAGER_VIEWER_ROLE
 from dnsforge_manager.workflows import ManagerChangeRequest, ManagerChangeWorkflow
 

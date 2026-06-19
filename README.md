@@ -1,4 +1,4 @@
-## v12.1.0 - Manager API & Node Lifecycle
+## v12.2.0 - Manager Security & Agent Trust
 
 - Added Manager API lifecycle foundation.
 - Added persistent JSON node inventory backend.

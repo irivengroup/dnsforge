@@ -1,10 +1,12 @@
-from dnsforge_manager.dnssync.client import (
-    DNSForgeNodeClient,
+from dnsforge_manager.domain.dnssync.models import (
     DNSForgeOperation,
     DNSForgeOperationResult,
-    RecordingDNSForgeNodeClient,
+    SyncExecution,
+    SyncMode,
+    SyncPlan,
 )
-from dnsforge_manager.dnssync.service import DNSSyncService, SyncExecution, SyncMode, SyncPlan
+from dnsforge_manager.infrastructure.dnssync.client import DNSForgeNodeClient, RecordingDNSForgeNodeClient
+from dnsforge_manager.application.dnssync.dnssync_service import DNSSyncService
 
 __all__ = [
     "DNSForgeNodeClient",
