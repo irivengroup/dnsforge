@@ -684,6 +684,17 @@ Options:
 
 - `--format FORMAT` default='text' choices=text,json:
 
+### `dnsforge network export`
+
+```bash
+dnsforge network export [-h] [--format {text,json}] --output OUTPUT
+```
+
+Options:
+
+- `--format FORMAT` default='json' choices=text,json:
+- `--output OUTPUT` required: Destination file for exported diagnostics
+
 ### `dnsforge network preview`
 
 ```bash

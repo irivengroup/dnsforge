@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Literal
 
 from dnsforge.infrastructure.network.interface_resolver import InterfaceAddressResolver
 from dnsforge.infrastructure.settings.env_loader import EnvSettingsLoader
+
+
+NetworkExportFormat = Literal["text", "json"]
 
 
 class InterfaceDiagnosticsService:
@@ -27,6 +31,7 @@ class InterfaceDiagnosticsService:
         distinct_ips = [item.strip() for item in enriched["DNS_LISTEN_ON"].split(";") if item.strip()]
         admin_ips = [item.strip() for item in enriched["BIND_ADMIN_LISTEN_ON"].split(";") if item.strip()]
         return {
+            "schema": "dnsforge.bind-interface-diagnostics.v1",
             "setup_file": str(self.setup_file),
             "interfaces": {
                 "extranet": {"nic": report.external_nic, "ip": report.external_ip},
@@ -65,3 +70,16 @@ class InterfaceDiagnosticsService:
 
     def render_json(self) -> str:
         return json.dumps(self.as_dict(), indent=2, sort_keys=True)
+
+    def render(self, output_format: NetworkExportFormat) -> str:
+        if output_format == "json":
+            return self.render_json()
+        if output_format == "text":
+            return self.render_text()
+        raise ValueError(f"unsupported network diagnostic export format: {output_format}")
+
+    def export(self, output_file: Path, output_format: NetworkExportFormat) -> Path:
+        payload = self.render(output_format)
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        output_file.write_text(payload + "\n", encoding="utf-8")
+        return output_file

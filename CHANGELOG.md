@@ -1,5 +1,11 @@
 # Changelog
 
+## 14.6.3
+
+- Added stable export of BIND interface diagnostics for supervision and CI integration.
+- Added canonical diagnostic schema `dnsforge.bind-interface-diagnostics.v1`.
+- Added `dnsforge network export --output <file> [--format json|text]`.
+
 ## 14.6.2
 
 - Integrated BIND interface diagnostics into `dnsforge status`.
@@ -42,6 +48,12 @@
 - Preserved legacy `BIND_EXTERNAL_NICNAME` compatibility alias where it already existed.
 
 # Changelog
+
+## 14.6.3
+
+- Added stable export of BIND interface diagnostics for supervision and CI integration.
+- Added canonical diagnostic schema `dnsforge.bind-interface-diagnostics.v1`.
+- Added `dnsforge network export --output <file> [--format json|text]`.
 
 ## 14.5.8
 
@@ -123,6 +135,12 @@
 
 # Changelog
 
+## 14.6.3
+
+- Added stable export of BIND interface diagnostics for supervision and CI integration.
+- Added canonical diagnostic schema `dnsforge.bind-interface-diagnostics.v1`.
+- Added `dnsforge network export --output <file> [--format json|text]`.
+
 ## 14.5.8
 
 - Removed legacy rendered IP aliases `FRONT_IP`, `BACK_IP` and `ADM_IP`.
@@ -183,6 +201,12 @@
 - Integrated GA readiness into CI and product gate.
 
 # Changelog
+
+## 14.6.3
+
+- Added stable export of BIND interface diagnostics for supervision and CI integration.
+- Added canonical diagnostic schema `dnsforge.bind-interface-diagnostics.v1`.
+- Added `dnsforge network export --output <file> [--format json|text]`.
 
 ## 14.5.8
 
@@ -463,6 +487,12 @@
 
 # Changelog
 
+## 14.6.3
+
+- Added stable export of BIND interface diagnostics for supervision and CI integration.
+- Added canonical diagnostic schema `dnsforge.bind-interface-diagnostics.v1`.
+- Added `dnsforge network export --output <file> [--format json|text]`.
+
 ## 14.5.8
 
 - Removed legacy rendered IP aliases `FRONT_IP`, `BACK_IP` and `ADM_IP`.
@@ -522,6 +552,12 @@
 - Added regression coverage ensuring missing BIND tools fail under `GITHUB_ACTIONS=true`.
 
 # Changelog
+
+## 14.6.3
+
+- Added stable export of BIND interface diagnostics for supervision and CI integration.
+- Added canonical diagnostic schema `dnsforge.bind-interface-diagnostics.v1`.
+- Added `dnsforge network export --output <file> [--format json|text]`.
 
 ## 14.5.8
 
@@ -1042,6 +1078,12 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 - Archive régénérée avec dossier racine `binddns-enterprise-redhat-v3.9`.
 
 # Changelog
+
+## 14.6.3
+
+- Added stable export of BIND interface diagnostics for supervision and CI integration.
+- Added canonical diagnostic schema `dnsforge.bind-interface-diagnostics.v1`.
+- Added `dnsforge network export --output <file> [--format json|text]`.
 
 ## 14.5.8
 

@@ -102,6 +102,9 @@ class DnsForgeArgumentParserFactory:
         preview.add_argument("--format", choices=["text", "json"], default="text")
         audit = inner.add_parser("audit", help="Audit NIC-to-IP resolution before initialize")
         audit.add_argument("--format", choices=["text", "json"], default="text")
+        export = inner.add_parser("export", help="Export NIC-to-IP diagnostics for supervision or CI")
+        export.add_argument("--format", choices=["text", "json"], default="json")
+        export.add_argument("--output", required=True, help="Destination file for exported diagnostics")
 
     def _add_readiness(self, sub) -> None:
         readiness = sub.add_parser("readiness", help="Assess local DNSForge operational readiness")
@@ -602,6 +605,10 @@ class DnsForgeCommandDispatcher:
                     print(service.render_json())
                 else:
                     print(service.render_text())
+                return 0
+            if args.action == "export":
+                output_path = service.export(Path(args.output), getattr(args, "format", "json"))
+                print(f"Network diagnostics exported to {output_path}")
                 return 0
             return 2
 
