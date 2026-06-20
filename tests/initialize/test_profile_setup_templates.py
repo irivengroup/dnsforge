@@ -80,3 +80,23 @@ def test_initialize_consumes_existing_proxy_setup_conf(tmp_path: Path, monkeypat
     assert len(renderer.calls) == 1
     assert renderer.calls[0][0] == "proxy01"
     assert 'PROXY_TYPE="hybrid"' in paths.setup_file.read_text(encoding="utf-8")
+
+
+def test_setup_profile_generator_uses_layered_dictionaries() -> None:
+    generator = ProfileSetupTemplateService().generator
+
+    assert "ROLE" in generator.common_setup
+    assert "BIND_ADMIN_NICNAME" in generator.common_setup
+    assert "PEER_AUTHORITATIVE_ADDRESSES" in generator.proxy_common_setup
+    assert "VIP_BACK_IP" in generator.autoritative_setup
+    assert generator.hybrid_setup["ENABLE_PROXY_MASTER_ZONES"] == "yes"
+    assert generator.forwader_setup["ENABLE_PROXY_MASTER_ZONES"] == "no"
+
+    authoritative = generator.generate(ConfigurationProfile.AUTHORITATIVE, "auth01")
+    hybrid = generator.generate(ConfigurationProfile.PROXY_HYBRID, "proxy01")
+    forwarder = generator.generate(ConfigurationProfile.PROXY_FORWARDER, "proxy02")
+
+    assert 'ENABLE_CLUSTER="yes"' in authoritative
+    assert 'ENABLE_PROXY_MASTER_ZONES="yes"' in hybrid
+    assert 'ENABLE_PROXY_MASTER_ZONES="no"' in forwarder
+    assert 'TSIG_SECRET="CHANGE_ME_BASE64"' in authoritative

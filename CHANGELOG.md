@@ -1,5 +1,11 @@
 # Changelog
 
+## 14.5.2
+
+- Refactored SetupProfileGenerator around five composable setup dictionaries: common_setup, proxy_common_setup, autoritative_setup, hybrid_setup and forwader_setup.
+- Preserved generated setup.conf output while removing hard-coded full-line construction from the generator.
+- Kept BIND NIC discovery semantics and Bandit-safe implementation intact.
+
 ## 14.5.0
 
 - Replaced setup.conf BIND network IP variables with NIC-name variables: BIND_EXTERNET_NICNAME, BIND_INTRANET_NICNAME and BIND_ADMIN_NICNAME.
