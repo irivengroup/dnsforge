@@ -1,5 +1,12 @@
 # Changelog
 
+## 14.8.2
+
+- Added Manager Compliance trend summaries to exploit compliance history without changing local BIND behavior.
+- Added `dnsforge-manager inventory compliance trends [--fingerprint <agent>]`.
+- Added `GET /inventory/agent-compliance/trends`.
+- Preserved JSON and PostgreSQL persistence contracts while keeping `dist/` out of release archives.
+
 ## 14.8.1
 
 - Added Manager compliance history with per-agent transition events.
@@ -88,6 +95,13 @@
 - Preserved legacy `BIND_EXTERNAL_NICNAME` compatibility alias where it already existed.
 
 # Changelog
+
+## 14.8.2
+
+- Added Manager Compliance trend summaries to exploit compliance history without changing local BIND behavior.
+- Added `dnsforge-manager inventory compliance trends [--fingerprint <agent>]`.
+- Added `GET /inventory/agent-compliance/trends`.
+- Preserved JSON and PostgreSQL persistence contracts while keeping `dist/` out of release archives.
 
 ## 14.7.0
 
@@ -187,6 +201,13 @@
 
 # Changelog
 
+## 14.8.2
+
+- Added Manager Compliance trend summaries to exploit compliance history without changing local BIND behavior.
+- Added `dnsforge-manager inventory compliance trends [--fingerprint <agent>]`.
+- Added `GET /inventory/agent-compliance/trends`.
+- Preserved JSON and PostgreSQL persistence contracts while keeping `dist/` out of release archives.
+
 ## 14.7.0
 
 ### Added
@@ -265,6 +286,13 @@
 - Integrated GA readiness into CI and product gate.
 
 # Changelog
+
+## 14.8.2
+
+- Added Manager Compliance trend summaries to exploit compliance history without changing local BIND behavior.
+- Added `dnsforge-manager inventory compliance trends [--fingerprint <agent>]`.
+- Added `GET /inventory/agent-compliance/trends`.
+- Preserved JSON and PostgreSQL persistence contracts while keeping `dist/` out of release archives.
 
 ## 14.7.0
 
@@ -563,6 +591,13 @@
 
 # Changelog
 
+## 14.8.2
+
+- Added Manager Compliance trend summaries to exploit compliance history without changing local BIND behavior.
+- Added `dnsforge-manager inventory compliance trends [--fingerprint <agent>]`.
+- Added `GET /inventory/agent-compliance/trends`.
+- Preserved JSON and PostgreSQL persistence contracts while keeping `dist/` out of release archives.
+
 ## 14.7.0
 
 ### Added
@@ -640,6 +675,13 @@
 - Added regression coverage ensuring missing BIND tools fail under `GITHUB_ACTIONS=true`.
 
 # Changelog
+
+## 14.8.2
+
+- Added Manager Compliance trend summaries to exploit compliance history without changing local BIND behavior.
+- Added `dnsforge-manager inventory compliance trends [--fingerprint <agent>]`.
+- Added `GET /inventory/agent-compliance/trends`.
+- Preserved JSON and PostgreSQL persistence contracts while keeping `dist/` out of release archives.
 
 ## 14.7.0
 
@@ -1178,6 +1220,13 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 - Archive régénérée avec dossier racine `binddns-enterprise-redhat-v3.9`.
 
 # Changelog
+
+## 14.8.2
+
+- Added Manager Compliance trend summaries to exploit compliance history without changing local BIND behavior.
+- Added `dnsforge-manager inventory compliance trends [--fingerprint <agent>]`.
+- Added `GET /inventory/agent-compliance/trends`.
+- Preserved JSON and PostgreSQL persistence contracts while keeping `dist/` out of release archives.
 
 ## 14.7.0
 

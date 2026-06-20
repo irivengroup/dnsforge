@@ -74,3 +74,19 @@ GET /inventory/agent-compliance/history?fingerprint=agent-001
 ```
 
 Each event records the current compliance state, previous compliance state, drift count, observation timestamp and whether the update represents a transition.
+
+## Compliance trend summaries
+
+```bash
+dnsforge-manager inventory compliance trends
+dnsforge-manager inventory compliance trends --fingerprint agent-001
+```
+
+API:
+
+```text
+GET /inventory/agent-compliance/trends
+GET /inventory/agent-compliance/trends?fingerprint=agent-001
+```
+
+The trend summary reports observations, transitions, recurrent drift, first observation, last observation and last transition for each agent.

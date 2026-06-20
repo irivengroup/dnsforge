@@ -220,6 +220,25 @@ class AgentComplianceEvent:
 
 
 @dataclass(frozen=True)
+class AgentComplianceTrend:
+    fingerprint: str
+    current_compliance: ConfigurationComplianceState
+    observations: int = 0
+    transitions: int = 0
+    drift_observations: int = 0
+    total_drift_count: int = 0
+    first_observed_at: str = ""
+    last_observed_at: str = ""
+    last_transition_at: str = ""
+    recurrent_drift: bool = False
+
+    def to_dict(self) -> dict[str, object]:
+        data = asdict(self)
+        data["current_compliance"] = self.current_compliance.value
+        return data
+
+
+@dataclass(frozen=True)
 class Agent:
     fingerprint: str
     hostname: str

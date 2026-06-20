@@ -7,6 +7,7 @@ from dnsforge_manager.domain.inventory.models import (
     Agent,
     AgentComplianceEvent,
     AgentComplianceStatus,
+    AgentComplianceTrend,
     AgentReadiness,
     AgentStatus,
     Cluster,
@@ -137,6 +138,51 @@ class CentralInventoryService:
 
     def list_agent_compliance_history(self, fingerprint: str | None = None) -> tuple[AgentComplianceEvent, ...]:
         return self.repository.list_agent_compliance_events(fingerprint)
+
+
+    def summarize_agent_compliance_trends(self, fingerprint: str | None = None) -> dict[str, object]:
+        events = self.repository.list_agent_compliance_events(fingerprint)
+        current = {item.fingerprint: item.compliance for item in self.repository.list_agent_compliance()}
+        grouped: dict[str, list[AgentComplianceEvent]] = {}
+        for event in events:
+            grouped.setdefault(event.fingerprint, []).append(event)
+        trends: list[AgentComplianceTrend] = []
+        for agent_fingerprint in sorted(grouped):
+            ordered_events = sorted(
+                grouped[agent_fingerprint],
+                key=lambda item: (item.observed_at, item.event_id),
+            )
+            drift_events = [
+                event
+                for event in ordered_events
+                if event.compliance
+                in (ConfigurationComplianceState.DRIFTED, ConfigurationComplianceState.FAILED)
+            ]
+            transition_events = [event for event in ordered_events if event.transition]
+            last_event = ordered_events[-1]
+            trends.append(
+                AgentComplianceTrend(
+                    fingerprint=agent_fingerprint,
+                    current_compliance=current.get(agent_fingerprint, last_event.compliance),
+                    observations=len(ordered_events),
+                    transitions=len(transition_events),
+                    drift_observations=len(drift_events),
+                    total_drift_count=sum(event.drift_count for event in ordered_events),
+                    first_observed_at=ordered_events[0].observed_at,
+                    last_observed_at=last_event.observed_at,
+                    last_transition_at=transition_events[-1].observed_at if transition_events else "",
+                    recurrent_drift=len(drift_events) >= 2,
+                )
+            )
+        return {
+            "trends": [trend.to_dict() for trend in trends],
+            "summary": {
+                "agents": len(trends),
+                "recurrent_drift": sum(1 for trend in trends if trend.recurrent_drift),
+                "transitions": sum(trend.transitions for trend in trends),
+                "observations": sum(trend.observations for trend in trends),
+            },
+        }
 
     def aggregate_compliance(self) -> dict[str, object]:
         statuses = self.repository.list_agent_compliance()

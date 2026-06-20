@@ -43,6 +43,8 @@ def build_parser() -> argparse.ArgumentParser:
     compliance_sub.add_parser("list", help="List agent compliance states")
     history_compliance = compliance_sub.add_parser("history", help="List agent compliance history")
     history_compliance.add_argument("--fingerprint")
+    trends_compliance = compliance_sub.add_parser("trends", help="Summarize agent compliance history trends")
+    trends_compliance.add_argument("--fingerprint")
     update_compliance = compliance_sub.add_parser("update", help="Update one agent compliance state")
     update_compliance.add_argument("--fingerprint", required=True)
     update_compliance.add_argument(
@@ -169,6 +171,8 @@ def _dispatch_inventory(app: object, args: argparse.Namespace) -> dict[str, obje
             return app.inventory_agent_compliance()  # type: ignore[attr-defined]
         if args.inventory_action == "history":
             return app.inventory_agent_compliance_history(args.fingerprint)  # type: ignore[attr-defined]
+        if args.inventory_action == "trends":
+            return app.inventory_agent_compliance_trends(args.fingerprint)  # type: ignore[attr-defined]
         return app.update_inventory_agent_compliance(  # type: ignore[attr-defined]
             {
                 "fingerprint": args.fingerprint,
