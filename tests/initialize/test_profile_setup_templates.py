@@ -100,3 +100,9 @@ def test_setup_profile_generator_uses_layered_dictionaries() -> None:
     assert 'ENABLE_PROXY_MASTER_ZONES="yes"' in hybrid
     assert 'ENABLE_PROXY_MASTER_ZONES="no"' in forwarder
     assert 'TSIG_SECRET="CHANGE_ME_BASE64"' in authoritative
+
+
+def test_profile_resources_are_not_packaged_or_consumed() -> None:
+    assert not Path("src/dnsforge/infrastructure/profile/resources").exists()
+    service = ProfileSetupTemplateService()
+    assert not hasattr(service, "_RESOURCE_PACKAGE")

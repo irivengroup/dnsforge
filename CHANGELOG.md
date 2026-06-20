@@ -1,5 +1,13 @@
 # Changelog
 
+## v14.5.4 - Setup Profile mypy/resource cleanup
+
+- Fix SetupProfileGenerator type aliases for Python 3.9/mypy compatibility.
+- Remove obsolete static profile resources from the delivered package.
+- Keep setup.conf generation fully dynamic through layered dictionaries.
+- Remove package-data declarations for legacy profile resource templates.
+
+
 ## 14.5.2
 
 - Refactored SetupProfileGenerator around five composable setup dictionaries: common_setup, proxy_common_setup, autoritative_setup, hybrid_setup and forwader_setup.
@@ -529,7 +537,7 @@
 - `dnsforge zone history <zone>` indique la version courante.
 - Suppression définitive de `src/settings` du livrable.
 - Configuration opérateur déportée vers `/etc/dnsforge/setup.conf`.
-- Les modèles restent dans `src/dnsforge/infrastructure/profile/resources/`.
+- Les anciens modèles statiques de profil sont remplacés par la génération dynamique.
 
 ## v10.0
 
@@ -584,7 +592,7 @@
 
 - Intégration des variables présentes dans `src/settings` dans les templates `setup.conf`.
 - Modèles complets par profil : authoritative, proxy-forwarder, proxy-hybrid.
-- Ajout du manifeste `src/dnsforge/infrastructure/profile/resources/VARIABLE-COVERAGE.md`.
+- Le manifeste historique de couverture des variables est remplacé par des tests de génération dynamique.
 - Ajout de `docs/SETUP-CONF-TEMPLATES.md`.
 
 ## v9.3

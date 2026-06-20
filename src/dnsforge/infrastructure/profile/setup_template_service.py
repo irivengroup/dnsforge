@@ -10,14 +10,11 @@ from dnsforge.shared.errors import SettingsError
 
 
 class ProfileSetupTemplateService:
-    """Render and install DNSForge setup.conf templates bundled with the package.
+    """Render and install DNSForge setup.conf generated from profile policy.
 
-    The setup.conf templates are product resources, not installer assets. They are
-    selected by DNS profile and are applied by the DNSForge CLI during profile
-    initialization.
+    setup.conf is generated dynamically from SetupProfileGenerator. Legacy
+    legacy profile resource templates are no longer consumed.
     """
-
-    _RESOURCE_PACKAGE = "dnsforge.infrastructure.profile.resources"
 
     def __init__(
         self,

@@ -5,18 +5,22 @@ Plateforme Enterprise de déploiement et de configuration BIND
 
 Les modèles `setup.conf` sont des ressources applicatives embarquées dans le corps Python du produit. Ils ne sont plus portés par `install/`.
 
-Profils :
+Profils générés dynamiquement :
 
 ```text
-src/dnsforge/infrastructure/profile/resources/authoritative/setup.conf
-src/dnsforge/infrastructure/profile/resources/proxy-forwarder/setup.conf
-src/dnsforge/infrastructure/profile/resources/proxy-hybrid/setup.conf
+authoritative
+proxy-forwarder
+proxy-hybrid
 ```
 
-La couverture est listée dans :
+Les paramètres sont composés depuis :
 
 ```text
-src/dnsforge/infrastructure/profile/resources/VARIABLE-COVERAGE.md
+common_setup
+proxy_common_setup
+autoritative_setup
+hybrid_setup
+forwader_setup
 ```
 
 ---

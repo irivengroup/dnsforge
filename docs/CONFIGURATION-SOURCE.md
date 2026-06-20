@@ -11,11 +11,7 @@ La configuration opérateur est portée par :
 /etc/dnsforge/setup.conf
 ```
 
-Les modèles de configuration sont livrés dans :
-
-```text
-src/dnsforge/infrastructure/profile/resources/
-```
+Le fichier `setup.conf` est généré dynamiquement par `SetupProfileGenerator` depuis des dictionnaires de profil composables. Le projet ne consomme plus `legacy profile resources/`.
 
 Le lien applicatif reste :
 

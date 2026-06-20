@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from typing import TypeAlias, Union
 
 from dnsforge.domain.profile.model import ConfigurationProfile
 from dnsforge.infrastructure.network.interface_resolver import InterfaceAddressResolver
 
-SetupValue = str | bool | None
-SetupSection = Mapping[str, SetupValue]
+SetupValue: TypeAlias = Union[str, bool, None]
+SetupSection: TypeAlias = Mapping[str, SetupValue]
 DEFAULT_SETUP_PLACEHOLDER = "CHANGE_ME_BASE64"
 
 
