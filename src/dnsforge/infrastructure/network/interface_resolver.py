@@ -33,7 +33,7 @@ class InterfaceAddressResolver:
 
     def default_admin_interface(self) -> str:
         route_interface = self._default_route_interface()
-        if route_interface:
+        if route_interface and self._interface_has_ipv4(route_interface):
             return route_interface
         return "lo"
 
@@ -154,6 +154,7 @@ class InterfaceAddressResolver:
                 return fields[0]
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+                sock.settimeout(0.2)
                 sock.connect(("1.1.1.1", 53))
                 local_ip = sock.getsockname()[0]
             return self._interface_for_ip(local_ip) or "lo"
@@ -169,6 +170,13 @@ class InterfaceAddressResolver:
             except SettingsError:
                 continue
         return None
+
+    def _interface_has_ipv4(self, nic_name: str) -> bool:
+        try:
+            self.ipv4_for_interface(nic_name)
+        except SettingsError:
+            return False
+        return True
 
     def _iter_interfaces(self) -> tuple[Path, ...]:
         try:

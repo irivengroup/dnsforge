@@ -1,5 +1,11 @@
 # Changelog
 
+## 14.7.2
+
+- Added real ComplianceService coverage for missing render trees, drift detection, repair plans, JSON renderers, fingerprints and baselines.
+- Hardened automatic admin interface fallback when the detected default route interface has no resolvable IPv4 address.
+- Preserved v14.7 Configuration Compliance Engine behavior while restoring the 90% coverage gate.
+
 ## 14.7.1
 
 - Fix Python 3.9/mypy compatibility in Configuration Compliance Engine.
