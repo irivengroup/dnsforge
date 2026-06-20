@@ -9,6 +9,14 @@ from dnsforge.shared.errors import SettingsError
 
 
 class SettingsValidator:
+    removed_network_aliases = (
+        "FRONT_IP",
+        "BACK_IP",
+        "ADM_IP",
+        "BIND_EXTERNAL_NICNAME",
+        "BIND_EXTERNET_NICNAME",
+    )
+
     def __init__(self, list_parser: ListParser | None = None) -> None:
         self.list_parser = list_parser or ListParser()
 
@@ -42,6 +50,15 @@ class SettingsValidator:
         if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,64}", value):
             raise SettingsError(f"{name} must be a valid network interface name: {value}")
 
+    def reject_removed_network_aliases(self, settings: dict[str, str]) -> None:
+        present = [name for name in self.removed_network_aliases if name in settings]
+        if present:
+            joined = ", ".join(present)
+            raise SettingsError(
+                f"removed legacy network aliases are not supported: {joined}; "
+                "use BIND_EXTRANET_NICNAME, BIND_INTRANET_NICNAME and BIND_ADMIN_NICNAME"
+            )
+
     def validate_address_list_if_present(self, settings: dict[str, str], name: str) -> None:
         if name not in settings:
             return
@@ -55,6 +72,7 @@ class SettingsValidator:
 
 class ProxySettingsValidator(SettingsValidator):
     def validate(self, settings: dict[str, str]) -> None:
+        self.reject_removed_network_aliases(settings)
         if settings.get("ROLE") not in {"", None, "dns-proxy"}:
             raise SettingsError("ROLE must be dns-proxy")
 
@@ -102,6 +120,7 @@ class ProxySettingsValidator(SettingsValidator):
 
 class AuthoritativeSettingsValidator(SettingsValidator):
     def validate(self, settings: dict[str, str]) -> None:
+        self.reject_removed_network_aliases(settings)
         if settings.get("ROLE") not in {"", None, "dns-authoritative"}:
             raise SettingsError("ROLE must be dns-authoritative")
 

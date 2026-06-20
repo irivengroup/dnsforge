@@ -1,3 +1,12 @@
+# Changelog
+
+## 14.5.9
+
+- Removed the remaining legacy NIC compatibility aliases `BIND_EXTERNET_NICNAME` and `BIND_EXTERNAL_NICNAME` from runtime resolution.
+- Added validator guardrails that reject removed network aliases (`FRONT_IP`, `BACK_IP`, `ADM_IP`, `BIND_EXTERNET_NICNAME`, `BIND_EXTERNAL_NICNAME`) instead of silently accepting ambiguous configuration.
+- Hardened runtime BIND listener rendering by deduplicating loopback/admin addresses and always regenerating canonical `BIND_EXTRANET_IP`, `BIND_INTRANET_IP`, `BIND_ADMIN_IP`, `DNS_LISTEN_ON` and `BIND_ADMIN_LISTEN_ON`.
+- Added regression tests for complete network alias removal and runtime listener deduplication.
+
 ## 14.5.7 - Canonical Resolved BIND Interface IPs
 
 - Added canonical runtime keys `BIND_EXTRANET_IP`, `BIND_INTRANET_IP` and `BIND_ADMIN_IP`.

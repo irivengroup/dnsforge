@@ -75,3 +75,25 @@ def test_interface_resolver_accepts_runtime_ip_values_for_migration() -> None:
     assert enriched["BIND_EXTRANET_IP"] == "198.51.100.10"
     assert enriched["BIND_INTRANET_IP"] == "198.51.100.11"
     assert enriched["BIND_ADMIN_IP"] == "198.51.100.12"
+
+
+def test_interface_resolver_ignores_removed_externet_alias() -> None:
+    enriched = _Resolver().enrich_settings({"BIND_EXTERNET_NICNAME": "eth2"})
+
+    assert enriched["BIND_EXTRANET_IP"] == "10.0.0.10"
+    assert enriched["DNS_LISTEN_ON"] == "10.0.0.10;"
+
+
+def test_interface_resolver_admin_listen_on_filters_loopback_duplicates() -> None:
+    class LoopbackResolver(_Resolver):
+        def default_admin_interface(self) -> str:
+            return "lo"
+
+        def ipv4_for_interface(self, nic_name: str) -> str:
+            if nic_name == "lo":
+                return "127.0.0.1"
+            return super().ipv4_for_interface(nic_name)
+
+    enriched = LoopbackResolver().enrich_settings({})
+
+    assert enriched["BIND_ADMIN_LISTEN_ON"] == "127.0.0.1;"

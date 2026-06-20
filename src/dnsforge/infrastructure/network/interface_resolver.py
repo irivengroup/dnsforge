@@ -35,12 +35,7 @@ class InterfaceAddressResolver:
 
     def selection_from_settings(self, settings: dict[str, str]) -> BindInterfaceSelection:
         admin = _clean(settings.get("BIND_ADMIN_NICNAME")) or self.default_admin_interface()
-        external = (
-            _clean(settings.get("BIND_EXTRANET_NICNAME"))
-            or _clean(settings.get("BIND_EXTERNAL_NICNAME"))
-            or _clean(settings.get("BIND_EXTERNET_NICNAME"))
-            or admin
-        )
+        external = _clean(settings.get("BIND_EXTRANET_NICNAME")) or admin
         intranet = _clean(settings.get("BIND_INTRANET_NICNAME")) or admin
         return BindInterfaceSelection(
             external_nic=external,
@@ -56,8 +51,6 @@ class InterfaceAddressResolver:
                 selection.external_nic,
                 "BIND_EXTRANET_IP",
                 "BIND_EXTRANET_NICNAME",
-                "BIND_EXTERNAL_NICNAME",
-                "BIND_EXTERNET_NICNAME",
             ),
             intranet_ip=self._resolve_named(
                 settings,
@@ -76,14 +69,11 @@ class InterfaceAddressResolver:
     def enrich_settings(self, settings: dict[str, str]) -> dict[str, str]:
         enriched = dict(settings)
         resolved = self.resolve(enriched)
-        enriched.setdefault("BIND_EXTRANET_IP", resolved.external_ip)
-        enriched.setdefault("BIND_INTRANET_IP", resolved.intranet_ip)
-        enriched.setdefault("BIND_ADMIN_IP", resolved.admin_ip)
-        enriched.setdefault("DNS_LISTEN_ON", "; ".join(resolved.distinct_ips()) + ";")
-        enriched.setdefault(
-            "BIND_ADMIN_LISTEN_ON",
-            "; ".join(["127.0.0.1", resolved.admin_ip]) + ";",
-        )
+        enriched["BIND_EXTRANET_IP"] = resolved.external_ip
+        enriched["BIND_INTRANET_IP"] = resolved.intranet_ip
+        enriched["BIND_ADMIN_IP"] = resolved.admin_ip
+        enriched["DNS_LISTEN_ON"] = self._render_bind_ip_list(resolved.distinct_ips())
+        enriched["BIND_ADMIN_LISTEN_ON"] = self._render_bind_ip_list(["127.0.0.1", resolved.admin_ip])
         return enriched
 
     def _resolve_named(
@@ -107,6 +97,18 @@ class InterfaceAddressResolver:
             return preferred
         admin = self.default_admin_interface()
         return self.ipv4_for_interface(admin)
+
+    def _render_bind_ip_list(self, values: list[str]) -> str:
+        distinct: list[str] = []
+        seen: set[str] = set()
+        for value in values:
+            address = str(ipaddress.ip_interface(value).ip)
+            if address not in seen:
+                seen.add(address)
+                distinct.append(address)
+        if not distinct:
+            raise SettingsError("no BIND listener address could be resolved")
+        return "; ".join(distinct) + ";"
 
     def ipv4_for_interface(self, nic_name: str) -> str:
         if nic_name == "lo":
