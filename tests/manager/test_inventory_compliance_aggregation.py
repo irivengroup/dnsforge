@@ -119,3 +119,85 @@ def test_manager_inventory_compliance_cli_update_and_list(capsys) -> None:
     assert manager_main(["inventory", "compliance", "list"]) == 0
     listed_payload = json.loads(capsys.readouterr().out)
     assert listed_payload["status"] == "COMPLIANT"
+
+
+def test_central_inventory_records_agent_compliance_history_transitions() -> None:
+    service = CentralInventoryService()
+    service.update_agent_compliance(
+        {
+            "fingerprint": "agent-history",
+            "compliance": "COMPLIANT",
+            "drift_count": 0,
+            "last_checked": "2026-06-20T15:00:00Z",
+            "message": "clean",
+        }
+    )
+    service.update_agent_compliance(
+        {
+            "fingerprint": "agent-history",
+            "compliance": "DRIFTED",
+            "drift_count": 2,
+            "last_checked": "2026-06-20T16:00:00Z",
+            "message": "manual edit",
+        }
+    )
+
+    events = service.list_agent_compliance_history("agent-history")
+    aggregate = service.aggregate_compliance()
+
+    assert len(events) == 2
+    assert events[0].transition is True
+    assert events[1].previous_compliance is not None
+    assert events[1].previous_compliance.value == "COMPLIANT"
+    assert events[1].transition is True
+    assert aggregate["history_count"] == 2
+
+
+def test_json_central_inventory_repository_persists_agent_compliance_history(tmp_path) -> None:
+    path = tmp_path / "central-inventory.json"
+    service = CentralInventoryService(JsonCentralInventoryRepository(path))
+    service.update_agent_compliance(
+        {
+            "fingerprint": "agent-history-json",
+            "compliance": "WARNING",
+            "drift_count": 1,
+            "last_checked": "2026-06-20T17:00:00Z",
+        }
+    )
+
+    reloaded = CentralInventoryService(JsonCentralInventoryRepository(path))
+    events = reloaded.list_agent_compliance_history("agent-history-json")
+
+    assert len(events) == 1
+    assert events[0].fingerprint == "agent-history-json"
+    assert events[0].compliance.value == "WARNING"
+
+
+def test_manager_inventory_compliance_history_api_and_cli(capsys) -> None:
+    app = create_app()
+    app.update_inventory_agent_compliance(
+        {
+            "fingerprint": "agent-history-app",
+            "compliance": "FAILED",
+            "drift_count": 5,
+            "message": "validation failed",
+        }
+    )
+
+    history = app.inventory_agent_compliance_history("agent-history-app")
+    assert history["events"][0]["fingerprint"] == "agent-history-app"
+    assert history["events"][0]["compliance"] == "FAILED"
+
+    api = create_fastapi_app(app)
+    routes = set()
+    for route in getattr(api, "routes", []):
+        if hasattr(route, "method"):
+            routes.add((route.method, route.path))
+        else:
+            for method in getattr(route, "methods", set()):
+                routes.add((method, getattr(route, "path", "")))
+    assert ("GET", "/inventory/agent-compliance/history") in routes
+
+    assert manager_main(["inventory", "compliance", "history", "--fingerprint", "agent-cli"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["events"] == []

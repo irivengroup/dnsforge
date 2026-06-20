@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
+from uuid import uuid4
+
 from dnsforge_manager.domain.inventory.models import (
     Agent,
+    AgentComplianceEvent,
     AgentComplianceStatus,
     AgentReadiness,
     AgentStatus,
@@ -103,10 +107,36 @@ class CentralInventoryService:
         }
 
     def update_agent_compliance(self, payload: dict[str, object]) -> AgentComplianceStatus:
-        return self.repository.set_agent_compliance(AgentComplianceStatus.from_dict(payload))
+        status = AgentComplianceStatus.from_dict(payload)
+        previous = next(
+            (item for item in self.repository.list_agent_compliance() if item.fingerprint == status.fingerprint),
+            None,
+        )
+        stored = self.repository.set_agent_compliance(status)
+        self.repository.append_agent_compliance_event(
+            AgentComplianceEvent(
+                event_id=str(uuid4()),
+                fingerprint=stored.fingerprint,
+                compliance=stored.compliance,
+                drift_count=stored.drift_count,
+                observed_at=stored.last_checked or datetime.now(timezone.utc).isoformat(),
+                previous_compliance=None if previous is None else previous.compliance,
+                previous_drift_count=None if previous is None else previous.drift_count,
+                message=stored.message,
+                transition=(
+                    previous is None
+                    or previous.compliance != stored.compliance
+                    or previous.drift_count != stored.drift_count
+                ),
+            )
+        )
+        return stored
 
     def list_agent_compliance(self) -> tuple[AgentComplianceStatus, ...]:
         return self.repository.list_agent_compliance()
+
+    def list_agent_compliance_history(self, fingerprint: str | None = None) -> tuple[AgentComplianceEvent, ...]:
+        return self.repository.list_agent_compliance_events(fingerprint)
 
     def aggregate_compliance(self) -> dict[str, object]:
         statuses = self.repository.list_agent_compliance()
@@ -129,6 +159,7 @@ class CentralInventoryService:
                 for state in ConfigurationComplianceState
             },
             "drift_count": sum(item.drift_count for item in statuses),
+            "history_count": len(self.repository.list_agent_compliance_events()),
         }
 
 

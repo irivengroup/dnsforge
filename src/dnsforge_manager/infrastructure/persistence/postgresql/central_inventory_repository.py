@@ -5,6 +5,7 @@ from typing import Callable, TypeVar
 
 from dnsforge_manager.domain.inventory.models import (
     Agent,
+    AgentComplianceEvent,
     AgentComplianceStatus,
     AgentStatus,
     Cluster,
@@ -93,6 +94,16 @@ class PostgreSQLCentralInventoryRepository(CentralInventoryRepository):
 
     def list_agent_compliance(self) -> tuple[AgentComplianceStatus, ...]:
         return self._list("agent_compliance", "fingerprint", AgentComplianceStatus.from_dict)
+
+    def append_agent_compliance_event(self, event: AgentComplianceEvent) -> AgentComplianceEvent:
+        self._create("agent_compliance_history", "event_id", event.event_id, event.to_dict())
+        return event
+
+    def list_agent_compliance_events(self, fingerprint: str | None = None) -> tuple[AgentComplianceEvent, ...]:
+        events = self._list("agent_compliance_history", "event_id", AgentComplianceEvent.from_dict)
+        if fingerprint is None:
+            return events
+        return tuple(event for event in events if event.fingerprint == fingerprint)
 
 
 def _payload(row: object) -> dict[str, object]:

@@ -54,3 +54,23 @@ dnsforge-manager inventory compliance update \
 - DNSForge Manager only stores and aggregates reported compliance state.
 - No remediation is applied centrally by this feature.
 - JSON remains the default backend; PostgreSQL can map the same object model in a later persistence migration.
+
+## Compliance history
+
+DNSForge Manager stores every compliance update as an immutable history event so operators can distinguish the current state from repeated or recent drift transitions.
+
+CLI:
+
+```bash
+dnsforge-manager inventory compliance history
+dnsforge-manager inventory compliance history --fingerprint agent-001
+```
+
+API:
+
+```text
+GET /inventory/agent-compliance/history
+GET /inventory/agent-compliance/history?fingerprint=agent-001
+```
+
+Each event records the current compliance state, previous compliance state, drift count, observation timestamp and whether the update represents a transition.

@@ -181,6 +181,45 @@ class AgentComplianceStatus:
 
 
 @dataclass(frozen=True)
+class AgentComplianceEvent:
+    event_id: str
+    fingerprint: str
+    compliance: ConfigurationComplianceState
+    drift_count: int = 0
+    observed_at: str = ""
+    previous_compliance: ConfigurationComplianceState | None = None
+    previous_drift_count: int | None = None
+    message: str = ""
+    transition: bool = False
+
+    def to_dict(self) -> dict[str, object]:
+        data = asdict(self)
+        data["compliance"] = self.compliance.value
+        if self.previous_compliance is not None:
+            data["previous_compliance"] = self.previous_compliance.value
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, object]) -> "AgentComplianceEvent":
+        previous = data.get("previous_compliance")
+        return cls(
+            event_id=str(data["event_id"]),
+            fingerprint=str(data["fingerprint"]),
+            compliance=ConfigurationComplianceState(
+                str(data.get("compliance", ConfigurationComplianceState.WARNING.value))
+            ),
+            drift_count=int(data.get("drift_count", 0)),
+            observed_at=str(data.get("observed_at", "")),
+            previous_compliance=None if previous in (None, "") else ConfigurationComplianceState(str(previous)),
+            previous_drift_count=(
+                None if data.get("previous_drift_count") is None else int(data.get("previous_drift_count", 0))
+            ),
+            message=str(data.get("message", "")),
+            transition=bool(data.get("transition", False)),
+        )
+
+
+@dataclass(frozen=True)
 class Agent:
     fingerprint: str
     hostname: str

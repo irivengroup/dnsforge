@@ -48,6 +48,7 @@ Central Inventory also stores agent Configuration Compliance states.
 ```bash
 dnsforge-manager inventory compliance list
 dnsforge-manager inventory compliance update --fingerprint agent-001 --compliance COMPLIANT
+dnsforge-manager inventory compliance history [--fingerprint agent-001]
 ```
 
 API endpoints:

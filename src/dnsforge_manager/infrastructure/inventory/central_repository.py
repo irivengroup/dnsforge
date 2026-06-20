@@ -7,6 +7,7 @@ from typing import Callable, Generic, TypeVar
 
 from dnsforge_manager.domain.inventory.models import (
     Agent,
+    AgentComplianceEvent,
     AgentComplianceStatus,
     AgentReadiness,
     AgentStatus,
@@ -55,6 +56,12 @@ class CentralInventoryRepository:
     def list_agent_compliance(self) -> tuple[AgentComplianceStatus, ...]:
         raise NotImplementedError
 
+    def append_agent_compliance_event(self, event: AgentComplianceEvent) -> AgentComplianceEvent:
+        raise NotImplementedError
+
+    def list_agent_compliance_events(self, fingerprint: str | None = None) -> tuple[AgentComplianceEvent, ...]:
+        raise NotImplementedError
+
 
 class _MemoryTable(Generic[T]):
     def __init__(self, identifier: Callable[[T], str]) -> None:
@@ -84,6 +91,7 @@ class InMemoryCentralInventoryRepository(CentralInventoryRepository):
         self.environments: _MemoryTable[Environment] = _MemoryTable(lambda item: item.environment_id)
         self.status: _MemoryTable[AgentStatus] = _MemoryTable(lambda item: item.fingerprint)
         self.compliance: _MemoryTable[AgentComplianceStatus] = _MemoryTable(lambda item: item.fingerprint)
+        self.compliance_events: _MemoryTable[AgentComplianceEvent] = _MemoryTable(lambda item: item.event_id)
         self.environments.create(Environment(environment_id="production", name="production"))
 
     def create_site(self, site: Site) -> Site:
@@ -122,6 +130,20 @@ class InMemoryCentralInventoryRepository(CentralInventoryRepository):
     def list_agent_compliance(self) -> tuple[AgentComplianceStatus, ...]:
         return self.compliance.list()
 
+    def append_agent_compliance_event(self, event: AgentComplianceEvent) -> AgentComplianceEvent:
+        return self.compliance_events.create(event)
+
+    def list_agent_compliance_events(self, fingerprint: str | None = None) -> tuple[AgentComplianceEvent, ...]:
+        events = tuple(
+            sorted(
+                self.compliance_events.list(),
+                key=lambda item: (item.fingerprint, item.observed_at, item.event_id),
+            )
+        )
+        if fingerprint is None:
+            return events
+        return tuple(event for event in events if event.fingerprint == fingerprint)
+
 
 class JsonCentralInventoryRepository(CentralInventoryRepository):
     """Default Manager Central Inventory backend.
@@ -143,6 +165,7 @@ class JsonCentralInventoryRepository(CentralInventoryRepository):
                 "environments": [],
                 "agent_status": [],
                 "agent_compliance": [],
+                "agent_compliance_history": [],
             }
         raw = json.loads(self.path.read_text(encoding="utf-8"))
         if not isinstance(raw, dict):
@@ -154,6 +177,7 @@ class JsonCentralInventoryRepository(CentralInventoryRepository):
             "environments": _list(raw.get("environments", [])),
             "agent_status": _list(raw.get("agent_status", [])),
             "agent_compliance": _list(raw.get("agent_compliance", [])),
+            "agent_compliance_history": _list(raw.get("agent_compliance_history", [])),
         }
 
     def _write(self, data: dict[str, list[dict[str, object]]]) -> None:
@@ -221,6 +245,27 @@ class JsonCentralInventoryRepository(CentralInventoryRepository):
 
     def list_agent_compliance(self) -> tuple[AgentComplianceStatus, ...]:
         return tuple(AgentComplianceStatus.from_dict(item) for item in self._read()["agent_compliance"])
+
+    def append_agent_compliance_event(self, event: AgentComplianceEvent) -> AgentComplianceEvent:
+        data = self._read()
+        data["agent_compliance_history"].append(event.to_dict())
+        data["agent_compliance_history"] = sorted(
+            data["agent_compliance_history"],
+            key=lambda item: (str(item.get("fingerprint", "")), str(item.get("observed_at", "")), str(item.get("event_id", ""))),
+        )
+        self._write(data)
+        return event
+
+    def list_agent_compliance_events(self, fingerprint: str | None = None) -> tuple[AgentComplianceEvent, ...]:
+        events = tuple(
+            sorted(
+                (AgentComplianceEvent.from_dict(item) for item in self._read()["agent_compliance_history"]),
+                key=lambda item: (item.fingerprint, item.observed_at, item.event_id),
+            )
+        )
+        if fingerprint is None:
+            return events
+        return tuple(event for event in events if event.fingerprint == fingerprint)
 
 
 def _list(value: object) -> list[dict[str, object]]:

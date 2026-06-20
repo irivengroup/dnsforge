@@ -430,6 +430,20 @@ class ManagerApplication:
         self._require(role, "manager:inventory:read")
         return self.central_inventory.aggregate_compliance()
 
+    def inventory_agent_compliance_history(
+        self,
+        fingerprint: str | None = None,
+        *,
+        role: str = "viewer",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:inventory:read")
+        return {
+            "events": [
+                event.to_dict()
+                for event in self.central_inventory.list_agent_compliance_history(fingerprint)
+            ]
+        }
+
     def update_inventory_agent_compliance(
         self,
         payload: dict[str, Any],

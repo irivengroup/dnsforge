@@ -57,4 +57,14 @@ MANAGER_SCHEMA_MIGRATIONS: tuple[ManagerSchemaMigration, ...] = (
             "CREATE INDEX IF NOT EXISTS idx_agent_compliance_drift_count ON agent_compliance (((payload->>'drift_count')::INTEGER));",
         ),
     ),
+    ManagerSchemaMigration(
+        version="006",
+        description="manager agent compliance history",
+        statements=(
+            "CREATE TABLE IF NOT EXISTS agent_compliance_history (event_id TEXT PRIMARY KEY, payload JSONB NOT NULL);",
+            "CREATE INDEX IF NOT EXISTS idx_agent_compliance_history_fingerprint ON agent_compliance_history ((payload->>'fingerprint'));",
+            "CREATE INDEX IF NOT EXISTS idx_agent_compliance_history_state ON agent_compliance_history ((payload->>'compliance'));",
+            "CREATE INDEX IF NOT EXISTS idx_agent_compliance_history_observed_at ON agent_compliance_history ((payload->>'observed_at'));",
+        ),
+    ),
 )

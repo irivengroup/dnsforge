@@ -1,5 +1,12 @@
 # Changelog
 
+## 14.8.1
+
+- Added Manager compliance history with per-agent transition events.
+- Added `dnsforge-manager inventory compliance history` and `/inventory/agent-compliance/history`.
+- Added JSON/PostgreSQL persistence for `agent_compliance_history`.
+- Preserved Central Inventory aggregation and local DNSForge agent behavior.
+
 ## 14.8.0
 
 - Added Manager-side Configuration Compliance aggregation for Central Inventory agents.
