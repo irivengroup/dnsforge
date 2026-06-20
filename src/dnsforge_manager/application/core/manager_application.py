@@ -438,12 +438,8 @@ class ManagerApplication:
     ) -> dict[str, Any]:
         self._require(role, "manager:inventory:read")
         return {
-            "events": [
-                event.to_dict()
-                for event in self.central_inventory.list_agent_compliance_history(fingerprint)
-            ]
+            "events": [event.to_dict() for event in self.central_inventory.list_agent_compliance_history(fingerprint)]
         }
-
 
     def inventory_agent_compliance_trends(
         self,

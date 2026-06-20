@@ -139,7 +139,6 @@ class CentralInventoryService:
     def list_agent_compliance_history(self, fingerprint: str | None = None) -> tuple[AgentComplianceEvent, ...]:
         return self.repository.list_agent_compliance_events(fingerprint)
 
-
     def summarize_agent_compliance_trends(self, fingerprint: str | None = None) -> dict[str, object]:
         events = self.repository.list_agent_compliance_events(fingerprint)
         current = {item.fingerprint: item.compliance for item in self.repository.list_agent_compliance()}
@@ -155,8 +154,7 @@ class CentralInventoryService:
             drift_events = [
                 event
                 for event in ordered_events
-                if event.compliance
-                in (ConfigurationComplianceState.DRIFTED, ConfigurationComplianceState.FAILED)
+                if event.compliance in (ConfigurationComplianceState.DRIFTED, ConfigurationComplianceState.FAILED)
             ]
             transition_events = [event for event in ordered_events if event.transition]
             last_event = ordered_events[-1]

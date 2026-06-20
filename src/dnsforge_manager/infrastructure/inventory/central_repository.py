@@ -251,7 +251,11 @@ class JsonCentralInventoryRepository(CentralInventoryRepository):
         data["agent_compliance_history"].append(event.to_dict())
         data["agent_compliance_history"] = sorted(
             data["agent_compliance_history"],
-            key=lambda item: (str(item.get("fingerprint", "")), str(item.get("observed_at", "")), str(item.get("event_id", ""))),
+            key=lambda item: (
+                str(item.get("fingerprint", "")),
+                str(item.get("observed_at", "")),
+                str(item.get("event_id", "")),
+            ),
         )
         self._write(data)
         return event
