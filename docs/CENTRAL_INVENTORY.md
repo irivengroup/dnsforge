@@ -71,6 +71,8 @@ API:
 ```text
 GET /inventory/agent-compliance/trends
 GET /inventory/agent-compliance/trends?fingerprint=agent-001
+GET /inventory/agent-compliance/report
+GET /inventory/agent-compliance/report?fingerprint=agent-001
 ```
 
 The trend summary reports observations, transitions, recurrent drift, first observation, last observation and last transition for each agent.

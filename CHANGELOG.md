@@ -1,5 +1,13 @@
 # Changelog
 
+## 14.8.3
+
+- Added Manager compliance risk report aggregation.
+- Added `dnsforge-manager inventory compliance report`.
+- Added `GET /inventory/agent-compliance/report`.
+- Preserved JSON/PostgreSQL-backed compliance aggregation without changing local BIND agent behavior.
+
+
 ## 14.8.2
 
 - Added Manager Compliance trend summaries to exploit compliance history without changing local BIND behavior.

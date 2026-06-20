@@ -90,3 +90,23 @@ GET /inventory/agent-compliance/trends?fingerprint=agent-001
 ```
 
 The trend summary reports observations, transitions, recurrent drift, first observation, last observation and last transition for each agent.
+
+
+## Compliance report
+
+DNSForge Manager can expose a compact compliance risk report for supervision and operating reviews.
+
+```bash
+dnsforge-manager inventory compliance report
+dnsforge-manager inventory compliance report --fingerprint agent-001
+```
+
+API:
+
+```text
+GET /inventory/agent-compliance/report
+GET /inventory/agent-compliance/report?fingerprint=agent-001
+```
+
+The report keeps the aggregate state, trend summary and risk counters in a stable schema named
+`dnsforge.manager-compliance-report.v1`.

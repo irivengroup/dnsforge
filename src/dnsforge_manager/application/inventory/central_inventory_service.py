@@ -182,6 +182,29 @@ class CentralInventoryService:
             },
         }
 
+    def build_agent_compliance_report(self, fingerprint: str | None = None) -> dict[str, object]:
+        aggregate = self.aggregate_compliance()
+        trends = self.summarize_agent_compliance_trends(fingerprint)
+        drifted_agents = [
+            item
+            for item in self.repository.list_agent_compliance()
+            if fingerprint is None or item.fingerprint == fingerprint
+            if item.compliance in (ConfigurationComplianceState.DRIFTED, ConfigurationComplianceState.FAILED)
+        ]
+        return {
+            "schema": "dnsforge.manager-compliance-report.v1",
+            "aggregate": aggregate,
+            "trends": trends,
+            "risk": {
+                "drifted_agents": len(drifted_agents),
+                "failed_agents": sum(
+                    1 for item in drifted_agents if item.compliance == ConfigurationComplianceState.FAILED
+                ),
+                "total_drift_count": sum(item.drift_count for item in drifted_agents),
+                "recurrent_drift_agents": trends["summary"]["recurrent_drift"],
+            },
+        }
+
     def aggregate_compliance(self) -> dict[str, object]:
         statuses = self.repository.list_agent_compliance()
         order = {

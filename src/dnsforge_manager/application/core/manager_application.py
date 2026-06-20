@@ -450,6 +450,15 @@ class ManagerApplication:
         self._require(role, "manager:inventory:read")
         return self.central_inventory.summarize_agent_compliance_trends(fingerprint)
 
+    def inventory_agent_compliance_report(
+        self,
+        fingerprint: str | None = None,
+        *,
+        role: str = "viewer",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:inventory:read")
+        return self.central_inventory.build_agent_compliance_report(fingerprint)
+
     def update_inventory_agent_compliance(
         self,
         payload: dict[str, Any],
