@@ -1,3 +1,10 @@
+## 14.5.7 - Canonical Resolved BIND Interface IPs
+
+- Added canonical runtime keys `BIND_EXTRANET_IP`, `BIND_INTRANET_IP` and `BIND_ADMIN_IP`.
+- Preserved legacy rendered aliases `FRONT_IP`, `BACK_IP` and `ADM_IP` for migration and older templates.
+- Kept generated `setup.conf` NIC-based and free from legacy IP variables.
+- Updated interface discovery documentation and tests.
+
 
 ## 14.5.6 - BIND Extranet NIC Naming
 

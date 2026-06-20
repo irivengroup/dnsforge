@@ -54,6 +54,7 @@ class InterfaceAddressResolver:
             external_ip=self._resolve_named_or_legacy(
                 settings,
                 selection.external_nic,
+                "BIND_EXTRANET_IP",
                 "FRONT_IP",
                 "BIND_EXTRANET_NICNAME",
                 "BIND_EXTERNAL_NICNAME",
@@ -62,12 +63,14 @@ class InterfaceAddressResolver:
             intranet_ip=self._resolve_named_or_legacy(
                 settings,
                 selection.intranet_nic,
+                "BIND_INTRANET_IP",
                 "BACK_IP",
                 "BIND_INTRANET_NICNAME",
             ),
             admin_ip=self._resolve_named_or_legacy(
                 settings,
                 selection.admin_nic,
+                "BIND_ADMIN_IP",
                 "ADM_IP",
                 "BIND_ADMIN_NICNAME",
             ),
@@ -76,9 +79,10 @@ class InterfaceAddressResolver:
     def enrich_settings(self, settings: dict[str, str]) -> dict[str, str]:
         enriched = dict(settings)
         resolved = self.resolve(enriched)
-        enriched.setdefault("FRONT_IP", resolved.external_ip)
-        enriched.setdefault("BACK_IP", resolved.intranet_ip)
-        enriched.setdefault("ADM_IP", resolved.admin_ip)
+        enriched.setdefault("BIND_EXTRANET_IP", resolved.external_ip)
+        enriched.setdefault("BIND_INTRANET_IP", resolved.intranet_ip)
+        enriched.setdefault("BIND_ADMIN_IP", resolved.admin_ip)
+        self._set_legacy_ip_aliases(enriched)
         enriched.setdefault("DNS_LISTEN_ON", "; ".join(resolved.distinct_ips()) + ";")
         enriched.setdefault(
             "BIND_ADMIN_LISTEN_ON",
@@ -86,11 +90,19 @@ class InterfaceAddressResolver:
         )
         return enriched
 
+    def _set_legacy_ip_aliases(self, settings: dict[str, str]) -> None:
+        """Expose legacy rendered IP aliases without making setup.conf depend on them."""
+
+        settings.setdefault("FRONT_IP", settings["BIND_EXTRANET_IP"])
+        settings.setdefault("BACK_IP", settings["BIND_INTRANET_IP"])
+        settings.setdefault("ADM_IP", settings["BIND_ADMIN_IP"])
+
     def _resolve_named_or_legacy(
         self,
         settings: dict[str, str],
         nic_name: str,
-        legacy_key: str,
+        preferred_ip_key: str,
+        legacy_ip_key: str,
         *nic_keys: str,
     ) -> str:
         explicit_nic = any(_clean(settings.get(key)) for key in nic_keys)
@@ -101,9 +113,13 @@ class InterfaceAddressResolver:
             "REPLACE_WITH_ADM_NICNAME",
         }:
             return self.ipv4_for_interface(nic_name)
-        legacy = _clean(settings.get(legacy_key))
+        preferred = _clean(settings.get(preferred_ip_key))
+        if preferred and not preferred.startswith("REPLACE_"):
+            self._validate_ipv4(preferred, preferred_ip_key)
+            return preferred
+        legacy = _clean(settings.get(legacy_ip_key))
         if legacy and not legacy.startswith("REPLACE_"):
-            self._validate_ipv4(legacy, legacy_key)
+            self._validate_ipv4(legacy, legacy_ip_key)
             return legacy
         admin = self.default_admin_interface()
         return self.ipv4_for_interface(admin)

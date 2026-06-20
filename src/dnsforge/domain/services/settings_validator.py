@@ -69,7 +69,7 @@ class ProxySettingsValidator(SettingsValidator):
 
         # Backward compatibility: legacy IP variables can still be consumed during migration,
         # but new setup.conf generation no longer emits them.
-        for name in ("FRONT_IP", "BACK_IP", "ADM_IP"):
+        for name in ("BIND_EXTRANET_IP", "BIND_INTRANET_IP", "BIND_ADMIN_IP", "FRONT_IP", "BACK_IP", "ADM_IP"):
             if name in settings:
                 self.validate_ipv4(settings, name)
 
@@ -114,7 +114,7 @@ class AuthoritativeSettingsValidator(SettingsValidator):
 
         # Backward compatibility: legacy IP variables can still be consumed during migration,
         # but new setup.conf generation no longer emits them.
-        for name in ("BACK_IP", "ADM_IP", "VIP_BACK_IP", "PEER_BACK_IP"):
+        for name in ("BIND_INTRANET_IP", "BIND_ADMIN_IP", "BACK_IP", "ADM_IP", "VIP_BACK_IP", "PEER_BACK_IP"):
             if name in settings:
                 self.validate_ipv4(settings, name)
 
