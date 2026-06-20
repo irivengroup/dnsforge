@@ -23,6 +23,7 @@ from dnsforge.application.reports.report_service import ReportService
 from dnsforge.application.drift.drift_service import DriftService
 from dnsforge.application.events.event_tail_service import EventTailService
 from dnsforge.application.metrics.metrics_service import MetricsCollector
+from dnsforge.application.network import InterfaceDiagnosticsService
 from dnsforge.application.sync.provider_service import SyncProviderService
 from dnsforge.application.security.dnssec_policy_service import DnssecPolicyService
 from dnsforge.application.migration.migration_service import MigrationService
@@ -89,8 +90,18 @@ class DnsForgeArgumentParserFactory:
         self._add_metrics(sub)
         self._add_sync(sub)
         self._add_readiness(sub)
+        self._add_network(sub)
 
         return parser
+
+    def _add_network(self, sub) -> None:
+        network = sub.add_parser("network", help="Inspect DNSForge BIND interface resolution")
+        network.add_argument("--setup-file", default="/etc/dnsforge/setup.conf")
+        inner = network.add_subparsers(dest="action", required=True)
+        preview = inner.add_parser("preview", help="Preview NIC-to-IP resolution before rendering BIND")
+        preview.add_argument("--format", choices=["text", "json"], default="text")
+        audit = inner.add_parser("audit", help="Audit NIC-to-IP resolution before initialize")
+        audit.add_argument("--format", choices=["text", "json"], default="text")
 
     def _add_readiness(self, sub) -> None:
         readiness = sub.add_parser("readiness", help="Assess local DNSForge operational readiness")
@@ -581,6 +592,16 @@ class DnsForgeCommandDispatcher:
         if args.command == "sync":
             if args.action == "providers":
                 print(SyncProviderService().providers_status())
+                return 0
+            return 2
+
+        if args.command == "network":
+            service = InterfaceDiagnosticsService(Path(args.setup_file))
+            if args.action in {"preview", "audit"}:
+                if getattr(args, "format", "text") == "json":
+                    print(service.render_json())
+                else:
+                    print(service.render_text())
                 return 0
             return 2
 

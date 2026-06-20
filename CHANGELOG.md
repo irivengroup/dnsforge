@@ -1,5 +1,11 @@
 # Changelog
 
+## 14.6.1
+
+- Added `dnsforge network preview` and `dnsforge network audit` to expose NIC-to-IP resolution before BIND rendering or initialize.
+- Added structured JSON/text diagnostics for `BIND_EXTRANET_IP`, `BIND_INTRANET_IP`, `BIND_ADMIN_IP`, `DNS_LISTEN_ON`, and `BIND_ADMIN_LISTEN_ON`.
+- Preserved NIC-based setup.conf design with no legacy runtime IP aliases.
+
 ## 14.6.0
 
 - Added auditable BIND interface resolution metadata.

@@ -674,6 +674,26 @@ Options:
 - `--reason REASON`:
 - `--dry-run`:
 
+### `dnsforge network audit`
+
+```bash
+dnsforge network audit [-h] [--format {text,json}]
+```
+
+Options:
+
+- `--format FORMAT` default='text' choices=text,json:
+
+### `dnsforge network preview`
+
+```bash
+dnsforge network preview [-h] [--format {text,json}]
+```
+
+Options:
+
+- `--format FORMAT` default='text' choices=text,json:
+
 ### `dnsforge profile audit`
 
 ```bash

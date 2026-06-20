@@ -24,3 +24,21 @@ If a node has a single interface, all three NIC values default to the admin inte
 Generated BIND listen lists are de-duplicated, so a single-interface node does not produce repeated listen addresses.
 
 `BIND_EXTRANET_IP`, `BIND_INTRANET_IP` and `BIND_ADMIN_IP` have been fully removed. Runtime rendering uses only `BIND_EXTRANET_IP`, `BIND_INTRANET_IP` and `BIND_ADMIN_IP`, derived from the configured NIC names.
+
+## Runtime preflight
+
+DNSForge exposes a local diagnostic command before rendering or initializing BIND:
+
+```bash
+dnsforge network preview --setup-file /etc/dnsforge/setup.conf
+```
+
+The same information can be emitted as JSON:
+
+```bash
+dnsforge network audit --setup-file /etc/dnsforge/setup.conf --format json
+```
+
+The command reports the selected NIC names, resolved IPv4 addresses, the final
+`DNS_LISTEN_ON` value and the final `BIND_ADMIN_LISTEN_ON` value. It does not
+write files, deploy BIND configuration or mutate runtime state.
