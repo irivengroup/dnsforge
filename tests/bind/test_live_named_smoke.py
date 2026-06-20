@@ -15,7 +15,10 @@ import pytest
 
 def _load_generated_bind_validation_module() -> Any:
     path = Path(__file__).with_name("test_generated_bind_config_validation.py")
-    spec = importlib.util.spec_from_file_location("dnsforge_generated_bind_validation", path)
+    spec = importlib.util.spec_from_file_location(
+        "dnsforge_generated_bind_validation",
+        path,
+    )
     if spec is None or spec.loader is None:
         raise RuntimeError(f"unable to load generated BIND validation helper: {path}")
     module = importlib.util.module_from_spec(spec)
@@ -100,11 +103,17 @@ def _isolate_named_runtime_for_smoke(root: Path, layout: Any) -> None:
     config_dir = root / layout.config_dir.relative_to("/")
     controls = config_dir / "conf.d" / "40-controls.conf"
     if controls.exists():
-        controls.write_text("// DNSForge CI live smoke: RNDC controls disabled.\n", encoding="utf-8")
+        controls.write_text(
+            "// DNSForge CI live smoke: RNDC controls disabled.\n",
+            encoding="utf-8",
+        )
 
     statistics = config_dir / "conf.d" / "45-statistics.conf"
     if statistics.exists():
-        statistics.write_text("// DNSForge CI live smoke: statistics channel disabled.\n", encoding="utf-8")
+        statistics.write_text(
+            "// DNSForge CI live smoke: statistics channel disabled.\n",
+            encoding="utf-8",
+        )
 
     logging = config_dir / "conf.d" / "30-logging.conf"
     if logging.exists():
@@ -179,9 +188,9 @@ def test_named_starts_generated_authoritative_configuration_under_timeout() -> N
     named_conf = root / layout.named_conf.relative_to("/")
 
     assert named_conf.exists(), f"generated named.conf not found after relocation: {named_conf}"
-    assert not str(named_conf).startswith(
-        "/tmp/"
-    ), f"live named smoke test must not use /tmp because host confinement profiles may deny it: {named_conf}"
+    assert not str(named_conf).startswith("/tmp/"), (
+        "live named smoke test must not use /tmp because host confinement profiles " f"may deny it: {named_conf}"
+    )
 
     try:
         completed = subprocess.run(
