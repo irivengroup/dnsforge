@@ -1,0 +1,5 @@
+366da3e31d5e020f1f1f206686b7d8cf0b1ddfd21a908d7c5a21c63b3504c635  tests/bind/test_live_named_smoke.py
+
+Validation performed locally:
+python -m ruff format --check src tests
+python -m ruff check src tests
