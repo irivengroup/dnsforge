@@ -36,9 +36,7 @@ class InterfaceAddressResolver:
     def selection_from_settings(self, settings: dict[str, str]) -> BindInterfaceSelection:
         admin = _clean(settings.get("BIND_ADMIN_NICNAME")) or self.default_admin_interface()
         external = (
-            _clean(settings.get("BIND_EXTERNET_NICNAME"))
-            or _clean(settings.get("BIND_EXTERNAL_NICNAME"))
-            or admin
+            _clean(settings.get("BIND_EXTERNET_NICNAME")) or _clean(settings.get("BIND_EXTERNAL_NICNAME")) or admin
         )
         intranet = _clean(settings.get("BIND_INTRANET_NICNAME")) or admin
         return BindInterfaceSelection(
@@ -155,12 +153,7 @@ class InterfaceAddressResolver:
             return ()
 
     def _validate_interface_name(self, nic_name: str) -> None:
-        invalid = (
-            not nic_name
-            or "/" in nic_name
-            or "\x00" in nic_name
-            or len(nic_name.encode()) > 15
-        )
+        invalid = not nic_name or "/" in nic_name or "\x00" in nic_name or len(nic_name.encode()) > 15
         if invalid:
             raise SettingsError(f"invalid interface name: {nic_name!r}")
 

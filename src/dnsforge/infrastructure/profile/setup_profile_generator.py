@@ -20,8 +20,7 @@ class SetupProfileGenerator:
         lines: list[str] = [
             "# DNSForge managed setup.conf",
             f"# Profile: {profile.value}",
-            "# Network bindings are declared with NIC names. "
-            "DNSForge resolves IPv4 addresses at render time.",
+            "# Network bindings are declared with NIC names. DNSForge resolves IPv4 addresses at render time.",
             "",
             "# ------------------------------------------------------------------------------",
             "# Identity",
@@ -31,31 +30,37 @@ class SetupProfileGenerator:
         ]
         if profile is not ConfigurationProfile.AUTHORITATIVE:
             lines.append(f'PROXY_TYPE="{proxy_type or profile.proxy_type or "hybrid"}"')
-        lines.extend([
-            "",
-            "# ------------------------------------------------------------------------------",
-            "# Network",
-            "# ------------------------------------------------------------------------------",
-        ])
+        lines.extend(
+            [
+                "",
+                "# ------------------------------------------------------------------------------",
+                "# Network",
+                "# ------------------------------------------------------------------------------",
+            ]
+        )
         if profile is ConfigurationProfile.AUTHORITATIVE:
-            lines.extend([
-                f'BIND_INTRANET_NICNAME="{admin_nic}"',
-                f'BIND_ADMIN_NICNAME="{admin_nic}"',
-                'VIP_BACK_IP="REPLACE_VIP_BACK_IP"',
-                'PEER_BACK_IP="REPLACE_PEER_BACK_IP"',
-                'PEER_PROXY_ADDRESSES="REPLACE_PROXY_BACK_IP_1; REPLACE_PROXY_BACK_IP_2"',
-            ])
+            lines.extend(
+                [
+                    f'BIND_INTRANET_NICNAME="{admin_nic}"',
+                    f'BIND_ADMIN_NICNAME="{admin_nic}"',
+                    'VIP_BACK_IP="REPLACE_VIP_BACK_IP"',
+                    'PEER_BACK_IP="REPLACE_PEER_BACK_IP"',
+                    'PEER_PROXY_ADDRESSES="REPLACE_PROXY_BACK_IP_1; REPLACE_PROXY_BACK_IP_2"',
+                ]
+            )
         else:
-            lines.extend([
-                f'BIND_EXTERNET_NICNAME="{admin_nic}"',
-                f'BIND_INTRANET_NICNAME="{admin_nic}"',
-                f'BIND_ADMIN_NICNAME="{admin_nic}"',
-                (
-                    'PEER_AUTHORITATIVE_ADDRESSES="'
-                    'REPLACE_AUTH_CLUSTER_VIP_OR_IP_1; REPLACE_AUTH_CLUSTER_VIP_OR_IP_2"'
-                ),
-                'PEER_PROXY_ADDRESSES=""',
-            ])
+            lines.extend(
+                [
+                    f'BIND_EXTERNET_NICNAME="{admin_nic}"',
+                    f'BIND_INTRANET_NICNAME="{admin_nic}"',
+                    f'BIND_ADMIN_NICNAME="{admin_nic}"',
+                    (
+                        'PEER_AUTHORITATIVE_ADDRESSES="'
+                        'REPLACE_AUTH_CLUSTER_VIP_OR_IP_1; REPLACE_AUTH_CLUSTER_VIP_OR_IP_2"'
+                    ),
+                    'PEER_PROXY_ADDRESSES=""',
+                ]
+            )
         lines.extend(self._common(profile))
         return "\n".join(lines).rstrip() + "\n"
 
@@ -91,10 +96,7 @@ class SetupProfileGenerator:
             "# ------------------------------------------------------------------------------",
             "# Security / ACL",
             "# ------------------------------------------------------------------------------",
-            (
-                'BACK_RECURSIVE_CLIENTS="10.0.0.0/8; 172.16.0.0/12; '
-                '192.168.0.0/16; localhost; localnets;"'
-            ),
+            ('BACK_RECURSIVE_CLIENTS="10.0.0.0/8; 172.16.0.0/12; 192.168.0.0/16; localhost; localnets;"'),
             'ADM_ALLOWED_CLIENTS="REPLACE_ADM_CIDR"',
             'FRONT_ALLOWED_CLIENTS="any"',
             (

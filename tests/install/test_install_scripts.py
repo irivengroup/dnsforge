@@ -67,9 +67,9 @@ def test_install_script_deploys_profile_setup_conf(tmp_path: Path, profile: str)
 
     assert 'ROLE="dns-' in actual
     assert "BIND_ADMIN_NICNAME" in actual
-    assert not any(line.startswith('FRONT_IP=') for line in actual.splitlines())
-    assert not any(line.startswith('BACK_IP=') for line in actual.splitlines())
-    assert not any(line.startswith('ADM_IP=') for line in actual.splitlines())
+    assert not any(line.startswith("FRONT_IP=") for line in actual.splitlines())
+    assert not any(line.startswith("BACK_IP=") for line in actual.splitlines())
+    assert not any(line.startswith("ADM_IP=") for line in actual.splitlines())
     assert (install_root / "settings").is_symlink()
     assert (install_root / "settings").resolve() == config_root
     assert bin_link.is_symlink()
@@ -105,19 +105,12 @@ def test_install_script_replaces_setup_conf_with_force(tmp_path: Path) -> None:
     assert 'ROLE="dns-proxy"' in actual
     assert 'PROXY_TYPE="forwarder"' in actual
     assert "BIND_ADMIN_NICNAME" in actual
-    assert not any(line.startswith('FRONT_IP=') for line in actual.splitlines())
+    assert not any(line.startswith("FRONT_IP=") for line in actual.splitlines())
 
 
 def test_install_profile_templates_are_owned_by_project_resources() -> None:
     assert not (PROJECT_ROOT / "install" / "templates").exists()
     legacy_node_settings_scripts = list((PROJECT_ROOT / "install").glob("*node-settings*.sh"))
     assert legacy_node_settings_scripts == []
-    generator = (
-        PROJECT_ROOT
-        / "src"
-        / "dnsforge"
-        / "infrastructure"
-        / "profile"
-        / "setup_profile_generator.py"
-    )
+    generator = PROJECT_ROOT / "src" / "dnsforge" / "infrastructure" / "profile" / "setup_profile_generator.py"
     assert generator.is_file()

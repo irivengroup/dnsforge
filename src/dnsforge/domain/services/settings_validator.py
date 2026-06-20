@@ -85,8 +85,7 @@ class ProxySettingsValidator(SettingsValidator):
         )
         if any(name in settings for name in legacy_proxy_names):
             raise SettingsError(
-                "legacy proxy HA variables are not supported; "
-                "use PEER_AUTHORITATIVE_ADDRESSES and PEER_PROXY_ADDRESSES"
+                "legacy proxy HA variables are not supported; use PEER_AUTHORITATIVE_ADDRESSES and PEER_PROXY_ADDRESSES"
             )
 
         if settings.get("ENABLE_CLUSTER", "no") == "yes":
