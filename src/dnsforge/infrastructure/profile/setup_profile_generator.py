@@ -10,7 +10,12 @@ class SetupProfileGenerator:
     def __init__(self, resolver: InterfaceAddressResolver | None = None) -> None:
         self.resolver = resolver or InterfaceAddressResolver()
 
-    def generate(self, profile: ConfigurationProfile, node: str, proxy_type: str | None = None) -> str:
+    def generate(
+        self,
+        profile: ConfigurationProfile,
+        node: str,
+        proxy_type: str | None = None,
+    ) -> str:
         admin_nic = self.resolver.default_admin_interface()
         lines: list[str] = [
             "# DNSForge managed setup.conf",
@@ -86,7 +91,10 @@ class SetupProfileGenerator:
             "# ------------------------------------------------------------------------------",
             "# Security / ACL",
             "# ------------------------------------------------------------------------------",
-            'BACK_RECURSIVE_CLIENTS="10.0.0.0/8; 172.16.0.0/12; 192.168.0.0/16; localhost; localnets;"',
+            (
+                'BACK_RECURSIVE_CLIENTS="10.0.0.0/8; 172.16.0.0/12; '
+                '192.168.0.0/16; localhost; localnets;"'
+            ),
             'ADM_ALLOWED_CLIENTS="REPLACE_ADM_CIDR"',
             'FRONT_ALLOWED_CLIENTS="any"',
             (

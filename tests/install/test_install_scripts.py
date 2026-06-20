@@ -93,7 +93,13 @@ def test_install_script_replaces_setup_conf_with_force(tmp_path: Path) -> None:
     setup_file = config_root / "setup.conf"
     setup_file.write_text('ROLE="custom"\n', encoding="utf-8")
 
-    _run_install(tmp_path / "second", "proxy-forwarder", "--config-root", str(config_root), "--force")
+    _run_install(
+        tmp_path / "second",
+        "proxy-forwarder",
+        "--config-root",
+        str(config_root),
+        "--force",
+    )
 
     actual = setup_file.read_text(encoding="utf-8")
     assert 'ROLE="dns-proxy"' in actual
@@ -106,5 +112,12 @@ def test_install_profile_templates_are_owned_by_project_resources() -> None:
     assert not (PROJECT_ROOT / "install" / "templates").exists()
     legacy_node_settings_scripts = list((PROJECT_ROOT / "install").glob("*node-settings*.sh"))
     assert legacy_node_settings_scripts == []
-    generator = PROJECT_ROOT / "src" / "dnsforge" / "infrastructure" / "profile" / "setup_profile_generator.py"
+    generator = (
+        PROJECT_ROOT
+        / "src"
+        / "dnsforge"
+        / "infrastructure"
+        / "profile"
+        / "setup_profile_generator.py"
+    )
     assert generator.is_file()
