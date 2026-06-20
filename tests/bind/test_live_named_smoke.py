@@ -187,10 +187,15 @@ def test_named_starts_generated_authoritative_configuration_under_timeout() -> N
     _make_generated_tree_accessible_to_named(root)
     named_conf = root / layout.named_conf.relative_to("/")
 
-    assert named_conf.exists(), f"generated named.conf not found after relocation: {named_conf}"
-    assert not str(named_conf).startswith("/tmp/"), (
-        "live named smoke test must not use /tmp because host confinement profiles " f"may deny it: {named_conf}"
-    )
+    missing_config_message = "generated named.conf not found after relocation: "
+    missing_config_message += str(named_conf)
+
+    confinement_message = "live named smoke test must not use /tmp "
+    confinement_message += "because host confinement profiles may deny it: "
+    confinement_message += str(named_conf)
+
+    assert named_conf.exists(), missing_config_message
+    assert not str(named_conf).startswith("/tmp/"), confinement_message
 
     try:
         completed = subprocess.run(
