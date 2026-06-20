@@ -1,3 +1,10 @@
+
+## v14.5.6 - BIND Extranet NIC Naming
+
+- Renamed `BIND_EXTERNET_NICNAME` to `BIND_EXTRANET_NICNAME` across generated setup profiles, validators, interface resolution, tests and documentation.
+- Kept deprecated `BIND_EXTERNET_NICNAME` as read-only migration compatibility input; generated `setup.conf` now emits only `BIND_EXTRANET_NICNAME`.
+- Preserved legacy `BIND_EXTERNAL_NICNAME` compatibility alias where it already existed.
+
 # Changelog
 
 ## 14.5.5 - Distribution-aware setup defaults
@@ -23,7 +30,7 @@
 
 ## 14.5.0
 
-- Replaced setup.conf BIND network IP variables with NIC-name variables: BIND_EXTERNET_NICNAME, BIND_INTRANET_NICNAME and BIND_ADMIN_NICNAME.
+- Replaced setup.conf BIND network IP variables with NIC-name variables: BIND_EXTRANET_NICNAME, BIND_INTRANET_NICNAME and BIND_ADMIN_NICNAME.
 - Added runtime interface discovery so the DNSForge agent resolves BIND addresses locally and supports one-NIC, two-NIC and three-NIC deployments.
 - Added duplicate filtering for generated BIND listen-on and administration bindings.
 - Introduced dynamic setup.conf profile generation and updated installation to generate setup.conf from profile policy instead of copying static role files.

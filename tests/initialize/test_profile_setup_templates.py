@@ -38,7 +38,7 @@ def test_proxy_templates_use_distributed_peer_and_nic_variables() -> None:
     service = ProfileSetupTemplateService()
     for profile in (ConfigurationProfile.PROXY_FORWARDER, ConfigurationProfile.PROXY_HYBRID):
         text = service.template_text(profile)
-        assert "BIND_EXTERNET_NICNAME" in text
+        assert "BIND_EXTRANET_NICNAME" in text
         assert "BIND_INTRANET_NICNAME" in text
         assert "BIND_ADMIN_NICNAME" in text
         assert "PEER_AUTHORITATIVE_ADDRESSES" in text

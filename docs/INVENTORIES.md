@@ -25,7 +25,7 @@ Variables principales :
 ROLE="dns-proxy"
 NODE_NAME="<node>"
 
-BIND_EXTERNET_NICNAME="<front-nic>"
+BIND_EXTRANET_NICNAME="<front-nic>"
 BIND_INTRANET_NICNAME="<back-nic>"
 BIND_ADMIN_NICNAME="<adm-nic>"
 

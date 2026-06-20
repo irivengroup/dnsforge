@@ -18,7 +18,7 @@ find src/settings/dns-proxy -maxdepth 1 -type f -name '*.env' -print
 Récupérer les IPs dans les inventaires :
 
 ```bash
-grep -E 'BIND_EXTERNET_NICNAME|BIND_INTRANET_NICNAME|BIND_ADMIN_NICNAME' src/settings/dns-proxy/*.env
+grep -E 'BIND_EXTRANET_NICNAME|BIND_INTRANET_NICNAME|BIND_ADMIN_NICNAME' src/settings/dns-proxy/*.env
 ```
 
 ## 2. Tester les deux proxys

@@ -7,7 +7,7 @@ Since v14.5.0, `setup.conf` stores BIND network bindings as NIC names, not stati
 Proxy profiles use:
 
 ```conf
-BIND_EXTERNET_NICNAME="eth2"
+BIND_EXTRANET_NICNAME="eth2"
 BIND_INTRANET_NICNAME="eth1"
 BIND_ADMIN_NICNAME="eth0"
 ```
@@ -19,7 +19,7 @@ BIND_INTRANET_NICNAME="eth1"
 BIND_ADMIN_NICNAME="eth0"
 ```
 
-`BIND_EXTERNET_NICNAME` is the external/client-facing side for internet or cloud clients. `BIND_INTRANET_NICNAME` is the internal side for enterprise clients and proxy-authoritative transfers. `BIND_ADMIN_NICNAME` is used for BIND administration and RNDC controls.
+`BIND_EXTRANET_NICNAME` is the external/client-facing side for internet or cloud clients. `BIND_INTRANET_NICNAME` is the internal side for enterprise clients and proxy-authoritative transfers. `BIND_ADMIN_NICNAME` is used for BIND administration and RNDC controls.
 
 ## Defaults
 

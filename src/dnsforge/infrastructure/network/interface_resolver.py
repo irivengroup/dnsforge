@@ -36,7 +36,10 @@ class InterfaceAddressResolver:
     def selection_from_settings(self, settings: dict[str, str]) -> BindInterfaceSelection:
         admin = _clean(settings.get("BIND_ADMIN_NICNAME")) or self.default_admin_interface()
         external = (
-            _clean(settings.get("BIND_EXTERNET_NICNAME")) or _clean(settings.get("BIND_EXTERNAL_NICNAME")) or admin
+            _clean(settings.get("BIND_EXTRANET_NICNAME"))
+            or _clean(settings.get("BIND_EXTERNAL_NICNAME"))
+            or _clean(settings.get("BIND_EXTERNET_NICNAME"))
+            or admin
         )
         intranet = _clean(settings.get("BIND_INTRANET_NICNAME")) or admin
         return BindInterfaceSelection(
@@ -52,8 +55,9 @@ class InterfaceAddressResolver:
                 settings,
                 selection.external_nic,
                 "FRONT_IP",
-                "BIND_EXTERNET_NICNAME",
+                "BIND_EXTRANET_NICNAME",
                 "BIND_EXTERNAL_NICNAME",
+                "BIND_EXTERNET_NICNAME",
             ),
             intranet_ip=self._resolve_named_or_legacy(
                 settings,

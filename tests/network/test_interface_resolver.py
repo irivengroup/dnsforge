@@ -23,7 +23,7 @@ def test_interface_resolver_defaults_all_bind_nics_to_admin_interface() -> None:
 def test_interface_resolver_filters_duplicate_bind_addresses() -> None:
     enriched = _Resolver().enrich_settings(
         {
-            "BIND_EXTERNET_NICNAME": "eth2",
+            "BIND_EXTRANET_NICNAME": "eth2",
             "BIND_INTRANET_NICNAME": "eth1",
             "BIND_ADMIN_NICNAME": "eth1",
         }

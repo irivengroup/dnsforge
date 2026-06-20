@@ -69,7 +69,7 @@ class SetupProfileGenerator:
 
     proxy_common_setup: dict[str, SetupValue] = {
         "PROXY_TYPE": None,
-        "BIND_EXTERNET_NICNAME": None,
+        "BIND_EXTRANET_NICNAME": None,
         "BIND_INTRANET_NICNAME": None,
         "PEER_AUTHORITATIVE_ADDRESSES": "REPLACE_AUTH_CLUSTER_VIP_OR_IP_1; REPLACE_AUTH_CLUSTER_VIP_OR_IP_2",
         "PEER_PROXY_ADDRESSES": "",
@@ -113,7 +113,7 @@ class SetupProfileGenerator:
         (
             "Network",
             (
-                "BIND_EXTERNET_NICNAME",
+                "BIND_EXTRANET_NICNAME",
                 "BIND_INTRANET_NICNAME",
                 "BIND_ADMIN_NICNAME",
                 "VIP_BACK_IP",
@@ -224,7 +224,7 @@ class SetupProfileGenerator:
             values.update(
                 {
                     "PROXY_TYPE": effective_proxy_type,
-                    "BIND_EXTERNET_NICNAME": admin_nic,
+                    "BIND_EXTRANET_NICNAME": admin_nic,
                     "BIND_INTRANET_NICNAME": admin_nic,
                 }
             )

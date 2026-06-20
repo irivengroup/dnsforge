@@ -59,8 +59,9 @@ class ProxySettingsValidator(SettingsValidator):
             raise SettingsError("ROLE must be dns-proxy")
 
         for name in (
-            "BIND_EXTERNET_NICNAME",
+            "BIND_EXTRANET_NICNAME",
             "BIND_EXTERNAL_NICNAME",
+            "BIND_EXTERNET_NICNAME",
             "BIND_INTRANET_NICNAME",
             "BIND_ADMIN_NICNAME",
         ):
