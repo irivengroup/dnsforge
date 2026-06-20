@@ -1,14 +1,19 @@
 from __future__ import annotations
+
 import socket
 from pathlib import Path
+from typing import Any
 
-from dnsforge.infrastructure.settings.env_loader import EnvSettingsLoader
+from dnsforge.application.network.interface_diagnostics_service import InterfaceDiagnosticsService
 from dnsforge.infrastructure.initialize.state_store import InitializeStateStore
+from dnsforge.infrastructure.settings.env_loader import EnvSettingsLoader
 
 
 class StatusService:
     def __init__(
-        self, loader: EnvSettingsLoader | None = None, initialize_state: InitializeStateStore | None = None
+        self,
+        loader: EnvSettingsLoader | None = None,
+        initialize_state: InitializeStateStore | None = None,
     ) -> None:
         self.loader = loader or EnvSettingsLoader()
         self.initialize_state = initialize_state or InitializeStateStore()
@@ -49,4 +54,34 @@ class StatusService:
             if initialized_node:
                 lines.append(f"  Node: {initialized_node}")
 
+        lines.extend(["", *self._network_status_lines(setup_file)])
         return "\n".join(lines)
+
+    def _network_status_lines(self, setup_file: Path) -> list[str]:
+        lines = ["Network Interfaces:"]
+        if not setup_file.exists():
+            lines.append("  Status: unavailable")
+            lines.append("  Reason: setup file not found")
+            return lines
+        try:
+            payload = InterfaceDiagnosticsService(setup_file).as_dict()
+            interfaces = payload.get("interfaces")
+            bind = payload.get("bind")
+            if not isinstance(interfaces, dict) or not isinstance(bind, dict):
+                raise TypeError("invalid network diagnostic payload")
+            for role in ("extranet", "intranet", "admin"):
+                item = interfaces.get(role)
+                if isinstance(item, dict):
+                    nic = self._as_text(item.get("nic"))
+                    ip = self._as_text(item.get("ip"))
+                    lines.append(f"  {role.capitalize()}: {nic} -> {ip}")
+            lines.append(f"  DNS Listen On: {self._as_text(bind.get('DNS_LISTEN_ON'))}")
+            lines.append(f"  Admin Listen On: {self._as_text(bind.get('BIND_ADMIN_LISTEN_ON'))}")
+            lines.append("  Status: resolved")
+        except Exception as exc:  # pragma: no cover - defensive operational status path
+            lines.append("  Status: warning")
+            lines.append(f"  Reason: {exc}")
+        return lines
+
+    def _as_text(self, value: Any) -> str:
+        return str(value) if value is not None else ""

@@ -1,5 +1,12 @@
 # Changelog
 
+## 14.6.2
+
+- Integrated BIND interface diagnostics into `dnsforge status`.
+- Added network topology warnings to `dnsforge doctor`.
+- Documented day-two BIND interface observability.
+- Preserved NIC-based setup generation and runtime-only IP resolution.
+
 ## 14.6.1
 
 - Added `dnsforge network preview` and `dnsforge network audit` to expose NIC-to-IP resolution before BIND rendering or initialize.
