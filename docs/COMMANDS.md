@@ -318,6 +318,22 @@ Options:
 - `--reason REASON` required:
 - `--dry-run`:
 
+### `dnsforge config baseline rebuild`
+
+```bash
+dnsforge config baseline rebuild [-h]
+```
+
+### `dnsforge config baseline show`
+
+```bash
+dnsforge config baseline show [-h] [--format {text,json}]
+```
+
+Options:
+
+- `--format FORMAT` default='text' choices=text,json:
+
 ### `dnsforge config diff`
 
 ```bash
@@ -330,11 +346,44 @@ Options:
 - `--id1 ID1`:
 - `--id2 ID2`:
 
+### `dnsforge config drift`
+
+```bash
+dnsforge config drift [-h] [--target-root TARGET_ROOT]
+                             [--format {text,json}]
+```
+
+Options:
+
+- `--target-root TARGET_ROOT` default='/':
+- `--format FORMAT` default='text' choices=text,json:
+
+### `dnsforge config fingerprint`
+
+```bash
+dnsforge config fingerprint [-h] [--target-root TARGET_ROOT]
+```
+
+Options:
+
+- `--target-root TARGET_ROOT`:
+
 ### `dnsforge config history`
 
 ```bash
 dnsforge config history [-h]
 ```
+
+### `dnsforge config repair`
+
+```bash
+dnsforge config repair [-h] [--target-root TARGET_ROOT] [--preview]
+```
+
+Options:
+
+- `--target-root TARGET_ROOT` default='/':
+- `--preview`:
 
 ### `dnsforge config rollback`
 
@@ -359,6 +408,18 @@ dnsforge config show [-h]
 ```bash
 dnsforge config validate [-h]
 ```
+
+### `dnsforge config verify`
+
+```bash
+dnsforge config verify [-h] [--target-root TARGET_ROOT]
+                              [--format {text,json}]
+```
+
+Options:
+
+- `--target-root TARGET_ROOT` default='/':
+- `--format FORMAT` default='text' choices=text,json:
 
 ### `dnsforge deploy`
 

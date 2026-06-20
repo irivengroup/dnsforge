@@ -1,5 +1,17 @@
 # Changelog
 
+## 14.7.0
+
+### Added
+- Configuration Compliance Engine for rendered-versus-deployed BIND configuration verification.
+- `dnsforge config fingerprint` to compute stable configuration fingerprints.
+- `dnsforge config verify` and `dnsforge config drift` to detect manual drift.
+- `dnsforge config baseline show|rebuild` to inspect expected rendered configuration resources.
+- `dnsforge config repair --preview` to generate a safe remediation plan without applying changes.
+
+### Changed
+- Compliance checks use rendered DNSForge state as the expected baseline and native BIND paths as the deployed target.
+
 ## 14.6.3
 
 - Added stable export of BIND interface diagnostics for supervision and CI integration.
@@ -48,6 +60,18 @@
 - Preserved legacy `BIND_EXTERNAL_NICNAME` compatibility alias where it already existed.
 
 # Changelog
+
+## 14.7.0
+
+### Added
+- Configuration Compliance Engine for rendered-versus-deployed BIND configuration verification.
+- `dnsforge config fingerprint` to compute stable configuration fingerprints.
+- `dnsforge config verify` and `dnsforge config drift` to detect manual drift.
+- `dnsforge config baseline show|rebuild` to inspect expected rendered configuration resources.
+- `dnsforge config repair --preview` to generate a safe remediation plan without applying changes.
+
+### Changed
+- Compliance checks use rendered DNSForge state as the expected baseline and native BIND paths as the deployed target.
 
 ## 14.6.3
 
@@ -135,6 +159,18 @@
 
 # Changelog
 
+## 14.7.0
+
+### Added
+- Configuration Compliance Engine for rendered-versus-deployed BIND configuration verification.
+- `dnsforge config fingerprint` to compute stable configuration fingerprints.
+- `dnsforge config verify` and `dnsforge config drift` to detect manual drift.
+- `dnsforge config baseline show|rebuild` to inspect expected rendered configuration resources.
+- `dnsforge config repair --preview` to generate a safe remediation plan without applying changes.
+
+### Changed
+- Compliance checks use rendered DNSForge state as the expected baseline and native BIND paths as the deployed target.
+
 ## 14.6.3
 
 - Added stable export of BIND interface diagnostics for supervision and CI integration.
@@ -201,6 +237,18 @@
 - Integrated GA readiness into CI and product gate.
 
 # Changelog
+
+## 14.7.0
+
+### Added
+- Configuration Compliance Engine for rendered-versus-deployed BIND configuration verification.
+- `dnsforge config fingerprint` to compute stable configuration fingerprints.
+- `dnsforge config verify` and `dnsforge config drift` to detect manual drift.
+- `dnsforge config baseline show|rebuild` to inspect expected rendered configuration resources.
+- `dnsforge config repair --preview` to generate a safe remediation plan without applying changes.
+
+### Changed
+- Compliance checks use rendered DNSForge state as the expected baseline and native BIND paths as the deployed target.
 
 ## 14.6.3
 
@@ -487,6 +535,18 @@
 
 # Changelog
 
+## 14.7.0
+
+### Added
+- Configuration Compliance Engine for rendered-versus-deployed BIND configuration verification.
+- `dnsforge config fingerprint` to compute stable configuration fingerprints.
+- `dnsforge config verify` and `dnsforge config drift` to detect manual drift.
+- `dnsforge config baseline show|rebuild` to inspect expected rendered configuration resources.
+- `dnsforge config repair --preview` to generate a safe remediation plan without applying changes.
+
+### Changed
+- Compliance checks use rendered DNSForge state as the expected baseline and native BIND paths as the deployed target.
+
 ## 14.6.3
 
 - Added stable export of BIND interface diagnostics for supervision and CI integration.
@@ -552,6 +612,18 @@
 - Added regression coverage ensuring missing BIND tools fail under `GITHUB_ACTIONS=true`.
 
 # Changelog
+
+## 14.7.0
+
+### Added
+- Configuration Compliance Engine for rendered-versus-deployed BIND configuration verification.
+- `dnsforge config fingerprint` to compute stable configuration fingerprints.
+- `dnsforge config verify` and `dnsforge config drift` to detect manual drift.
+- `dnsforge config baseline show|rebuild` to inspect expected rendered configuration resources.
+- `dnsforge config repair --preview` to generate a safe remediation plan without applying changes.
+
+### Changed
+- Compliance checks use rendered DNSForge state as the expected baseline and native BIND paths as the deployed target.
 
 ## 14.6.3
 
@@ -1078,6 +1150,18 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 - Archive régénérée avec dossier racine `binddns-enterprise-redhat-v3.9`.
 
 # Changelog
+
+## 14.7.0
+
+### Added
+- Configuration Compliance Engine for rendered-versus-deployed BIND configuration verification.
+- `dnsforge config fingerprint` to compute stable configuration fingerprints.
+- `dnsforge config verify` and `dnsforge config drift` to detect manual drift.
+- `dnsforge config baseline show|rebuild` to inspect expected rendered configuration resources.
+- `dnsforge config repair --preview` to generate a safe remediation plan without applying changes.
+
+### Changed
+- Compliance checks use rendered DNSForge state as the expected baseline and native BIND paths as the deployed target.
 
 ## 14.6.3
 

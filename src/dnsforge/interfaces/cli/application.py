@@ -11,6 +11,7 @@ from dnsforge.application.audit.product_auditor import ProductAuditor
 from dnsforge.application.cluster.cluster_service import ClusterService
 from dnsforge.application.catalog.catalog_service import CatalogService
 from dnsforge.application.config.config_service import ConfigService
+from dnsforge.application.compliance import ComplianceService
 from dnsforge.application.deploy.deploy_service import DeployService
 from dnsforge.application.docs.commands_doc_service import CommandDocumentationService
 from dnsforge.application.disaster.disaster_service import DisasterRecoveryService
@@ -416,6 +417,22 @@ class DnsForgeArgumentParserFactory:
         inner = config.add_subparsers(dest="action", required=True)
         inner.add_parser("show", help="Show node configuration")
         inner.add_parser("validate", help="Validate node configuration")
+        fingerprint = inner.add_parser("fingerprint", help="Fingerprint rendered DNSForge BIND configuration")
+        fingerprint.add_argument("--target-root", default=None)
+        baseline = inner.add_parser("baseline", help="Manage configuration compliance baseline")
+        baseline_inner = baseline.add_subparsers(dest="baseline_action", required=True)
+        baseline_show = baseline_inner.add_parser("show", help="Show expected rendered configuration baseline")
+        baseline_show.add_argument("--format", choices=["text", "json"], default="text")
+        baseline_inner.add_parser("rebuild", help="Rebuild expected configuration baseline metadata")
+        verify = inner.add_parser("verify", help="Verify deployed BIND files against DNSForge rendered baseline")
+        verify.add_argument("--target-root", default="/")
+        verify.add_argument("--format", choices=["text", "json"], default="text")
+        drift_cmd = inner.add_parser("drift", help="Show deployed BIND configuration drift")
+        drift_cmd.add_argument("--target-root", default="/")
+        drift_cmd.add_argument("--format", choices=["text", "json"], default="text")
+        repair = inner.add_parser("repair", help="Plan configuration drift remediation")
+        repair.add_argument("--target-root", default="/")
+        repair.add_argument("--preview", action="store_true")
         diff = inner.add_parser("diff", help="Diff current setup.conf against history")
         diff.add_argument("--id", type=int)
         diff.add_argument("--id1", type=int)
@@ -1042,6 +1059,39 @@ class DnsForgeCommandDispatcher:
                 return 0
             if args.action == "validate":
                 print(service.validate())
+                return 0
+            if args.action == "fingerprint":
+                target_root = Path(args.target_root) if args.target_root else None
+                print(ComplianceService(config_paths).render_fingerprint(target_root=target_root))
+                return 0
+            if args.action == "baseline":
+                compliance = ComplianceService(config_paths)
+                if args.baseline_action == "show":
+                    print(compliance.render_baseline(json_output=args.format == "json"))
+                    return 0
+                if args.baseline_action == "rebuild":
+                    print(compliance.render_baseline(json_output=False))
+                    return 0
+            if args.action == "verify":
+                print(
+                    ComplianceService(config_paths).render_verify(
+                        target_root=Path(args.target_root), json_output=args.format == "json"
+                    )
+                )
+                return 0
+            if args.action == "drift":
+                print(
+                    ComplianceService(config_paths).render_drift(
+                        target_root=Path(args.target_root), json_output=args.format == "json"
+                    )
+                )
+                return 0
+            if args.action == "repair":
+                print(
+                    ComplianceService(config_paths).render_repair(
+                        target_root=Path(args.target_root), preview=args.preview
+                    )
+                )
                 return 0
             if args.action == "diff":
                 print(service.diff(identifier=args.id, id1=args.id1, id2=args.id2))
