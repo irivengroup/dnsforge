@@ -13,6 +13,7 @@ from dnsforge.domain.zone.template_registry import ZoneTemplateKey, ZoneTemplate
 from dnsforge.infrastructure.bind.layout import BindLayout, BindLayoutDetector
 from dnsforge.infrastructure.security.bind_security import BindSecurityOptionsRenderer
 from dnsforge.infrastructure.bind.rendering.template_service import TemplateService
+from dnsforge.infrastructure.network.interface_resolver import InterfaceAddressResolver
 
 
 @dataclass(frozen=True)
@@ -42,13 +43,16 @@ class BindConfigFactory:
         self,
         security_renderer: BindSecurityOptionsRenderer | None = None,
         template_service: TemplateService | None = None,
+        interface_resolver: InterfaceAddressResolver | None = None,
     ) -> None:
         self.security_renderer = security_renderer or BindSecurityOptionsRenderer()
         self.template_service = template_service or TemplateService()
+        self.interface_resolver = interface_resolver or InterfaceAddressResolver()
 
     def build_proxy_configuration(
         self, settings: dict[str, str], layout: BindLayout, include_views: bool
     ) -> BindConfiguration:
+        settings = self.interface_resolver.enrich_settings(settings)
         return BindConfiguration(
             layout=layout,
             settings=settings,
@@ -58,6 +62,7 @@ class BindConfigFactory:
         )
 
     def build_authoritative_configuration(self, settings: dict[str, str], layout: BindLayout) -> BindConfiguration:
+        settings = self.interface_resolver.enrich_settings(settings)
         return BindConfiguration(layout=layout, settings=settings, include_rpz=False, include_views=True, proxy=False)
 
     def adapt(self, content: str) -> str:
@@ -210,7 +215,18 @@ class BindConfigFactory:
 
     def controls(self, settings: dict[str, str], layout: BindLayout | None = None) -> str:
         layout = layout or self.template_service.layout
-        return self._render("40-controls.conf.j2", {"RNDC_KEY_NAME": settings.get("RNDC_KEY_NAME", "rndc-key")}, layout)
+        key_name = settings.get("RNDC_KEY_NAME", "rndc-key")
+        raw_addresses = settings.get("BIND_ADMIN_LISTEN_ON", "127.0.0.1;")
+        addresses: list[str] = []
+        for value in raw_addresses.replace(",", ";").split(";"):
+            address = value.strip()
+            if address and address not in addresses:
+                addresses.append(address)
+        block = "\n".join(
+            f'    inet {address} port 953 allow {{ admin_clients; localhost; }} keys {{ "{key_name}"; }};'
+            for address in addresses
+        )
+        return self._render("40-controls.conf.j2", {"CONTROL_INET_BLOCK": block}, layout)
 
     def forwarders(self, settings: dict[str, str]) -> str:
         policy = settings.get("DNS_FORWARD_POLICY", "first")

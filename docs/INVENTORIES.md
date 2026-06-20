@@ -25,9 +25,9 @@ Variables principales :
 ROLE="dns-proxy"
 NODE_NAME="<node>"
 
-FRONT_IP="<front-ip>"
-BACK_IP="<back-ip>"
-ADM_IP="<adm-ip>"
+BIND_EXTERNET_NICNAME="<front-nic>"
+BIND_INTRANET_NICNAME="<back-nic>"
+BIND_ADMIN_NICNAME="<adm-nic>"
 
 PEER_AUTHORITATIVE_ADDRESSES=("192.0.2.10" "192.0.2.20")
 
@@ -95,8 +95,8 @@ Variables principales :
 ROLE="dns-authoritative"
 NODE_NAME="<node>"
 
-BACK_IP="<back-ip>"
-ADM_IP="<adm-ip>"
+BIND_INTRANET_NICNAME="<back-nic>"
+BIND_ADMIN_NICNAME="<adm-nic>"
 VIP_BACK_IP="<vip-back-ip>"
 PEER_BACK_IP="<peer-back-ip>"
 

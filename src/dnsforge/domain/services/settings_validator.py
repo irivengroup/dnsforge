@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ipaddress
+import re
 
 from dnsforge.domain.model.proxy_type import ProxyType
 from dnsforge.domain.services.list_parser import ListParser
@@ -31,6 +32,16 @@ class SettingsValidator:
         if value is not None and value not in {"yes", "no"}:
             raise SettingsError(f"{name} must be yes or no")
 
+    def validate_nic_name_if_present(self, settings: dict[str, str], name: str) -> None:
+        value = settings.get(name)
+        if value is None:
+            return
+        value = value.strip().strip("\"'")
+        if not value or value.lower() == "auto" or value.startswith("REPLACE_WITH_"):
+            return
+        if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,64}", value):
+            raise SettingsError(f"{name} must be a valid network interface name: {value}")
+
     def validate_address_list_if_present(self, settings: dict[str, str], name: str) -> None:
         if name not in settings:
             return
@@ -47,6 +58,16 @@ class ProxySettingsValidator(SettingsValidator):
         if settings.get("ROLE") not in {"", None, "dns-proxy"}:
             raise SettingsError("ROLE must be dns-proxy")
 
+        for name in (
+            "BIND_EXTERNET_NICNAME",
+            "BIND_EXTERNAL_NICNAME",
+            "BIND_INTRANET_NICNAME",
+            "BIND_ADMIN_NICNAME",
+        ):
+            self.validate_nic_name_if_present(settings, name)
+
+        # Backward compatibility: legacy IP variables can still be consumed during migration,
+        # but new setup.conf generation no longer emits them.
         for name in ("FRONT_IP", "BACK_IP", "ADM_IP"):
             if name in settings:
                 self.validate_ipv4(settings, name)
@@ -64,7 +85,8 @@ class ProxySettingsValidator(SettingsValidator):
         )
         if any(name in settings for name in legacy_proxy_names):
             raise SettingsError(
-                "legacy proxy HA variables are not supported; use PEER_AUTHORITATIVE_ADDRESSES and PEER_PROXY_ADDRESSES"
+                "legacy proxy HA variables are not supported; "
+                "use PEER_AUTHORITATIVE_ADDRESSES and PEER_PROXY_ADDRESSES"
             )
 
         if settings.get("ENABLE_CLUSTER", "no") == "yes":
@@ -73,7 +95,11 @@ class ProxySettingsValidator(SettingsValidator):
         proxy_type = ProxyType.from_value(self.require(settings, "PROXY_TYPE"))
 
         if proxy_type is ProxyType.FORWARDER:
-            for flag in ("ENABLE_PROXY_MASTER_ZONES", "ENABLE_PROXY_AUTHORITATIVE_ZONES", "ENABLE_PROXY_LOCAL_ZONES"):
+            for flag in (
+                "ENABLE_PROXY_MASTER_ZONES",
+                "ENABLE_PROXY_AUTHORITATIVE_ZONES",
+                "ENABLE_PROXY_LOCAL_ZONES",
+            ):
                 if settings.get(flag, "no") == "yes":
                     raise SettingsError(f"FORWARDER mode does not allow {flag}=yes")
 
@@ -83,6 +109,11 @@ class AuthoritativeSettingsValidator(SettingsValidator):
         if settings.get("ROLE") not in {"", None, "dns-authoritative"}:
             raise SettingsError("ROLE must be dns-authoritative")
 
+        for name in ("BIND_INTRANET_NICNAME", "BIND_ADMIN_NICNAME"):
+            self.validate_nic_name_if_present(settings, name)
+
+        # Backward compatibility: legacy IP variables can still be consumed during migration,
+        # but new setup.conf generation no longer emits them.
         for name in ("BACK_IP", "ADM_IP", "VIP_BACK_IP", "PEER_BACK_IP"):
             if name in settings:
                 self.validate_ipv4(settings, name)

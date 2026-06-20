@@ -165,25 +165,25 @@ tail -n 100 /var/log/named/security.log
 Tester l'écoute FRONT :
 
 ```bash
-dig @<FRONT_IP> <ZONE_PUBLIQUE> SOA +time=2 +tries=1
+dig @<BIND_EXTERNAL_RESOLVED_IP> <ZONE_PUBLIQUE> SOA +time=2 +tries=1
 ```
 
 Tester l'écoute BACK :
 
 ```bash
-dig @<BACK_IP> <ZONE_INTERNE> SOA +time=2 +tries=1
+dig @<BIND_INTRAnet_RESOLVED_IP> <ZONE_INTERNE> SOA +time=2 +tries=1
 ```
 
 Tester le forwarding via BACK :
 
 ```bash
-dig @<BACK_IP> www.redhat.com A +time=3 +tries=1
+dig @<BIND_INTRAnet_RESOLVED_IP> www.redhat.com A +time=3 +tries=1
 ```
 
 Vérifier qu'un client non autorisé n'accède pas à la récursion :
 
 ```bash
-dig @<FRONT_IP> www.redhat.com A +time=2 +tries=1
+dig @<BIND_EXTERNAL_RESOLVED_IP> www.redhat.com A +time=2 +tries=1
 ```
 
 Le comportement attendu dépend de la politique FRONT : réponse locale ou forwarding contrôlé, mais jamais récursion ouverte non maîtrisée.
@@ -193,7 +193,7 @@ Le comportement attendu dépend de la politique FRONT : réponse locale ou forwa
 Tester le service sur BACK :
 
 ```bash
-dig @<BACK_IP> <ZONE> SOA +time=2 +tries=1
+dig @<BIND_INTRAnet_RESOLVED_IP> <ZONE> SOA +time=2 +tries=1
 ```
 
 Tester la VIP :

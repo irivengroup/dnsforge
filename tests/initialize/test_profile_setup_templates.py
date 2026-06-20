@@ -24,7 +24,7 @@ class _InitializeService:
         return None
 
 
-def test_profile_setup_templates_are_package_resources() -> None:
+def test_profile_setup_conf_is_generated_from_profile_policy() -> None:
     service = ProfileSetupTemplateService()
 
     assert 'ROLE="dns-authoritative"' in service.template_text(ConfigurationProfile.AUTHORITATIVE)
@@ -32,12 +32,18 @@ def test_profile_setup_templates_are_package_resources() -> None:
     assert 'PROXY_TYPE="hybrid"' in service.template_text(ConfigurationProfile.PROXY_HYBRID)
 
 
-def test_proxy_templates_use_distributed_peer_variables() -> None:
+def test_proxy_templates_use_distributed_peer_and_nic_variables() -> None:
     service = ProfileSetupTemplateService()
     for profile in (ConfigurationProfile.PROXY_FORWARDER, ConfigurationProfile.PROXY_HYBRID):
         text = service.template_text(profile)
+        assert "BIND_EXTERNET_NICNAME" in text
+        assert "BIND_INTRANET_NICNAME" in text
+        assert "BIND_ADMIN_NICNAME" in text
         assert "PEER_AUTHORITATIVE_ADDRESSES" in text
         assert "PEER_PROXY_ADDRESSES" in text
+        assert "FRONT_IP" not in text
+        assert "BACK_IP" not in text
+        assert "ADM_IP" not in text
         assert "AUTHORITATIVE_BACK_IP" not in text
         assert "PROXY_VIP_FRONT_IP" not in text
         assert "PROXY_KEEPALIVED_INTERFACE" not in text

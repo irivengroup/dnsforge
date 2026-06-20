@@ -1,5 +1,13 @@
 # Changelog
 
+## 14.5.0
+
+- Replaced setup.conf BIND network IP variables with NIC-name variables: BIND_EXTERNET_NICNAME, BIND_INTRANET_NICNAME and BIND_ADMIN_NICNAME.
+- Added runtime interface discovery so the DNSForge agent resolves BIND addresses locally and supports one-NIC, two-NIC and three-NIC deployments.
+- Added duplicate filtering for generated BIND listen-on and administration bindings.
+- Introduced dynamic setup.conf profile generation and updated installation to generate setup.conf from profile policy instead of copying static role files.
+- Kept legacy FRONT_IP, BACK_IP and ADM_IP as migration fallbacks without emitting them in new setup.conf files.
+
 ## 14.4.0
 
 - Added Agent Trust Policy & Rotation.

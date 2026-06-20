@@ -81,12 +81,6 @@ esac
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-TEMPLATE="${SOURCE_ROOT}/src/dnsforge/infrastructure/profile/resources/${PROFILE}/setup.conf"
-
-if [[ ! -f "${TEMPLATE}" ]]; then
-  echo "ERROR: template not found: ${TEMPLATE}" >&2
-  exit 1
-fi
 
 install_bind_if_missing
 
@@ -111,7 +105,16 @@ SETUP_CONF="${CONFIG_ROOT}/setup.conf"
 if [[ -f "${SETUP_CONF}" && "${FORCE}" != "yes" ]]; then
   echo "Keeping existing ${SETUP_CONF}; use --force to replace it."
 else
-  install -m 0640 "${TEMPLATE}" "${SETUP_CONF}"
+  PYTHONPATH="${SOURCE_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}" PROFILE="${PROFILE}" python3 - <<'DNSFORGE_GENERATE_SETUP' > "${SETUP_CONF}"
+import os
+from dnsforge.domain.profile.model import ConfigurationProfile
+from dnsforge.infrastructure.profile.setup_template_service import ProfileSetupTemplateService
+
+profile = ConfigurationProfile.from_value(os.environ["PROFILE"])
+node = "srv01" if profile is ConfigurationProfile.AUTHORITATIVE else "srv02"
+print(ProfileSetupTemplateService().render(profile, node=node), end="")
+DNSFORGE_GENERATE_SETUP
+  chmod 0640 "${SETUP_CONF}"
 fi
 
 mkdir -p "${INSTALL_ROOT}/bin" "$(dirname "${BIN_LINK}")"
