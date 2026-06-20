@@ -1,5 +1,12 @@
 # Changelog
 
+## 14.7.1
+
+- Fix Python 3.9/mypy compatibility in Configuration Compliance Engine.
+- Replace datetime.UTC with timezone.utc.
+- Fix optional target root typing for config fingerprint CLI.
+
+
 ## 14.7.0
 
 ### Added

@@ -5,6 +5,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Optional
 
 from dnsforge import __version__
 from dnsforge.application.audit.product_auditor import ProductAuditor
@@ -1061,8 +1062,8 @@ class DnsForgeCommandDispatcher:
                 print(service.validate())
                 return 0
             if args.action == "fingerprint":
-                target_root = Path(args.target_root) if args.target_root else None
-                print(ComplianceService(config_paths).render_fingerprint(target_root=target_root))
+                fingerprint_target_root: Optional[Path] = Path(args.target_root) if args.target_root else None
+                print(ComplianceService(config_paths).render_fingerprint(target_root=fingerprint_target_root))
                 return 0
             if args.action == "baseline":
                 compliance = ComplianceService(config_paths)

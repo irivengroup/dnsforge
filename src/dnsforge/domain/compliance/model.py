@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Optional
 
 
 class ComplianceStatus(str, Enum):
@@ -23,21 +24,21 @@ class ConfigurationBaseline:
     profile: str
     bind_layout: str
     resources: tuple[str, ...]
-    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 @dataclass(frozen=True)
 class ConfigurationFingerprint:
     scope: str
     sha256: str
-    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 @dataclass(frozen=True)
 class ConfigurationDrift:
     resource: str
-    expected_hash: str | None
-    actual_hash: str | None
+    expected_hash: Optional[str]
+    actual_hash: Optional[str]
     severity: DriftSeverity
 
     def title(self) -> str:
@@ -47,7 +48,7 @@ class ConfigurationDrift:
 @dataclass(frozen=True)
 class ConfigurationCompliance:
     status: ComplianceStatus
-    fingerprint: ConfigurationFingerprint | None
+    fingerprint: Optional[ConfigurationFingerprint]
     drifts: tuple[ConfigurationDrift, ...]
 
     @property
