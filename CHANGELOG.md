@@ -1,5 +1,13 @@
 # Changelog
 
+## 14.4.0
+
+- Added Agent Trust Policy & Rotation.
+- Added policy-driven enrollment evaluation.
+- Added auditable token/certificate rotation history.
+- Added Manager API and CLI endpoints for trust policies and rotations.
+- Kept v14.3.0 Agent Trust Framework APIs backward compatible.
+
 ## 14.3.0
 
 ### Added

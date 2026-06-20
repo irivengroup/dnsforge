@@ -56,6 +56,23 @@ def build_parser() -> argparse.ArgumentParser:
     revoke.add_argument("--fingerprint", required=True)
     rotate = trust_sub.add_parser("rotate-token", help="Rotate a trusted agent token")
     rotate.add_argument("--fingerprint", required=True)
+    rotate.add_argument("--reason", default="operator-request")
+    rotate_certificate = trust_sub.add_parser("rotate-certificate", help="Rotate a trusted agent certificate")
+    rotate_certificate.add_argument("--fingerprint", required=True)
+    rotate_certificate.add_argument("--public-key")
+    rotate_certificate.add_argument("--reason", default="certificate-rotation")
+    trust_sub.add_parser("policies", help="List trust policies")
+    policy = trust_sub.add_parser("create-policy", help="Create a trust policy")
+    policy.add_argument("--policy-id", required=True)
+    policy.add_argument("--name")
+    policy.add_argument("--allowed-profile", action="append", default=[])
+    policy.add_argument("--allowed-site", action="append", default=[])
+    policy.add_argument("--require-public-key", action="store_true", default=False)
+    policy.add_argument("--auto-approve", action="store_true", default=False)
+    policy.add_argument("--max-token-age-days", type=int, default=90)
+    policy.add_argument("--certificate-rotation-days", type=int, default=180)
+    rotations = trust_sub.add_parser("rotations", help="List trust rotation history")
+    rotations.add_argument("--fingerprint")
     return parser
 
 
@@ -156,7 +173,30 @@ def _dispatch_trust(app: object, args: argparse.Namespace) -> dict[str, object]:
     if args.trust_action == "revoke":
         return app.revoke_trusted_agent(args.fingerprint)  # type: ignore[attr-defined]
     if args.trust_action == "rotate-token":
-        return app.rotate_trusted_agent_token(args.fingerprint)  # type: ignore[attr-defined]
+        return app.rotate_trusted_agent_token(args.fingerprint, reason=args.reason)  # type: ignore[attr-defined]
+    if args.trust_action == "rotate-certificate":
+        return app.rotate_trusted_agent_certificate(  # type: ignore[attr-defined]
+            args.fingerprint,
+            public_key=args.public_key,
+            reason=args.reason,
+        )
+    if args.trust_action == "policies":
+        return app.trust_policies()  # type: ignore[attr-defined]
+    if args.trust_action == "create-policy":
+        return app.create_trust_policy(  # type: ignore[attr-defined]
+            {
+                "policy_id": args.policy_id,
+                "name": args.name or args.policy_id,
+                "allowed_profiles": args.allowed_profile,
+                "allowed_sites": args.allowed_site,
+                "require_public_key": args.require_public_key,
+                "auto_approve": args.auto_approve,
+                "max_token_age_days": args.max_token_age_days,
+                "certificate_rotation_days": args.certificate_rotation_days,
+            }
+        )
+    if args.trust_action == "rotations":
+        return app.trust_rotations(args.fingerprint)  # type: ignore[attr-defined]
     raise ValueError(f"unsupported trust command: {args.trust_action}")
 
 

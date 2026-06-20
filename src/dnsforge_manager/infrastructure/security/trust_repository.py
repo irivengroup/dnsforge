@@ -3,7 +3,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from dnsforge_manager.domain.security.models import EnrollmentRequest, TrustedAgent
+from dnsforge_manager.domain.security.models import (
+    AgentRotationRecord,
+    AgentTrustPolicy,
+    EnrollmentRequest,
+    TrustedAgent,
+)
 
 
 class AgentTrustRepository:
@@ -25,11 +30,28 @@ class AgentTrustRepository:
     def list_agents(self) -> tuple[TrustedAgent, ...]:
         raise NotImplementedError
 
+    def save_policy(self, policy: AgentTrustPolicy) -> AgentTrustPolicy:
+        raise NotImplementedError
+
+    def get_policy(self, policy_id: str) -> AgentTrustPolicy:
+        raise NotImplementedError
+
+    def list_policies(self) -> tuple[AgentTrustPolicy, ...]:
+        raise NotImplementedError
+
+    def save_rotation(self, record: AgentRotationRecord) -> AgentRotationRecord:
+        raise NotImplementedError
+
+    def list_rotations(self, fingerprint: str | None = None) -> tuple[AgentRotationRecord, ...]:
+        raise NotImplementedError
+
 
 class InMemoryAgentTrustRepository(AgentTrustRepository):
     def __init__(self) -> None:
         self._enrollments: dict[str, EnrollmentRequest] = {}
         self._agents: dict[str, TrustedAgent] = {}
+        self._policies: dict[str, AgentTrustPolicy] = {}
+        self._rotations: dict[str, AgentRotationRecord] = {}
 
     def save_enrollment(self, request: EnrollmentRequest) -> EnrollmentRequest:
         self._enrollments[request.request_id] = request
@@ -57,6 +79,29 @@ class InMemoryAgentTrustRepository(AgentTrustRepository):
     def list_agents(self) -> tuple[TrustedAgent, ...]:
         return tuple(self._agents[key] for key in sorted(self._agents))
 
+    def save_policy(self, policy: AgentTrustPolicy) -> AgentTrustPolicy:
+        self._policies[policy.policy_id] = policy
+        return policy
+
+    def get_policy(self, policy_id: str) -> AgentTrustPolicy:
+        try:
+            return self._policies[policy_id]
+        except KeyError as exc:
+            raise KeyError(f"unknown trust policy: {policy_id}") from exc
+
+    def list_policies(self) -> tuple[AgentTrustPolicy, ...]:
+        return tuple(self._policies[key] for key in sorted(self._policies))
+
+    def save_rotation(self, record: AgentRotationRecord) -> AgentRotationRecord:
+        self._rotations[record.rotation_id] = record
+        return record
+
+    def list_rotations(self, fingerprint: str | None = None) -> tuple[AgentRotationRecord, ...]:
+        records = tuple(self._rotations[key] for key in sorted(self._rotations))
+        if fingerprint is None:
+            return records
+        return tuple(record for record in records if record.fingerprint == fingerprint)
+
 
 class JsonAgentTrustRepository(AgentTrustRepository):
     def __init__(self, path: Path) -> None:
@@ -65,13 +110,15 @@ class JsonAgentTrustRepository(AgentTrustRepository):
 
     def _read(self) -> dict[str, list[dict[str, object]]]:
         if not self.path.exists():
-            return {"enrollments": [], "trusted_agents": []}
+            return {"enrollments": [], "trusted_agents": [], "policies": [], "rotations": []}
         raw = json.loads(self.path.read_text(encoding="utf-8"))
         if not isinstance(raw, dict):
             raise ValueError(f"{self.path} must contain a JSON object")
         return {
             "enrollments": _list(raw.get("enrollments", [])),
             "trusted_agents": _list(raw.get("trusted_agents", [])),
+            "policies": _list(raw.get("policies", [])),
+            "rotations": _list(raw.get("rotations", [])),
         }
 
     def _write(self, data: dict[str, list[dict[str, object]]]) -> None:
@@ -112,6 +159,29 @@ class JsonAgentTrustRepository(AgentTrustRepository):
 
     def list_agents(self) -> tuple[TrustedAgent, ...]:
         return tuple(TrustedAgent.from_dict(item) for item in self._read()["trusted_agents"])
+
+    def save_policy(self, policy: AgentTrustPolicy) -> AgentTrustPolicy:
+        self._upsert("policies", "policy_id", policy.to_dict())
+        return policy
+
+    def get_policy(self, policy_id: str) -> AgentTrustPolicy:
+        for item in self._read()["policies"]:
+            if str(item.get("policy_id")) == policy_id:
+                return AgentTrustPolicy.from_dict(item)
+        raise KeyError(f"unknown trust policy: {policy_id}")
+
+    def list_policies(self) -> tuple[AgentTrustPolicy, ...]:
+        return tuple(AgentTrustPolicy.from_dict(item) for item in self._read()["policies"])
+
+    def save_rotation(self, record: AgentRotationRecord) -> AgentRotationRecord:
+        self._upsert("rotations", "rotation_id", record.to_dict())
+        return record
+
+    def list_rotations(self, fingerprint: str | None = None) -> tuple[AgentRotationRecord, ...]:
+        records = tuple(AgentRotationRecord.from_dict(item) for item in self._read()["rotations"])
+        if fingerprint is None:
+            return records
+        return tuple(record for record in records if record.fingerprint == fingerprint)
 
 
 def _list(value: object) -> list[dict[str, object]]:

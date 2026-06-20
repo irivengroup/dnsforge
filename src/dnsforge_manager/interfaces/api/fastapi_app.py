@@ -51,6 +51,11 @@ class FastAPIUnavailableApp:
             RouteSpec("POST", "/trust/approve"),
             RouteSpec("POST", "/trust/revoke"),
             RouteSpec("POST", "/trust/rotate-token"),
+            RouteSpec("GET", "/trust/policies"),
+            RouteSpec("POST", "/trust/policies"),
+            RouteSpec("POST", "/trust/policies/evaluate"),
+            RouteSpec("GET", "/trust/rotations"),
+            RouteSpec("POST", "/trust/rotate-certificate"),
         ]
 
 
@@ -204,5 +209,29 @@ def create_fastapi_app(core: ManagerApplication | None = None) -> Any:
     @app.post("/trust/rotate-token")
     def rotate_trusted_agent_token(payload: dict[str, Any]) -> dict[str, Any]:
         return manager.rotate_trusted_agent_token(str(payload["fingerprint"]))
+
+    @app.get("/trust/policies")
+    def list_trust_policies() -> dict[str, Any]:
+        return manager.trust_policies()
+
+    @app.post("/trust/policies")
+    def create_trust_policy(payload: dict[str, Any]) -> dict[str, Any]:
+        return manager.create_trust_policy(payload)
+
+    @app.post("/trust/policies/evaluate")
+    def evaluate_trust_policy(payload: dict[str, Any]) -> dict[str, Any]:
+        return manager.evaluate_trust_policy(str(payload["request_id"]), str(payload["policy_id"]))
+
+    @app.get("/trust/rotations")
+    def list_trust_rotations(fingerprint: str | None = None) -> dict[str, Any]:
+        return manager.trust_rotations(fingerprint)
+
+    @app.post("/trust/rotate-certificate")
+    def rotate_trusted_agent_certificate(payload: dict[str, Any]) -> dict[str, Any]:
+        return manager.rotate_trusted_agent_certificate(
+            str(payload["fingerprint"]),
+            public_key=None if payload.get("public_key") is None else str(payload.get("public_key")),
+            reason=str(payload.get("reason", "certificate-rotation")),
+        )
 
     return app

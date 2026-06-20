@@ -5,17 +5,19 @@ import secrets
 from dataclasses import replace
 from datetime import datetime, timezone
 from uuid import uuid4
-from typing import Any
 
 from dnsforge_manager.domain.inventory.models import ManagedNode, NodeStatus
 from dnsforge_manager.domain.security.models import (
     AgentCertificate,
+    AgentRotationRecord,
+    AgentTrustPolicy,
     AgentTrustState,
     EnrollmentRequest,
     NodeApprovalDecision,
     TrustedAgent,
     certificate_fingerprint,
     new_agent_token,
+    token_digest,
 )
 from dnsforge_manager.infrastructure.inventory.repository import NodeInventoryRepository
 from dnsforge_manager.infrastructure.security.trust_repository import AgentTrustRepository, InMemoryAgentTrustRepository
@@ -108,11 +110,90 @@ class AgentTrustService:
         )
         return self.trust_repository.save_agent(revoked)
 
-    def rotate_trusted_agent_token(self, fingerprint: str) -> TrustedAgent:
+    def rotate_trusted_agent_token(self, fingerprint: str, *, reason: str = "token-rotation") -> TrustedAgent:
         agent = self.trust_repository.get_agent(fingerprint)
         if agent.state == AgentTrustState.REVOKED:
             raise ValueError(f"cannot rotate token for revoked trusted agent: {fingerprint}")
-        return self.trust_repository.save_agent(replace(agent, token=new_agent_token()))
+        now = datetime.now(timezone.utc).isoformat()
+        rotated = self.trust_repository.save_agent(replace(agent, token=new_agent_token()))
+        self.trust_repository.save_rotation(
+            AgentRotationRecord(
+                rotation_id=str(uuid4()),
+                fingerprint=fingerprint,
+                rotated_at=now,
+                reason=reason,
+                previous_token_digest=token_digest(agent.token),
+                certificate_rotated=False,
+            )
+        )
+        return rotated
+
+    def create_policy(self, payload: dict[str, object]) -> AgentTrustPolicy:
+        policy = AgentTrustPolicy(
+            policy_id=str(payload["policy_id"]),
+            name=str(payload.get("name", payload["policy_id"])),
+            allowed_profiles=_tuple_payload(payload.get("allowed_profiles", ())),
+            allowed_sites=_tuple_payload(payload.get("allowed_sites", ())),
+            require_public_key=_bool_payload(payload.get("require_public_key", True)),
+            auto_approve=_bool_payload(payload.get("auto_approve", False)),
+            max_token_age_days=_int_payload(payload.get("max_token_age_days", 90)),
+            certificate_rotation_days=_int_payload(payload.get("certificate_rotation_days", 180)),
+        )
+        return self.trust_repository.save_policy(policy)
+
+    def list_policies(self) -> tuple[AgentTrustPolicy, ...]:
+        return self.trust_repository.list_policies()
+
+    def list_rotations(self, fingerprint: str | None = None) -> tuple[AgentRotationRecord, ...]:
+        return self.trust_repository.list_rotations(fingerprint)
+
+    def evaluate_enrollment(self, request_id: str, policy_id: str) -> dict[str, object]:
+        request = self.trust_repository.get_enrollment(request_id)
+        policy = self.trust_repository.get_policy(policy_id)
+        allowed = policy.allows(request)
+        return {
+            "request_id": request.request_id,
+            "policy_id": policy.policy_id,
+            "allowed": allowed,
+            "auto_approve": policy.auto_approve and allowed,
+        }
+
+    def rotate_trusted_agent_certificate(
+        self,
+        fingerprint: str,
+        *,
+        public_key: str | None = None,
+        reason: str = "certificate-rotation",
+    ) -> TrustedAgent:
+        agent = self.trust_repository.get_agent(fingerprint)
+        if agent.state == AgentTrustState.REVOKED:
+            raise ValueError(f"cannot rotate certificate for revoked trusted agent: {fingerprint}")
+        now = datetime.now(timezone.utc).isoformat()
+        key = public_key or (agent.certificate.public_key if agent.certificate is not None else "")
+        certificate = None
+        if key:
+            certificate = AgentCertificate(
+                fingerprint=certificate_fingerprint(key),
+                public_key=key,
+                serial_number=str(uuid4()),
+                subject=agent.hostname,
+                created_at=now,
+            )
+        updated = replace(
+            agent, fingerprint=certificate.fingerprint if certificate else agent.fingerprint, certificate=certificate
+        )
+        saved = self.trust_repository.save_agent(updated)
+        self.trust_repository.save_rotation(
+            AgentRotationRecord(
+                rotation_id=str(uuid4()),
+                fingerprint=saved.fingerprint,
+                rotated_at=now,
+                reason=reason,
+                previous_token_digest=token_digest(agent.token),
+                certificate_rotated=True,
+            )
+        )
+        return saved
 
     def register_pending(self, node: ManagedNode, *, public_key: str = "") -> ManagedNode:
         if self.repository is None:
@@ -169,3 +250,27 @@ def _labels(value: object) -> dict[str, str]:
     if not isinstance(value, dict):
         raise ValueError("labels must be a mapping")
     return {str(key): str(item) for key, item in value.items()}
+
+
+def _tuple_payload(value: object) -> tuple[str, ...]:
+    if value is None:
+        return ()
+    if isinstance(value, str):
+        return tuple(item.strip() for item in value.split(",") if item.strip())
+    if not isinstance(value, (list, tuple, set)):
+        raise ValueError("trust policy collection fields must be strings or lists")
+    return tuple(str(item) for item in value)
+
+
+def _bool_payload(value: object) -> bool:
+    if isinstance(value, str):
+        return value.lower() in {"1", "true", "yes", "on"}
+    return bool(value)
+
+
+def _int_payload(value: object) -> int:
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, (int, str, bytes, bytearray)):
+        return int(value)
+    raise ValueError("trust policy integer fields must be integer-compatible")

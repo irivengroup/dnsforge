@@ -14,6 +14,70 @@ class AgentTrustState(str, Enum):
 
 
 @dataclass(frozen=True)
+class AgentTrustPolicy:
+    policy_id: str
+    name: str
+    allowed_profiles: tuple[str, ...] = ()
+    allowed_sites: tuple[str, ...] = ()
+    require_public_key: bool = True
+    auto_approve: bool = False
+    max_token_age_days: int = 90
+    certificate_rotation_days: int = 180
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+    def allows(self, request: "EnrollmentRequest") -> bool:
+        if self.require_public_key and not request.public_key:
+            return False
+        if self.allowed_profiles and request.profile not in self.allowed_profiles:
+            return False
+        return not (self.allowed_sites and request.site not in self.allowed_sites)
+
+    def to_dict(self) -> dict[str, object]:
+        data = asdict(self)
+        data["allowed_profiles"] = list(self.allowed_profiles)
+        data["allowed_sites"] = list(self.allowed_sites)
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, object]) -> "AgentTrustPolicy":
+        return cls(
+            policy_id=str(data["policy_id"]),
+            name=str(data.get("name", data["policy_id"])),
+            allowed_profiles=_string_tuple(data.get("allowed_profiles", ())),
+            allowed_sites=_string_tuple(data.get("allowed_sites", ())),
+            require_public_key=bool(data.get("require_public_key", True)),
+            auto_approve=bool(data.get("auto_approve", False)),
+            max_token_age_days=_int_value(data.get("max_token_age_days", 90)),
+            certificate_rotation_days=_int_value(data.get("certificate_rotation_days", 180)),
+            created_at=str(data.get("created_at", datetime.now(timezone.utc).isoformat())),
+        )
+
+
+@dataclass(frozen=True)
+class AgentRotationRecord:
+    rotation_id: str
+    fingerprint: str
+    rotated_at: str
+    reason: str = "operator-request"
+    previous_token_digest: str = ""
+    certificate_rotated: bool = False
+
+    def to_dict(self) -> dict[str, object]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, object]) -> "AgentRotationRecord":
+        return cls(
+            rotation_id=str(data["rotation_id"]),
+            fingerprint=str(data["fingerprint"]),
+            rotated_at=str(data.get("rotated_at", datetime.now(timezone.utc).isoformat())),
+            reason=str(data.get("reason", "operator-request")),
+            previous_token_digest=str(data.get("previous_token_digest", "")),
+            certificate_rotated=bool(data.get("certificate_rotated", False)),
+        )
+
+
+@dataclass(frozen=True)
 class AgentCertificate:
     fingerprint: str
     public_key: str
@@ -140,6 +204,30 @@ class NodeApprovalDecision:
     approved: bool
     fingerprint: str | None = None
     message: str = ""
+
+
+def _int_value(value: object) -> int:
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, (int, str, bytes, bytearray)):
+        return int(value)
+    raise ValueError("expected integer-compatible value")
+
+
+def _string_tuple(value: object) -> tuple[str, ...]:
+    if value is None:
+        return ()
+    if isinstance(value, str):
+        return tuple(item.strip() for item in value.split(",") if item.strip())
+    if not isinstance(value, (list, tuple, set)):
+        raise ValueError("expected a string collection")
+    return tuple(str(item) for item in value)
+
+
+def token_digest(token: str | None) -> str:
+    if not token:
+        return ""
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def certificate_fingerprint(public_key: str) -> str:

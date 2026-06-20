@@ -474,13 +474,62 @@ class ManagerApplication:
         self,
         fingerprint: str,
         *,
+        reason: str = "token-rotation",
         actor: str = "system",
         role: str = "admin",
     ) -> dict[str, Any]:
         self._require(role, "manager:trust:admin")
-        agent = self.agent_trust_service.rotate_trusted_agent_token(fingerprint)
+        agent = self.agent_trust_service.rotate_trusted_agent_token(fingerprint, reason=reason)
         self._audit(actor=actor, action="trust.token.rotate", target=fingerprint, result="rotated")
         return {"trusted_agent": agent.to_dict(), "agent_token": agent.token}
+
+    def trust_policies(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:trust:read")
+        return {"policies": [policy.to_dict() for policy in self.agent_trust_service.list_policies()]}
+
+    def create_trust_policy(
+        self,
+        payload: dict[str, Any],
+        *,
+        actor: str = "system",
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:trust:admin")
+        policy = self.agent_trust_service.create_policy(payload)
+        self._audit(actor=actor, action="trust.policy.create", target=policy.policy_id, result="created")
+        return {"policy": policy.to_dict()}
+
+    def evaluate_trust_policy(
+        self,
+        request_id: str,
+        policy_id: str,
+        *,
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:trust:admin")
+        return self.agent_trust_service.evaluate_enrollment(request_id, policy_id)
+
+    def trust_rotations(self, fingerprint: str | None = None, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:trust:read")
+        return {"rotations": [record.to_dict() for record in self.agent_trust_service.list_rotations(fingerprint)]}
+
+    def rotate_trusted_agent_certificate(
+        self,
+        fingerprint: str,
+        *,
+        public_key: str | None = None,
+        reason: str = "certificate-rotation",
+        actor: str = "system",
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:trust:admin")
+        agent = self.agent_trust_service.rotate_trusted_agent_certificate(
+            fingerprint,
+            public_key=public_key,
+            reason=reason,
+        )
+        self._audit(actor=actor, action="trust.certificate.rotate", target=fingerprint, result="rotated")
+        return {"trusted_agent": agent.to_dict()}
 
     def audit_events(self, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:audit:read")
