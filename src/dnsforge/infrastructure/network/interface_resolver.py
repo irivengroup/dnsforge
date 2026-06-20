@@ -7,7 +7,11 @@ import struct
 from dataclasses import dataclass
 from pathlib import Path
 
-from dnsforge.domain.network.interfaces import BindInterfaceSelection, ResolvedBindInterfaces
+from dnsforge.domain.network.interfaces import (
+    BindInterfaceResolutionReport,
+    BindInterfaceSelection,
+    ResolvedBindInterfaces,
+)
 from dnsforge.shared.errors import SettingsError
 
 
@@ -66,12 +70,26 @@ class InterfaceAddressResolver:
             ),
         )
 
+    def resolution_report(self, settings: dict[str, str]) -> BindInterfaceResolutionReport:
+        selection = self.selection_from_settings(settings)
+        resolved = self.resolve(settings)
+        return BindInterfaceResolutionReport(
+            external_nic=selection.external_nic,
+            intranet_nic=selection.intranet_nic,
+            admin_nic=selection.admin_nic,
+            external_ip=resolved.external_ip,
+            intranet_ip=resolved.intranet_ip,
+            admin_ip=resolved.admin_ip,
+        )
+
     def enrich_settings(self, settings: dict[str, str]) -> dict[str, str]:
         enriched = dict(settings)
         resolved = self.resolve(enriched)
+        report = self.resolution_report(enriched)
         enriched["BIND_EXTRANET_IP"] = resolved.external_ip
         enriched["BIND_INTRANET_IP"] = resolved.intranet_ip
         enriched["BIND_ADMIN_IP"] = resolved.admin_ip
+        enriched.update(report.as_settings())
         enriched["DNS_LISTEN_ON"] = self._render_bind_ip_list(resolved.distinct_ips())
         enriched["BIND_ADMIN_LISTEN_ON"] = self._render_bind_ip_list(["127.0.0.1", resolved.admin_ip])
         return enriched

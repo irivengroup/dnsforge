@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dnsforge"
-version = "14.5.9"
+version = "14.6.0"
 description = "DNSForge - Enterprise BIND deployment and configuration platform"
 requires-python = ">=3.9"
 readme = "README.md"
@@ -120,7 +120,7 @@ exclude_lines = [
 ]
 
 [tool.mypy]
-python_version = "14.5.9"
+python_version = "3.9"
 files = ["src/dnsforge", "src/dnsforge_manager"]
 ignore_missing_imports = true
 warn_unused_ignores = true

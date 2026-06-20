@@ -97,3 +97,23 @@ def test_interface_resolver_admin_listen_on_filters_loopback_duplicates() -> Non
     enriched = LoopbackResolver().enrich_settings({})
 
     assert enriched["BIND_ADMIN_LISTEN_ON"] == "127.0.0.1;"
+
+
+def test_interface_resolver_exposes_auditable_resolution_report() -> None:
+    resolver = _Resolver()
+    settings = {
+        "BIND_EXTRANET_NICNAME": "eth2",
+        "BIND_INTRANET_NICNAME": "eth1",
+        "BIND_ADMIN_NICNAME": "eth0",
+    }
+
+    enriched = resolver.enrich_settings(settings)
+    report = resolver.resolution_report(settings)
+
+    assert enriched["BIND_EXTRANET_RESOLVED_FROM"] == "eth2"
+    assert enriched["BIND_INTRANET_RESOLVED_FROM"] == "eth1"
+    assert enriched["BIND_ADMIN_RESOLVED_FROM"] == "eth0"
+    assert enriched["BIND_INTERFACE_AUDIT"] == (
+        "extranet:eth2->203.0.113.10, intranet:eth1->10.0.1.10, admin:eth0->10.0.0.10"
+    )
+    assert report.render() == enriched["BIND_INTERFACE_AUDIT"]

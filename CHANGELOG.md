@@ -1,5 +1,12 @@
 # Changelog
 
+## 14.6.0
+
+- Added auditable BIND interface resolution metadata.
+- Exposed runtime-only `BIND_*_RESOLVED_FROM` keys.
+- Exposed `BIND_INTERFACE_AUDIT` for operator support and validation traces.
+- Preserved NIC-based setup.conf semantics without legacy IP aliases.
+
 ## 14.5.9
 
 - Removed the remaining legacy NIC compatibility aliases `BIND_EXTERNET_NICNAME` and `BIND_EXTERNAL_NICNAME` from runtime resolution.

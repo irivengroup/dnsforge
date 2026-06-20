@@ -33,3 +33,36 @@ class ResolvedBindInterfaces:
                 seen.add(address)
                 result.append(address)
         return result
+
+
+@dataclass(frozen=True)
+class BindInterfaceResolutionReport:
+    """Auditable summary of DNSForge NIC to IPv4 resolution.
+
+    The report is intentionally serializable as stable text so it can be
+    surfaced in validation output, logs or support bundles without exposing
+    runtime-only implementation details.
+    """
+
+    external_nic: str
+    intranet_nic: str
+    admin_nic: str
+    external_ip: str
+    intranet_ip: str
+    admin_ip: str
+
+    def as_settings(self) -> dict[str, str]:
+        return {
+            "BIND_EXTRANET_RESOLVED_FROM": self.external_nic,
+            "BIND_INTRANET_RESOLVED_FROM": self.intranet_nic,
+            "BIND_ADMIN_RESOLVED_FROM": self.admin_nic,
+            "BIND_INTERFACE_AUDIT": self.render(),
+        }
+
+    def render(self) -> str:
+        rows = (
+            ("extranet", self.external_nic, self.external_ip),
+            ("intranet", self.intranet_nic, self.intranet_ip),
+            ("admin", self.admin_nic, self.admin_ip),
+        )
+        return ", ".join(f"{role}:{nic}->{ip}" for role, nic, ip in rows)
