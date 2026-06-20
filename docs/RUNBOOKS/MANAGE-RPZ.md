@@ -53,7 +53,7 @@ rndc reconfig
 ## 5. Tester
 
 ```bash
-dig @<BACK_IP> blocked.example.net A +time=2 +tries=1
+dig @<BIND_INTRANET_IP> blocked.example.net A +time=2 +tries=1
 tail -n 50 /var/log/named/rpz.log
 ```
 

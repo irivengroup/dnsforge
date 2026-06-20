@@ -1,7 +1,7 @@
 ## 14.5.7 - Canonical Resolved BIND Interface IPs
 
 - Added canonical runtime keys `BIND_EXTRANET_IP`, `BIND_INTRANET_IP` and `BIND_ADMIN_IP`.
-- Preserved legacy rendered aliases `FRONT_IP`, `BACK_IP` and `ADM_IP` for migration and older templates.
+- Preserved legacy rendered aliases `BIND_EXTRANET_IP`, `BIND_INTRANET_IP` and `BIND_ADMIN_IP` for migration and older templates.
 - Kept generated `setup.conf` NIC-based and free from legacy IP variables.
 - Updated interface discovery documentation and tests.
 
@@ -13,6 +13,12 @@
 - Preserved legacy `BIND_EXTERNAL_NICNAME` compatibility alias where it already existed.
 
 # Changelog
+
+## 14.5.8
+
+- Removed legacy rendered IP aliases `FRONT_IP`, `BACK_IP` and `ADM_IP`.
+- Runtime BIND rendering now uses only `BIND_EXTRANET_IP`, `BIND_INTRANET_IP` and `BIND_ADMIN_IP`.
+- Kept `setup.conf` NIC-based and aligned resolver, validator, documentation and tests with canonical runtime keys.
 
 ## 14.5.5 - Distribution-aware setup defaults
 
@@ -88,6 +94,12 @@
 
 # Changelog
 
+## 14.5.8
+
+- Removed legacy rendered IP aliases `FRONT_IP`, `BACK_IP` and `ADM_IP`.
+- Runtime BIND rendering now uses only `BIND_EXTRANET_IP`, `BIND_INTRANET_IP` and `BIND_ADMIN_IP`.
+- Kept `setup.conf` NIC-based and aligned resolver, validator, documentation and tests with canonical runtime keys.
+
 ## 14.5.5 - Distribution-aware setup defaults
 
 - Fix SetupProfileGenerator type aliases without relying on typing.TypeAlias for Python 3.9 compatibility.
@@ -142,6 +154,12 @@
 - Integrated GA readiness into CI and product gate.
 
 # Changelog
+
+## 14.5.8
+
+- Removed legacy rendered IP aliases `FRONT_IP`, `BACK_IP` and `ADM_IP`.
+- Runtime BIND rendering now uses only `BIND_EXTRANET_IP`, `BIND_INTRANET_IP` and `BIND_ADMIN_IP`.
+- Kept `setup.conf` NIC-based and aligned resolver, validator, documentation and tests with canonical runtime keys.
 
 ## 14.5.5 - Distribution-aware setup defaults
 
@@ -416,6 +434,12 @@
 
 # Changelog
 
+## 14.5.8
+
+- Removed legacy rendered IP aliases `FRONT_IP`, `BACK_IP` and `ADM_IP`.
+- Runtime BIND rendering now uses only `BIND_EXTRANET_IP`, `BIND_INTRANET_IP` and `BIND_ADMIN_IP`.
+- Kept `setup.conf` NIC-based and aligned resolver, validator, documentation and tests with canonical runtime keys.
+
 ## 14.5.5 - Distribution-aware setup defaults
 
 - Fix SetupProfileGenerator type aliases without relying on typing.TypeAlias for Python 3.9 compatibility.
@@ -469,6 +493,12 @@
 - Added regression coverage ensuring missing BIND tools fail under `GITHUB_ACTIONS=true`.
 
 # Changelog
+
+## 14.5.8
+
+- Removed legacy rendered IP aliases `FRONT_IP`, `BACK_IP` and `ADM_IP`.
+- Runtime BIND rendering now uses only `BIND_EXTRANET_IP`, `BIND_INTRANET_IP` and `BIND_ADMIN_IP`.
+- Kept `setup.conf` NIC-based and aligned resolver, validator, documentation and tests with canonical runtime keys.
 
 ## 14.5.5 - Distribution-aware setup defaults
 
@@ -983,6 +1013,12 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 - Archive régénérée avec dossier racine `binddns-enterprise-redhat-v3.9`.
 
 # Changelog
+
+## 14.5.8
+
+- Removed legacy rendered IP aliases `FRONT_IP`, `BACK_IP` and `ADM_IP`.
+- Runtime BIND rendering now uses only `BIND_EXTRANET_IP`, `BIND_INTRANET_IP` and `BIND_ADMIN_IP`.
+- Kept `setup.conf` NIC-based and aligned resolver, validator, documentation and tests with canonical runtime keys.
 
 ## 14.5.5 - Distribution-aware setup defaults
 

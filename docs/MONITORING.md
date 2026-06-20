@@ -23,7 +23,7 @@ La configuration BIND expose les statistiques sur l'interface d'administration :
 ```bind
 statistics-channels {
 
-        inet <ADM_IP> port 8053
+        inet <BIND_ADMIN_IP> port 8053
         allow {
                 admin_clients;
         };
@@ -35,7 +35,7 @@ Vérifier sur un serveur :
 ```bash
 grep -Rni 'statistics-channels' /etc/named
 ss -lntup | grep ':8053'
-curl http://<ADM_IP>:8053/json/v1/server
+curl http://<BIND_ADMIN_IP>:8053/json/v1/server
 ```
 
 ## Artefacts générés
@@ -87,7 +87,7 @@ systemctl status bind-exporter --no-pager
 Tester :
 
 ```bash
-curl http://<ADM_IP>:9119/metrics
+curl http://<BIND_ADMIN_IP>:9119/metrics
 ```
 
 ## Prometheus scrape config

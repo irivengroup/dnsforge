@@ -121,7 +121,7 @@ rndc reload rpz.local IN internal
 Tester :
 
 ```bash
-dig @<BACK_IP> bad.example.net A
+dig @<BIND_INTRANET_IP> bad.example.net A
 ```
 
 ## Supprimer un domaine
@@ -143,7 +143,7 @@ journalctl -u named -f
 
 ```bash
 grep -Rni 'response-policy' /etc/named
-dig @<BACK_IP> malware.example.invalid A
+dig @<BIND_INTRANET_IP> malware.example.invalid A
 ```
 
 La RPZ doit s'appliquer uniquement au chemin récursif interne, pas à l'autoritaire global.

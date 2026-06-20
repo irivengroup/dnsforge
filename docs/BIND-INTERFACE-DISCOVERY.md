@@ -23,4 +23,4 @@ BIND_ADMIN_IP=<resolved IPv4>
 If a node has a single interface, all three NIC values default to the admin interface.
 Generated BIND listen lists are de-duplicated, so a single-interface node does not produce repeated listen addresses.
 
-Legacy `FRONT_IP`, `BACK_IP` and `ADM_IP` values are still accepted as migration aliases and are also populated as rendered aliases for older templates. New `setup.conf` generation must not emit those legacy keys.
+`BIND_EXTRANET_IP`, `BIND_INTRANET_IP` and `BIND_ADMIN_IP` have been fully removed. Runtime rendering uses only `BIND_EXTRANET_IP`, `BIND_INTRANET_IP` and `BIND_ADMIN_IP`, derived from the configured NIC names.

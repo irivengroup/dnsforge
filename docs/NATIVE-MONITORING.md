@@ -20,7 +20,7 @@ La v5.7 ajoute un monitoring natif exploitable sans plateforme externe obligatoi
 ## Healthcheck
 
 ```bash
-DNS_SERVER=<DNS_IP> ADM_SERVER=<ADM_IP> TEST_ZONE=<ZONE> \
+DNS_SERVER=<DNS_IP> ADM_SERVER=<BIND_ADMIN_IP> TEST_ZONE=<ZONE> \
   /opt/binddns/monitoring/check-binddns-health.sh
 ```
 
@@ -42,7 +42,7 @@ Contrôles :
 ## Export texte Prometheus simple
 
 ```bash
-DNS_SERVER=<DNS_IP> ADM_SERVER=<ADM_IP> TEST_ZONE=<ZONE> \
+DNS_SERVER=<DNS_IP> ADM_SERVER=<BIND_ADMIN_IP> TEST_ZONE=<ZONE> \
   /opt/binddns/monitoring/export-binddns-metrics-text.sh
 ```
 

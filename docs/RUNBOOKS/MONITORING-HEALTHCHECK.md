@@ -8,7 +8,7 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 ## 1. Tester manuellement
 
 ```bash
-DNS_SERVER=<DNS_IP> ADM_SERVER=<ADM_IP> TEST_ZONE=<ZONE> \
+DNS_SERVER=<DNS_IP> ADM_SERVER=<BIND_ADMIN_IP> TEST_ZONE=<ZONE> \
   /opt/binddns/monitoring/check-binddns-health.sh
 ```
 

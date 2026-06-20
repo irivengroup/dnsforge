@@ -28,7 +28,7 @@ Tester :
 
 ```bash
 dig @<PEER_AUTHORITATIVE_ADDRESSES> example.net SOA
-dig @<PROXY_FRONT_IP> example.net SOA
+dig @<BIND_EXTRANET_IP> example.net SOA
 ```
 
 ## Cas 2 — Ajouter une zone master locale sur proxy
@@ -47,7 +47,7 @@ ls -l src/render/dns-proxy/<node>/var/named/master/external/
 
 sudo ./src/dnsProxyDeploy.sh <node>
 
-dig @<PROXY_FRONT_IP> example-edge-public.invalid SOA
+dig @<BIND_EXTRANET_IP> example-edge-public.invalid SOA
 ```
 
 ## Cas 3 — Ajouter une zone master interne sur proxy
@@ -59,7 +59,7 @@ vi native BIND view directories managed by DNSForgeinternal/master/example-edge-
 ./src/dnsProxyDeploy.sh <node> --render-only
 sudo ./src/dnsProxyDeploy.sh <node>
 
-dig @<PROXY_BACK_IP> example-edge-internal.invalid SOA
+dig @<BIND_INTRANET_IP> example-edge-internal.invalid SOA
 ```
 
 ---

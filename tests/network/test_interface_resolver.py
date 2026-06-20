@@ -17,9 +17,9 @@ def test_interface_resolver_defaults_all_bind_nics_to_admin_interface() -> None:
     assert enriched["BIND_EXTRANET_IP"] == "10.0.0.10"
     assert enriched["BIND_INTRANET_IP"] == "10.0.0.10"
     assert enriched["BIND_ADMIN_IP"] == "10.0.0.10"
-    assert enriched["FRONT_IP"] == "10.0.0.10"
-    assert enriched["BACK_IP"] == "10.0.0.10"
-    assert enriched["ADM_IP"] == "10.0.0.10"
+    assert enriched["BIND_EXTRANET_IP"] == "10.0.0.10"
+    assert enriched["BIND_INTRANET_IP"] == "10.0.0.10"
+    assert enriched["BIND_ADMIN_IP"] == "10.0.0.10"
     assert enriched["DNS_LISTEN_ON"] == "10.0.0.10;"
 
 
@@ -35,14 +35,14 @@ def test_interface_resolver_filters_duplicate_bind_addresses() -> None:
     assert enriched["BIND_EXTRANET_IP"] == "203.0.113.10"
     assert enriched["BIND_INTRANET_IP"] == "10.0.1.10"
     assert enriched["BIND_ADMIN_IP"] == "10.0.1.10"
-    assert enriched["FRONT_IP"] == "203.0.113.10"
-    assert enriched["BACK_IP"] == "10.0.1.10"
-    assert enriched["ADM_IP"] == "10.0.1.10"
+    assert enriched["BIND_EXTRANET_IP"] == "203.0.113.10"
+    assert enriched["BIND_INTRANET_IP"] == "10.0.1.10"
+    assert enriched["BIND_ADMIN_IP"] == "10.0.1.10"
     assert enriched["DNS_LISTEN_ON"] == "203.0.113.10; 10.0.1.10;"
     assert enriched["BIND_ADMIN_LISTEN_ON"] == "127.0.0.1; 10.0.1.10;"
 
 
-def test_interface_resolver_preserves_legacy_ip_values_for_migration() -> None:
+def test_interface_resolver_preserves_runtime_ip_values_for_migration() -> None:
     enriched = _Resolver().enrich_settings(
         {
             "BIND_EXTRANET_IP": "192.0.2.10",
@@ -54,24 +54,24 @@ def test_interface_resolver_preserves_legacy_ip_values_for_migration() -> None:
     assert enriched["BIND_EXTRANET_IP"] == "192.0.2.10"
     assert enriched["BIND_INTRANET_IP"] == "192.0.2.11"
     assert enriched["BIND_ADMIN_IP"] == "192.0.2.12"
-    assert enriched["FRONT_IP"] == "192.0.2.10"
-    assert enriched["BACK_IP"] == "192.0.2.11"
-    assert enriched["ADM_IP"] == "192.0.2.12"
+    assert enriched["BIND_EXTRANET_IP"] == "192.0.2.10"
+    assert enriched["BIND_INTRANET_IP"] == "192.0.2.11"
+    assert enriched["BIND_ADMIN_IP"] == "192.0.2.12"
     assert enriched["DNS_LISTEN_ON"] == "192.0.2.10; 192.0.2.11; 192.0.2.12;"
 
 
-def test_interface_resolver_accepts_legacy_ip_values_for_migration() -> None:
+def test_interface_resolver_accepts_runtime_ip_values_for_migration() -> None:
     enriched = _Resolver().enrich_settings(
         {
-            "FRONT_IP": "198.51.100.10",
-            "BACK_IP": "198.51.100.11",
-            "ADM_IP": "198.51.100.12",
+            "BIND_EXTRANET_IP": "198.51.100.10",
+            "BIND_INTRANET_IP": "198.51.100.11",
+            "BIND_ADMIN_IP": "198.51.100.12",
         }
     )
 
     assert enriched["BIND_EXTRANET_IP"] == "198.51.100.10"
     assert enriched["BIND_INTRANET_IP"] == "198.51.100.11"
     assert enriched["BIND_ADMIN_IP"] == "198.51.100.12"
-    assert enriched["FRONT_IP"] == "198.51.100.10"
-    assert enriched["BACK_IP"] == "198.51.100.11"
-    assert enriched["ADM_IP"] == "198.51.100.12"
+    assert enriched["BIND_EXTRANET_IP"] == "198.51.100.10"
+    assert enriched["BIND_INTRANET_IP"] == "198.51.100.11"
+    assert enriched["BIND_ADMIN_IP"] == "198.51.100.12"

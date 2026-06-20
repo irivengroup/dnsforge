@@ -37,7 +37,7 @@ sudo ./src/dnsAuthoritativeDeploy.sh <node>
 
 ```bash
 ss -lntup | grep ':8053'
-curl http://<ADM_IP>:8053/json/v1/server
+curl http://<BIND_ADMIN_IP>:8053/json/v1/server
 ```
 
 ## 4. Installer bind_exporter
@@ -52,7 +52,7 @@ systemctl status bind-exporter --no-pager
 ## 5. Tester les métriques
 
 ```bash
-curl http://<ADM_IP>:9119/metrics
+curl http://<BIND_ADMIN_IP>:9119/metrics
 ```
 
 ## 6. Intégrer Prometheus
@@ -75,8 +75,8 @@ systemctl restart telegraf
 
 ```bash
 ./tests/monitoring/check-statistics-channel.sh /etc
-curl http://<ADM_IP>:8053/json/v1/server
-curl http://<ADM_IP>:9119/metrics
+curl http://<BIND_ADMIN_IP>:8053/json/v1/server
+curl http://<BIND_ADMIN_IP>:9119/metrics
 ```
 
 ---

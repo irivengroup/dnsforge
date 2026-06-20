@@ -141,7 +141,7 @@ grep -RniE 'error|failed|denied|servfail|tsig' /var/log/named /var/log/messages 
 ```bash
 grep -Rni 'response-policy\|rpz' /etc/named /var/named/rpz
 named-checkzone rpz.local /var/named/rpz/rpz.local.zone
-dig @<BACK_IP> malware.example.invalid A
+dig @<BIND_INTRANET_IP> malware.example.invalid A
 ```
 
 ## 15. Baseline sécurité

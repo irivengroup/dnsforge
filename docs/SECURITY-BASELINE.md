@@ -37,7 +37,7 @@ Sans TSIG : refus attendu. Avec TSIG : transfert autorisé si ACL correcte.
 ```bash
 grep -Rni 'controls' src/render
 ss -lntup | grep ':953'
-rndc -s <ADM_IP> status
+rndc -s <BIND_ADMIN_IP> status
 ```
 
 ## 4. Récursion contrôlée
@@ -62,14 +62,14 @@ named-checkconf -p /etc/named.conf | grep -E 'minimal-any|minimal-responses'
 
 ```bash
 named-checkconf -p /etc/named.conf | grep dnssec-validation
-dig @<BACK_IP> dnssec-failed.org A +dnssec
+dig @<BIND_INTRANET_IP> dnssec-failed.org A +dnssec
 ```
 
 ## 8. RPZ côté proxy
 
 ```bash
 grep -Rni 'response-policy\|rpz.local' /etc/named /var/named/rpz
-dig @<BACK_IP> malware.example.invalid A
+dig @<BIND_INTRANET_IP> malware.example.invalid A
 ```
 
 ## 9. SELinux

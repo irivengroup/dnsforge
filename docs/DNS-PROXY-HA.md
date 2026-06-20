@@ -136,15 +136,15 @@ option domain-name-servers <DNS1_IP>, <DNS2_IP>;
 Surveiller séparément les deux proxys :
 
 ```bash
-curl http://<DNS1_ADM_IP>:8053/json/v1/server
-curl http://<DNS2_ADM_IP>:8053/json/v1/server
+curl http://<DNS1_BIND_ADMIN_IP>:8053/json/v1/server
+curl http://<DNS2_BIND_ADMIN_IP>:8053/json/v1/server
 ```
 
 Tester les métriques exporter :
 
 ```bash
-curl http://<DNS1_ADM_IP>:9119/metrics
-curl http://<DNS2_ADM_IP>:9119/metrics
+curl http://<DNS1_BIND_ADMIN_IP>:9119/metrics
+curl http://<DNS2_BIND_ADMIN_IP>:9119/metrics
 ```
 
 ## Critères d'acceptation

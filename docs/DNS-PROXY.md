@@ -49,7 +49,7 @@ ls -l src/render/dns-proxy/<node>/var/named/master/external/
 
 sudo ./src/dnsProxyDeploy.sh <node>
 
-dig @<PROXY_FRONT_IP> example-edge-public.invalid SOA
+dig @<BIND_EXTRANET_IP> example-edge-public.invalid SOA
 ```
 
 ## Ajouter une zone master interne locale
@@ -61,7 +61,7 @@ vi native BIND view directories managed by DNSForgeinternal/master/example-edge-
 ./src/dnsProxyDeploy.sh <node> --render-only
 sudo ./src/dnsProxyDeploy.sh <node>
 
-dig @<PROXY_BACK_IP> example-edge-internal.invalid SOA
+dig @<BIND_INTRANET_IP> example-edge-internal.invalid SOA
 ```
 
 ## Règles de sécurité
