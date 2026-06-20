@@ -15,7 +15,41 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("boundaries", help="Show product responsibility boundaries")
     nodes = sub.add_parser("nodes", help="List managed DNSForge nodes")
     nodes.add_argument("--format", choices=("json",), default="json")
+
+    inventory = sub.add_parser("inventory", help="Manage Manager Central Inventory")
+    inventory_sub = inventory.add_subparsers(dest="inventory_object", required=True)
+
+    _add_inventory_resource(inventory_sub, "site", "site_id")
+    _add_inventory_resource(inventory_sub, "cluster", "cluster_id")
+
+    agent = inventory_sub.add_parser("agent", help="Manage inventory agents")
+    agent_sub = agent.add_subparsers(dest="inventory_action", required=True)
+    agent_sub.add_parser("list", help="List registered agents")
+    register = agent_sub.add_parser("register", help="Register an agent")
+    register.add_argument("--fingerprint", required=True)
+    register.add_argument("--hostname", required=True)
+    register.add_argument("--version", required=True)
+    register.add_argument("--profile", required=True)
+    register.add_argument("--site", default="default")
+    register.add_argument("--cluster")
+    register.add_argument("--status", choices=("READY", "WARNING", "FAILED"), default="WARNING")
+
+    environment = inventory_sub.add_parser("environment", help="List inventory environments")
+    environment_sub = environment.add_subparsers(dest="inventory_action", required=True)
+    environment_sub.add_parser("list", help="List environments")
     return parser
+
+
+def _add_inventory_resource(subparsers: argparse._SubParsersAction, name: str, id_name: str) -> None:
+    resource = subparsers.add_parser(name, help=f"Manage inventory {name}s")
+    resource_sub = resource.add_subparsers(dest="inventory_action", required=True)
+    resource_sub.add_parser("list", help=f"List {name}s")
+    create = resource_sub.add_parser("create", help=f"Create a {name}")
+    create.add_argument(f"--{id_name.replace('_', '-')}", dest=id_name, required=True)
+    create.add_argument("--name")
+    create.add_argument("--description", default="")
+    create.add_argument("--site", default="default")
+    create.add_argument("--environment", default="production")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -34,7 +68,48 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "nodes":
         print(json.dumps(app.nodes(), sort_keys=True))
         return 0
+    if args.command == "inventory":
+        print(json.dumps(_dispatch_inventory(app, args), sort_keys=True))
+        return 0
     return 2
+
+
+def _dispatch_inventory(app: object, args: argparse.Namespace) -> dict[str, object]:
+    if args.inventory_object == "site":
+        if args.inventory_action == "list":
+            return app.inventory_sites()  # type: ignore[attr-defined]
+        return app.create_inventory_site(  # type: ignore[attr-defined]
+            {"site_id": args.site_id, "name": args.name or args.site_id, "description": args.description}
+        )
+    if args.inventory_object == "cluster":
+        if args.inventory_action == "list":
+            return app.inventory_clusters()  # type: ignore[attr-defined]
+        return app.create_inventory_cluster(  # type: ignore[attr-defined]
+            {
+                "cluster_id": args.cluster_id,
+                "name": args.name or args.cluster_id,
+                "site": args.site,
+                "environment": args.environment,
+                "description": args.description,
+            }
+        )
+    if args.inventory_object == "agent":
+        if args.inventory_action == "list":
+            return app.inventory_agents()  # type: ignore[attr-defined]
+        return app.register_inventory_agent(  # type: ignore[attr-defined]
+            {
+                "fingerprint": args.fingerprint,
+                "hostname": args.hostname,
+                "version": args.version,
+                "profile": args.profile,
+                "site": args.site,
+                "cluster": args.cluster,
+                "status": args.status,
+            }
+        )
+    if args.inventory_object == "environment":
+        return app.inventory_environments()  # type: ignore[attr-defined]
+    raise ValueError(f"unsupported inventory command: {args.inventory_object}")
 
 
 if __name__ == "__main__":

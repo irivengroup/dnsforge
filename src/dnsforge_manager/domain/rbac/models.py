@@ -43,6 +43,11 @@ CHANGE_ADMIN = ManagerPermission(
     "manager:changes:admin",
     "Approve, apply and rollback Manager change requests",
 )
+INVENTORY_READER = ManagerPermission("manager:inventory:read", "Read Central Inventory objects")
+INVENTORY_WRITER = ManagerPermission(
+    "manager:inventory:write",
+    "Create Central Inventory objects and update agent status",
+)
 
 MANAGER_ADMIN_ROLE = ManagerRole(
     name="admin",
@@ -57,17 +62,28 @@ MANAGER_ADMIN_ROLE = ManagerRole(
         CHANGE_READER,
         CHANGE_OPERATOR,
         CHANGE_ADMIN,
+        INVENTORY_READER,
+        INVENTORY_WRITER,
     ),
 )
 
 MANAGER_OPERATOR_ROLE = ManagerRole(
     name="operator",
-    permissions=(NODE_READER, NODE_OPERATOR, SYNC_OPERATOR, BEAT_READER, CHANGE_READER, CHANGE_OPERATOR),
+    permissions=(
+        NODE_READER,
+        NODE_OPERATOR,
+        SYNC_OPERATOR,
+        BEAT_READER,
+        CHANGE_READER,
+        CHANGE_OPERATOR,
+        INVENTORY_READER,
+        INVENTORY_WRITER,
+    ),
 )
 
 MANAGER_VIEWER_ROLE = ManagerRole(
     name="viewer",
-    permissions=(NODE_READER, BEAT_READER, AUDIT_READER, CHANGE_READER),
+    permissions=(NODE_READER, BEAT_READER, AUDIT_READER, CHANGE_READER, INVENTORY_READER),
 )
 
 MANAGER_ROLES = (MANAGER_ADMIN_ROLE, MANAGER_OPERATOR_ROLE, MANAGER_VIEWER_ROLE)

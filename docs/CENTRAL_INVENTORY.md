@@ -1,11 +1,43 @@
-# DNSForge v14.2.0 Central Inventory
+# DNSForge Manager Central Inventory
 
-Manager becomes the centralized source of truth for:
-- Sites
-- Clusters
-- Agents
-- Environments
-- Agent Status
+DNSForge v14.2.0 introduces Central Inventory in the Manager. The Manager is the centralized source of truth for sites, clusters, agents, environments and aggregated agent readiness.
 
-JSON remains the default backend.
-PostgreSQL remains optional.
+## Aggregates
+
+- `Site`: logical or physical DNS operating location.
+- `Cluster`: group of DNSForge agents attached to a site and environment.
+- `Agent`: registered local DNSForge agent metadata.
+- `Environment`: production, staging or any operator-defined runtime boundary.
+- `AgentStatus`: readiness state reported or aggregated for an agent.
+
+## Persistence
+
+JSON remains the default backend. PostgreSQL is optional and uses the following tables:
+
+- `sites`
+- `clusters`
+- `agents`
+- `environments`
+- `agent_status`
+
+## API
+
+- `GET /inventory/sites`
+- `POST /inventory/sites`
+- `GET /inventory/clusters`
+- `POST /inventory/clusters`
+- `GET /inventory/agents`
+- `POST /inventory/agents`
+- `GET /inventory/environments`
+
+## CLI
+
+```bash
+dnsforge-manager inventory site list
+dnsforge-manager inventory site create --site-id paris --name "Paris DC"
+dnsforge-manager inventory cluster list
+dnsforge-manager inventory cluster create --cluster-id auth-a --name "Authoritative A" --site paris
+dnsforge-manager inventory agent list
+dnsforge-manager inventory agent register --fingerprint fp-001 --hostname dns01 --version 14.2.0 --profile authoritative --site paris --cluster auth-a --status READY
+dnsforge-manager inventory environment list
+```
