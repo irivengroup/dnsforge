@@ -7,6 +7,7 @@ from dnsforge.infrastructure.network.interface_resolver import InterfaceAddressR
 
 SetupValue = str | bool | None
 SetupSection = Mapping[str, SetupValue]
+DEFAULT_SETUP_PLACEHOLDER = "CHANGE_ME_BASE64"
 
 
 class SetupProfileGenerator:
@@ -35,7 +36,7 @@ class SetupProfileGenerator:
         "DNS_FORWARD_POLICY": "first",
         "RNDC_KEY_NAME": "rndc-key",
         "TSIG_KEY_NAME": "xfr-shared-key",
-        "TSIG_" + "SECRET": "CHANGE_ME_BASE64",
+        "TSIG_SECRET": DEFAULT_SETUP_PLACEHOLDER,
         "BACK_RECURSIVE_CLIENTS": "10.0.0.0/8; 172.16.0.0/12; 192.168.0.0/16; localhost; localnets;",
         "ADM_ALLOWED_CLIENTS": "REPLACE_ADM_CIDR",
         "FRONT_ALLOWED_CLIENTS": "any",
