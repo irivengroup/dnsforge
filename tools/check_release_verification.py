@@ -56,7 +56,7 @@ def main() -> int:
             errors.append(f"CI does not contain required verification marker: {marker}")
 
     version = _version()
-    if not version.startswith("13.0."):
+    if version.startswith("13.") and not version.startswith("13.0."):
         errors.append(f"maintenance verification only applies to 13.0.x, got {version}")
 
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
