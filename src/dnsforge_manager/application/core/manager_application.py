@@ -10,6 +10,8 @@ from dnsforge_manager.domain.core.boundaries import PRODUCT_BOUNDARIES
 from dnsforge_manager.application.dnsbeat.dnsbeat_service import DNSBeatService
 from dnsforge_manager.domain.inventory.models import ManagedNode, NodeRole, NodeStatus
 from dnsforge_manager.application.inventory.node_registration_service import NodeRegistrationService
+from dnsforge_manager.application.inventory.central_inventory_service import CentralInventoryService
+from dnsforge_manager.infrastructure.inventory.central_repository import CentralInventoryRepository
 from dnsforge_manager.application.rbac.rbac_service import RbacService
 from dnsforge_manager.application.workflows.change_workflow import ManagerChangeWorkflow
 from dnsforge_manager.domain.workflows.models import ManagerChangeRequest
@@ -30,6 +32,8 @@ class ManagerApplication:
         audit_repository: ManagerAuditRepository | None = None,
         change_workflow: ManagerChangeWorkflow | None = None,
         node_client: DNSForgeNodeClient | None = None,
+        central_inventory: CentralInventoryService | None = None,
+        central_inventory_repository: CentralInventoryRepository | None = None,
     ) -> None:
         self.registration_service = registration_service or NodeRegistrationService()
         self.dnsbeat_service = dnsbeat_service or DNSBeatService()
@@ -37,6 +41,7 @@ class ManagerApplication:
         self.audit_repository = audit_repository or ManagerAuditRepository()
         self.change_workflow = change_workflow or ManagerChangeWorkflow(dnsbeat_service=self.dnsbeat_service)
         self.node_client = node_client or RecordingDNSForgeNodeClient()
+        self.central_inventory = central_inventory or CentralInventoryService(central_inventory_repository)
 
     def _require(self, role: str, permission: str) -> None:
         self.rbac_service.require(role, permission)
@@ -268,11 +273,68 @@ class ManagerApplication:
         )
         return {"change": self.change_workflow.get_change(change_id).to_dict()}
 
+    def inventory_sites(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:inventory:read")
+        return {"sites": [site.to_dict() for site in self.central_inventory.list_sites()]}
+
+    def create_inventory_site(
+        self, payload: dict[str, Any], *, actor: str = "system", role: str = "admin"
+    ) -> dict[str, Any]:
+        self._require(role, "manager:inventory:write")
+        site = self.central_inventory.create_site(payload)
+        self._audit(actor=actor, action="inventory.site.create", target=site.site_id, result="created")
+        return {"site": site.to_dict()}
+
+    def inventory_clusters(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:inventory:read")
+        return {"clusters": [cluster.to_dict() for cluster in self.central_inventory.list_clusters()]}
+
+    def create_inventory_cluster(
+        self, payload: dict[str, Any], *, actor: str = "system", role: str = "admin"
+    ) -> dict[str, Any]:
+        self._require(role, "manager:inventory:write")
+        cluster = self.central_inventory.create_cluster(payload)
+        self._audit(actor=actor, action="inventory.cluster.create", target=cluster.cluster_id, result="created")
+        return {"cluster": cluster.to_dict()}
+
+    def inventory_agents(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:inventory:read")
+        return {"agents": [agent.to_dict() for agent in self.central_inventory.list_agents()]}
+
+    def register_inventory_agent(
+        self, payload: dict[str, Any], *, actor: str = "system", role: str = "admin"
+    ) -> dict[str, Any]:
+        self._require(role, "manager:inventory:write")
+        agent = self.central_inventory.register_agent(payload)
+        self._audit(actor=actor, action="inventory.agent.register", target=agent.fingerprint, result=agent.status.value)
+        return {"agent": agent.to_dict()}
+
+    def inventory_environments(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:inventory:read")
+        return {"environments": [environment.to_dict() for environment in self.central_inventory.list_environments()]}
+
+    def inventory_agent_status(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:inventory:read")
+        return self.central_inventory.aggregate_readiness()
+
+    def update_inventory_agent_status(
+        self, payload: dict[str, Any], *, actor: str = "system", role: str = "operator"
+    ) -> dict[str, Any]:
+        self._require(role, "manager:inventory:write")
+        status = self.central_inventory.update_agent_status(payload)
+        self._audit(actor=actor, action="inventory.agent.status", target=status.fingerprint, result=status.readiness.value)
+        return {"agent_status": status.to_dict()}
+
     def audit_events(self, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:audit:read")
         return {"events": [event.to_dict() for event in self.audit_repository.list()]}
 
 
-def create_app(registration_service: NodeRegistrationService | None = None) -> ManagerApplication:
+def create_app(
+    registration_service: NodeRegistrationService | None = None,
+    central_inventory_repository: CentralInventoryRepository | None = None,
+) -> ManagerApplication:
     """Return the framework-neutral Manager app core."""
-    return ManagerApplication(registration_service=registration_service)
+    return ManagerApplication(
+        registration_service=registration_service, central_inventory_repository=central_inventory_repository
+    )
