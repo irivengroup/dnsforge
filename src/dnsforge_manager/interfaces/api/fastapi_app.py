@@ -45,6 +45,8 @@ class FastAPIUnavailableApp:
             RouteSpec("GET", "/inventory/environments"),
             RouteSpec("GET", "/inventory/agent-status"),
             RouteSpec("POST", "/inventory/agent-status"),
+            RouteSpec("GET", "/inventory/agent-compliance"),
+            RouteSpec("POST", "/inventory/agent-compliance"),
             RouteSpec("GET", "/trust/enrollments"),
             RouteSpec("GET", "/trust/agents"),
             RouteSpec("POST", "/trust/enroll"),
@@ -185,6 +187,14 @@ def create_fastapi_app(core: ManagerApplication | None = None) -> Any:
     @app.post("/inventory/agent-status")
     def update_inventory_agent_status(payload: dict[str, Any]) -> dict[str, Any]:
         return manager.update_inventory_agent_status(payload)
+
+    @app.get("/inventory/agent-compliance")
+    def inventory_agent_compliance() -> dict[str, Any]:
+        return manager.inventory_agent_compliance()
+
+    @app.post("/inventory/agent-compliance")
+    def update_inventory_agent_compliance(payload: dict[str, Any]) -> dict[str, Any]:
+        return manager.update_inventory_agent_compliance(payload)
 
     @app.get("/trust/enrollments")
     def list_trust_enrollments() -> dict[str, Any]:

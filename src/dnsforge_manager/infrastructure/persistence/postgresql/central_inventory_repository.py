@@ -3,7 +3,14 @@ from __future__ import annotations
 import json
 from typing import Callable, TypeVar
 
-from dnsforge_manager.domain.inventory.models import Agent, AgentStatus, Cluster, Environment, Site
+from dnsforge_manager.domain.inventory.models import (
+    Agent,
+    AgentComplianceStatus,
+    AgentStatus,
+    Cluster,
+    Environment,
+    Site,
+)
 from dnsforge_manager.infrastructure.persistence.postgresql.connection import ConnectionLike
 from dnsforge_manager.infrastructure.inventory.central_repository import CentralInventoryRepository
 
@@ -79,6 +86,13 @@ class PostgreSQLCentralInventoryRepository(CentralInventoryRepository):
 
     def list_agent_status(self) -> tuple[AgentStatus, ...]:
         return self._list("agent_status", "fingerprint", AgentStatus.from_dict)
+
+    def set_agent_compliance(self, status: AgentComplianceStatus) -> AgentComplianceStatus:
+        self._upsert("agent_compliance", "fingerprint", status.fingerprint, status.to_dict())
+        return status
+
+    def list_agent_compliance(self) -> tuple[AgentComplianceStatus, ...]:
+        return self._list("agent_compliance", "fingerprint", AgentComplianceStatus.from_dict)
 
 
 def _payload(row: object) -> dict[str, object]:

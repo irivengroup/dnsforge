@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from dnsforge_manager.domain.inventory.models import (
     Agent,
+    AgentComplianceStatus,
     AgentReadiness,
     AgentStatus,
     Cluster,
+    ConfigurationComplianceState,
     Environment,
     Site,
 )
@@ -98,6 +100,35 @@ class CentralInventoryService:
             "summary": {
                 state.value: sum(1 for item in statuses if item.readiness == state) for state in AgentReadiness
             },
+        }
+
+    def update_agent_compliance(self, payload: dict[str, object]) -> AgentComplianceStatus:
+        return self.repository.set_agent_compliance(AgentComplianceStatus.from_dict(payload))
+
+    def list_agent_compliance(self) -> tuple[AgentComplianceStatus, ...]:
+        return self.repository.list_agent_compliance()
+
+    def aggregate_compliance(self) -> dict[str, object]:
+        statuses = self.repository.list_agent_compliance()
+        order = {
+            ConfigurationComplianceState.COMPLIANT: 0,
+            ConfigurationComplianceState.WARNING: 1,
+            ConfigurationComplianceState.DRIFTED: 2,
+            ConfigurationComplianceState.FAILED: 3,
+        }
+        aggregate = max(
+            (status.compliance for status in statuses),
+            key=lambda value: order[value],
+            default=ConfigurationComplianceState.COMPLIANT,
+        )
+        return {
+            "status": aggregate.value,
+            "agents": [status.to_dict() for status in statuses],
+            "summary": {
+                state.value: sum(1 for item in statuses if item.compliance == state)
+                for state in ConfigurationComplianceState
+            },
+            "drift_count": sum(item.drift_count for item in statuses),
         }
 
 

@@ -426,6 +426,28 @@ class ManagerApplication:
         )
         return {"agent_status": status.to_dict()}
 
+    def inventory_agent_compliance(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:inventory:read")
+        return self.central_inventory.aggregate_compliance()
+
+    def update_inventory_agent_compliance(
+        self,
+        payload: dict[str, Any],
+        *,
+        actor: str = "system",
+        role: str = "operator",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:inventory:write")
+        status = self.central_inventory.update_agent_compliance(payload)
+        self._audit(
+            actor=actor,
+            action="inventory.agent.compliance",
+            target=status.fingerprint,
+            result=status.compliance.value,
+            metadata={"drift_count": status.drift_count},
+        )
+        return {"agent_compliance": status.to_dict()}
+
     def trust_enrollments(self, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:trust:read")
         return {"enrollments": [request.to_dict() for request in self.agent_trust_service.list_enrollments()]}

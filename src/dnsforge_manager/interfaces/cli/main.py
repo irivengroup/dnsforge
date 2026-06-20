@@ -38,6 +38,20 @@ def build_parser() -> argparse.ArgumentParser:
     environment_sub = environment.add_subparsers(dest="inventory_action", required=True)
     environment_sub.add_parser("list", help="List environments")
 
+    compliance = inventory_sub.add_parser("compliance", help="Manage inventory agent compliance")
+    compliance_sub = compliance.add_subparsers(dest="inventory_action", required=True)
+    compliance_sub.add_parser("list", help="List agent compliance states")
+    update_compliance = compliance_sub.add_parser("update", help="Update one agent compliance state")
+    update_compliance.add_argument("--fingerprint", required=True)
+    update_compliance.add_argument(
+        "--compliance",
+        choices=("COMPLIANT", "WARNING", "DRIFTED", "FAILED"),
+        required=True,
+    )
+    update_compliance.add_argument("--drift-count", type=int, default=0)
+    update_compliance.add_argument("--last-checked", default="")
+    update_compliance.add_argument("--message", default="")
+
     trust = sub.add_parser("trust", help="Manage DNSForge agent trust")
     trust_sub = trust.add_subparsers(dest="trust_action", required=True)
     trust_sub.add_parser("list", help="List trusted agents")
@@ -148,6 +162,18 @@ def _dispatch_inventory(app: object, args: argparse.Namespace) -> dict[str, obje
         )
     if args.inventory_object == "environment":
         return app.inventory_environments()  # type: ignore[attr-defined]
+    if args.inventory_object == "compliance":
+        if args.inventory_action == "list":
+            return app.inventory_agent_compliance()  # type: ignore[attr-defined]
+        return app.update_inventory_agent_compliance(  # type: ignore[attr-defined]
+            {
+                "fingerprint": args.fingerprint,
+                "compliance": args.compliance,
+                "drift_count": args.drift_count,
+                "last_checked": args.last_checked,
+                "message": args.message,
+            }
+        )
     raise ValueError(f"unsupported inventory command: {args.inventory_object}")
 
 

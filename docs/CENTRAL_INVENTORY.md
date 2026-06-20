@@ -41,3 +41,19 @@ dnsforge-manager inventory agent list
 dnsforge-manager inventory agent register --fingerprint fp-001 --hostname dns01 --version 14.2.0 --profile authoritative --site paris --cluster auth-a --status READY
 dnsforge-manager inventory environment list
 ```
+## Compliance aggregation
+
+Central Inventory also stores agent Configuration Compliance states.
+
+```bash
+dnsforge-manager inventory compliance list
+dnsforge-manager inventory compliance update --fingerprint agent-001 --compliance COMPLIANT
+```
+
+API endpoints:
+
+```http
+GET  /inventory/agent-compliance
+POST /inventory/agent-compliance
+```
+

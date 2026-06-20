@@ -26,6 +26,13 @@ class AgentReadiness(str, Enum):
     FAILED = "FAILED"
 
 
+class ConfigurationComplianceState(str, Enum):
+    COMPLIANT = "COMPLIANT"
+    WARNING = "WARNING"
+    DRIFTED = "DRIFTED"
+    FAILED = "FAILED"
+
+
 @dataclass(frozen=True)
 class Site:
     site_id: str
@@ -135,6 +142,41 @@ class AgentStatus:
             cluster=None if data.get("cluster") is None else str(data.get("cluster")),
             message=str(data.get("message", "")),
             checks=checks_value,
+        )
+
+
+@dataclass(frozen=True)
+class AgentComplianceStatus:
+    fingerprint: str
+    compliance: ConfigurationComplianceState
+    drift_count: int = 0
+    last_checked: str = ""
+    message: str = ""
+    findings: tuple[dict[str, Any], ...] = ()
+
+    def to_dict(self) -> dict[str, object]:
+        data = asdict(self)
+        data["compliance"] = self.compliance.value
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, object]) -> "AgentComplianceStatus":
+        findings = data.get("findings", ())
+        if isinstance(findings, list):
+            findings_value = tuple(dict(item) for item in findings if isinstance(item, dict))
+        elif isinstance(findings, tuple):
+            findings_value = tuple(dict(item) for item in findings if isinstance(item, dict))
+        else:
+            raise ValueError("agent compliance findings must be a list")
+        return cls(
+            fingerprint=str(data["fingerprint"]),
+            compliance=ConfigurationComplianceState(
+                str(data.get("compliance", ConfigurationComplianceState.WARNING.value))
+            ),
+            drift_count=int(data.get("drift_count", 0)),
+            last_checked=str(data.get("last_checked", "")),
+            message=str(data.get("message", "")),
+            findings=findings_value,
         )
 
 

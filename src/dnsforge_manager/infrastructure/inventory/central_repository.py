@@ -5,7 +5,15 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Callable, Generic, TypeVar
 
-from dnsforge_manager.domain.inventory.models import Agent, AgentReadiness, AgentStatus, Cluster, Environment, Site
+from dnsforge_manager.domain.inventory.models import (
+    Agent,
+    AgentComplianceStatus,
+    AgentReadiness,
+    AgentStatus,
+    Cluster,
+    Environment,
+    Site,
+)
 
 T = TypeVar("T")
 
@@ -41,6 +49,12 @@ class CentralInventoryRepository:
     def list_agent_status(self) -> tuple[AgentStatus, ...]:
         raise NotImplementedError
 
+    def set_agent_compliance(self, status: AgentComplianceStatus) -> AgentComplianceStatus:
+        raise NotImplementedError
+
+    def list_agent_compliance(self) -> tuple[AgentComplianceStatus, ...]:
+        raise NotImplementedError
+
 
 class _MemoryTable(Generic[T]):
     def __init__(self, identifier: Callable[[T], str]) -> None:
@@ -69,6 +83,7 @@ class InMemoryCentralInventoryRepository(CentralInventoryRepository):
         self.agents: _MemoryTable[Agent] = _MemoryTable(lambda item: item.fingerprint)
         self.environments: _MemoryTable[Environment] = _MemoryTable(lambda item: item.environment_id)
         self.status: _MemoryTable[AgentStatus] = _MemoryTable(lambda item: item.fingerprint)
+        self.compliance: _MemoryTable[AgentComplianceStatus] = _MemoryTable(lambda item: item.fingerprint)
         self.environments.create(Environment(environment_id="production", name="production"))
 
     def create_site(self, site: Site) -> Site:
@@ -101,6 +116,12 @@ class InMemoryCentralInventoryRepository(CentralInventoryRepository):
     def list_agent_status(self) -> tuple[AgentStatus, ...]:
         return self.status.list()
 
+    def set_agent_compliance(self, status: AgentComplianceStatus) -> AgentComplianceStatus:
+        return self.compliance.upsert(status)
+
+    def list_agent_compliance(self) -> tuple[AgentComplianceStatus, ...]:
+        return self.compliance.list()
+
 
 class JsonCentralInventoryRepository(CentralInventoryRepository):
     """Default Manager Central Inventory backend.
@@ -115,7 +136,14 @@ class JsonCentralInventoryRepository(CentralInventoryRepository):
 
     def _read(self) -> dict[str, list[dict[str, object]]]:
         if not self.path.exists():
-            return {"sites": [], "clusters": [], "agents": [], "environments": [], "agent_status": []}
+            return {
+                "sites": [],
+                "clusters": [],
+                "agents": [],
+                "environments": [],
+                "agent_status": [],
+                "agent_compliance": [],
+            }
         raw = json.loads(self.path.read_text(encoding="utf-8"))
         if not isinstance(raw, dict):
             raise ValueError(f"{self.path} must contain a JSON object")
@@ -125,6 +153,7 @@ class JsonCentralInventoryRepository(CentralInventoryRepository):
             "agents": _list(raw.get("agents", [])),
             "environments": _list(raw.get("environments", [])),
             "agent_status": _list(raw.get("agent_status", [])),
+            "agent_compliance": _list(raw.get("agent_compliance", [])),
         }
 
     def _write(self, data: dict[str, list[dict[str, object]]]) -> None:
@@ -185,6 +214,13 @@ class JsonCentralInventoryRepository(CentralInventoryRepository):
 
     def list_agent_status(self) -> tuple[AgentStatus, ...]:
         return tuple(AgentStatus.from_dict(item) for item in self._read()["agent_status"])
+
+    def set_agent_compliance(self, status: AgentComplianceStatus) -> AgentComplianceStatus:
+        self._upsert("agent_compliance", "fingerprint", status.to_dict())
+        return status
+
+    def list_agent_compliance(self) -> tuple[AgentComplianceStatus, ...]:
+        return tuple(AgentComplianceStatus.from_dict(item) for item in self._read()["agent_compliance"])
 
 
 def _list(value: object) -> list[dict[str, object]]:

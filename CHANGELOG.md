@@ -1,5 +1,13 @@
 # Changelog
 
+## 14.8.0
+
+- Added Manager-side Configuration Compliance aggregation for Central Inventory agents.
+- Added `GET/POST /inventory/agent-compliance` Manager API routes.
+- Added `dnsforge-manager inventory compliance list|update` CLI commands.
+- Added JSON and PostgreSQL persistence support for agent compliance state.
+- Preserved DNSForge as the local BIND agent; Manager stores and aggregates reported compliance only.
+
 ## 14.7.2
 
 - Added real ComplianceService coverage for missing render trees, drift detection, repair plans, JSON renderers, fingerprints and baselines.
