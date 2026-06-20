@@ -36,15 +36,6 @@ class FastAPIUnavailableApp:
             RouteSpec("POST", "/changes/{change_id}/reject"),
             RouteSpec("POST", "/changes/{change_id}/apply"),
             RouteSpec("POST", "/changes/{change_id}/rollback"),
-            RouteSpec("GET", "/inventory/sites"),
-            RouteSpec("POST", "/inventory/sites"),
-            RouteSpec("GET", "/inventory/clusters"),
-            RouteSpec("POST", "/inventory/clusters"),
-            RouteSpec("GET", "/inventory/agents"),
-            RouteSpec("POST", "/inventory/agents"),
-            RouteSpec("GET", "/inventory/environments"),
-            RouteSpec("GET", "/inventory/agent-status"),
-            RouteSpec("POST", "/inventory/agent-status"),
         ]
 
 
@@ -138,41 +129,5 @@ def create_fastapi_app(core: ManagerApplication | None = None) -> Any:
             change_id,
             approved_plan_hash=None if payload is None else str(payload.get("approved_plan_hash", "")),
         )
-
-    @app.get("/inventory/sites")
-    def list_inventory_sites() -> dict[str, Any]:
-        return manager.inventory_sites()
-
-    @app.post("/inventory/sites")
-    def create_inventory_site(payload: dict[str, Any]) -> dict[str, Any]:
-        return manager.create_inventory_site(payload)
-
-    @app.get("/inventory/clusters")
-    def list_inventory_clusters() -> dict[str, Any]:
-        return manager.inventory_clusters()
-
-    @app.post("/inventory/clusters")
-    def create_inventory_cluster(payload: dict[str, Any]) -> dict[str, Any]:
-        return manager.create_inventory_cluster(payload)
-
-    @app.get("/inventory/agents")
-    def list_inventory_agents() -> dict[str, Any]:
-        return manager.inventory_agents()
-
-    @app.post("/inventory/agents")
-    def register_inventory_agent(payload: dict[str, Any]) -> dict[str, Any]:
-        return manager.register_inventory_agent(payload)
-
-    @app.get("/inventory/environments")
-    def list_inventory_environments() -> dict[str, Any]:
-        return manager.inventory_environments()
-
-    @app.get("/inventory/agent-status")
-    def inventory_agent_status() -> dict[str, Any]:
-        return manager.inventory_agent_status()
-
-    @app.post("/inventory/agent-status")
-    def update_inventory_agent_status(payload: dict[str, Any]) -> dict[str, Any]:
-        return manager.update_inventory_agent_status(payload)
 
     return app

@@ -19,17 +19,30 @@ class ManagerRole:
 
 
 NODE_READER = ManagerPermission("manager:nodes:read", "Read managed DNSForge nodes")
-NODE_OPERATOR = ManagerPermission("manager:nodes:operate", "Submit operations to DNSForge nodes")
-SYNC_OPERATOR = ManagerPermission("manager:sync:operate", "Orchestrate cluster synchronization through DNSSync")
+NODE_OPERATOR = ManagerPermission(
+    "manager:nodes:operate",
+    "Submit operations to DNSForge nodes",
+)
+SYNC_OPERATOR = ManagerPermission(
+    "manager:sync:operate",
+    "Orchestrate cluster synchronization through DNSSync",
+)
 BEAT_READER = ManagerPermission("manager:dnsbeat:read", "Read DNSBeat monitoring data")
 RBAC_ADMIN = ManagerPermission("manager:rbac:admin", "Manage Manager roles and permissions")
-TRUST_ADMIN = ManagerPermission("manager:trust:admin", "Approve, revoke and rotate DNSForge agent trust")
+TRUST_ADMIN = ManagerPermission(
+    "manager:trust:admin",
+    "Approve, revoke and rotate DNSForge agent trust",
+)
 AUDIT_READER = ManagerPermission("manager:audit:read", "Read Manager audit events")
 CHANGE_READER = ManagerPermission("manager:changes:read", "Read Manager change requests")
-CHANGE_OPERATOR = ManagerPermission("manager:changes:operate", "Create and dry-run Manager change requests")
-CHANGE_ADMIN = ManagerPermission("manager:changes:admin", "Approve, apply and rollback Manager change requests")
-INVENTORY_READER = ManagerPermission("manager:inventory:read", "Read Central Inventory objects")
-INVENTORY_WRITER = ManagerPermission("manager:inventory:write", "Create Central Inventory objects and update agent status")
+CHANGE_OPERATOR = ManagerPermission(
+    "manager:changes:operate",
+    "Create and dry-run Manager change requests",
+)
+CHANGE_ADMIN = ManagerPermission(
+    "manager:changes:admin",
+    "Approve, apply and rollback Manager change requests",
+)
 
 MANAGER_ADMIN_ROLE = ManagerRole(
     name="admin",
@@ -44,19 +57,17 @@ MANAGER_ADMIN_ROLE = ManagerRole(
         CHANGE_READER,
         CHANGE_OPERATOR,
         CHANGE_ADMIN,
-        INVENTORY_READER,
-        INVENTORY_WRITER,
     ),
 )
 
 MANAGER_OPERATOR_ROLE = ManagerRole(
     name="operator",
-    permissions=(NODE_READER, NODE_OPERATOR, SYNC_OPERATOR, BEAT_READER, CHANGE_READER, CHANGE_OPERATOR, INVENTORY_READER, INVENTORY_WRITER),
+    permissions=(NODE_READER, NODE_OPERATOR, SYNC_OPERATOR, BEAT_READER, CHANGE_READER, CHANGE_OPERATOR),
 )
 
 MANAGER_VIEWER_ROLE = ManagerRole(
     name="viewer",
-    permissions=(NODE_READER, BEAT_READER, AUDIT_READER, CHANGE_READER, INVENTORY_READER),
+    permissions=(NODE_READER, BEAT_READER, AUDIT_READER, CHANGE_READER),
 )
 
 MANAGER_ROLES = (MANAGER_ADMIN_ROLE, MANAGER_OPERATOR_ROLE, MANAGER_VIEWER_ROLE)

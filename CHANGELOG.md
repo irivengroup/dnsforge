@@ -1,15 +1,3 @@
-# Changelog
-
-## 14.2.0 - Central Inventory
-
-- Added Manager Central Inventory as the source of truth for Sites, Clusters, Agents, Environments and Agent Status.
-- Added DDD inventory aggregates and application service.
-- Added JSON default persistence and optional PostgreSQL persistence for `sites`, `clusters`, `agents`, `environments` and `agent_status`.
-- Added Manager API routes under `/inventory/*`.
-- Added Manager CLI commands under `dnsforge-manager inventory`.
-- Added agent registration metadata and readiness aggregation with READY, WARNING and FAILED states.
-- Added Central Inventory and Agent Registration documentation and tests.
-
 
 ## 14.0.0 - Innovation Branch
 

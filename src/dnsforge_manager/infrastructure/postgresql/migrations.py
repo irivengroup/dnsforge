@@ -35,17 +35,4 @@ MANAGER_SCHEMA_MIGRATIONS: tuple[ManagerSchemaMigration, ...] = (
             "CREATE INDEX IF NOT EXISTS idx_manager_audit_events_action ON manager_audit_events ((payload->>'action'));",
         ),
     ),
-    ManagerSchemaMigration(
-        version="004",
-        description="central inventory source of truth",
-        statements=(
-            "CREATE TABLE IF NOT EXISTS sites (site_id TEXT PRIMARY KEY, payload JSONB NOT NULL);",
-            "CREATE TABLE IF NOT EXISTS clusters (cluster_id TEXT PRIMARY KEY, payload JSONB NOT NULL);",
-            "CREATE TABLE IF NOT EXISTS agents (fingerprint TEXT PRIMARY KEY, payload JSONB NOT NULL);",
-            "CREATE TABLE IF NOT EXISTS environments (environment_id TEXT PRIMARY KEY, payload JSONB NOT NULL);",
-            "CREATE TABLE IF NOT EXISTS agent_status (fingerprint TEXT PRIMARY KEY, payload JSONB NOT NULL);",
-            "CREATE INDEX IF NOT EXISTS idx_agents_site ON agents ((payload->>'site'));",
-            "CREATE INDEX IF NOT EXISTS idx_agent_status_readiness ON agent_status ((payload->>'readiness'));",
-        ),
-    ),
 )
