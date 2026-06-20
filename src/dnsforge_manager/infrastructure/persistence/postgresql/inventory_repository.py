@@ -68,3 +68,5 @@ def _payload(row: object) -> dict[str, object]:
     if isinstance(value, dict):
         return value
     raise TypeError("unsupported PostgreSQL payload row")
+
+''' verifs '''
