@@ -29,6 +29,8 @@ SYNC_OPERATOR = ManagerPermission(
 )
 BEAT_READER = ManagerPermission("manager:dnsbeat:read", "Read DNSBeat monitoring data")
 RBAC_ADMIN = ManagerPermission("manager:rbac:admin", "Manage Manager roles and permissions")
+TRUST_READER = ManagerPermission("manager:trust:read", "Read DNSForge agent trust state")
+TRUST_WRITER = ManagerPermission("manager:trust:write", "Create DNSForge agent enrollment requests")
 TRUST_ADMIN = ManagerPermission(
     "manager:trust:admin",
     "Approve, revoke and rotate DNSForge agent trust",
@@ -57,6 +59,8 @@ MANAGER_ADMIN_ROLE = ManagerRole(
         SYNC_OPERATOR,
         BEAT_READER,
         RBAC_ADMIN,
+        TRUST_READER,
+        TRUST_WRITER,
         TRUST_ADMIN,
         AUDIT_READER,
         CHANGE_READER,
@@ -74,6 +78,7 @@ MANAGER_OPERATOR_ROLE = ManagerRole(
         NODE_OPERATOR,
         SYNC_OPERATOR,
         BEAT_READER,
+        TRUST_READER,
         CHANGE_READER,
         CHANGE_OPERATOR,
         INVENTORY_READER,
@@ -83,7 +88,7 @@ MANAGER_OPERATOR_ROLE = ManagerRole(
 
 MANAGER_VIEWER_ROLE = ManagerRole(
     name="viewer",
-    permissions=(NODE_READER, BEAT_READER, AUDIT_READER, CHANGE_READER, INVENTORY_READER),
+    permissions=(NODE_READER, BEAT_READER, AUDIT_READER, TRUST_READER, CHANGE_READER, INVENTORY_READER),
 )
 
 MANAGER_ROLES = (MANAGER_ADMIN_ROLE, MANAGER_OPERATOR_ROLE, MANAGER_VIEWER_ROLE)

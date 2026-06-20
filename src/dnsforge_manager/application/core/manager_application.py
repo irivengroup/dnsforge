@@ -11,6 +11,7 @@ from dnsforge_manager.application.dnsbeat.dnsbeat_service import DNSBeatService
 from dnsforge_manager.domain.inventory.models import ManagedNode, NodeRole, NodeStatus
 from dnsforge_manager.application.inventory.node_registration_service import NodeRegistrationService
 from dnsforge_manager.application.inventory.central_inventory_service import CentralInventoryService
+from dnsforge_manager.application.security.agent_trust_service import AgentTrustService
 from dnsforge_manager.infrastructure.inventory.central_repository import CentralInventoryRepository
 from dnsforge_manager.application.rbac.rbac_service import RbacService
 from dnsforge_manager.application.workflows.change_workflow import ManagerChangeWorkflow
@@ -37,6 +38,7 @@ class ManagerApplication:
         node_client: DNSForgeNodeClient | None = None,
         central_inventory: CentralInventoryService | None = None,
         central_inventory_repository: CentralInventoryRepository | None = None,
+        agent_trust_service: AgentTrustService | None = None,
     ) -> None:
         self.registration_service = registration_service or NodeRegistrationService()
         self.dnsbeat_service = dnsbeat_service or DNSBeatService()
@@ -45,6 +47,7 @@ class ManagerApplication:
         self.change_workflow = change_workflow or ManagerChangeWorkflow(dnsbeat_service=self.dnsbeat_service)
         self.node_client = node_client or RecordingDNSForgeNodeClient()
         self.central_inventory = central_inventory or CentralInventoryService(central_inventory_repository)
+        self.agent_trust_service = agent_trust_service or AgentTrustService()
 
     def _require(self, role: str, permission: str) -> None:
         self.rbac_service.require(role, permission)
@@ -423,6 +426,62 @@ class ManagerApplication:
         )
         return {"agent_status": status.to_dict()}
 
+    def trust_enrollments(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:trust:read")
+        return {"enrollments": [request.to_dict() for request in self.agent_trust_service.list_enrollments()]}
+
+    def trusted_agents(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:trust:read")
+        return {"trusted_agents": [agent.to_dict() for agent in self.agent_trust_service.list_trusted_agents()]}
+
+    def enroll_agent(
+        self,
+        payload: dict[str, Any],
+        *,
+        actor: str = "agent",
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:trust:write")
+        request = self.agent_trust_service.enroll(payload)
+        self._audit(actor=actor, action="trust.enroll", target=request.fingerprint, result=request.status.value)
+        return {"enrollment": request.to_dict()}
+
+    def approve_agent_enrollment(
+        self,
+        request_id: str,
+        *,
+        actor: str = "system",
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:trust:admin")
+        agent = self.agent_trust_service.approve_enrollment(request_id)
+        self._audit(actor=actor, action="trust.approve", target=agent.fingerprint, result=agent.state.value)
+        return {"trusted_agent": agent.to_dict(), "agent_token": agent.token}
+
+    def revoke_trusted_agent(
+        self,
+        fingerprint: str,
+        *,
+        actor: str = "system",
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:trust:admin")
+        agent = self.agent_trust_service.revoke_trusted_agent(fingerprint)
+        self._audit(actor=actor, action="trust.revoke", target=fingerprint, result=agent.state.value)
+        return {"trusted_agent": agent.to_dict()}
+
+    def rotate_trusted_agent_token(
+        self,
+        fingerprint: str,
+        *,
+        actor: str = "system",
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:trust:admin")
+        agent = self.agent_trust_service.rotate_trusted_agent_token(fingerprint)
+        self._audit(actor=actor, action="trust.token.rotate", target=fingerprint, result="rotated")
+        return {"trusted_agent": agent.to_dict(), "agent_token": agent.token}
+
     def audit_events(self, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:audit:read")
         return {"events": [event.to_dict() for event in self.audit_repository.list()]}
@@ -431,9 +490,11 @@ class ManagerApplication:
 def create_app(
     registration_service: NodeRegistrationService | None = None,
     central_inventory_repository: CentralInventoryRepository | None = None,
+    agent_trust_service: AgentTrustService | None = None,
 ) -> ManagerApplication:
     """Return the framework-neutral Manager app core."""
     return ManagerApplication(
         registration_service=registration_service,
         central_inventory_repository=central_inventory_repository,
+        agent_trust_service=agent_trust_service,
     )

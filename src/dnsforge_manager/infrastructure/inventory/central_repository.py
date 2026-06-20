@@ -64,11 +64,11 @@ class _MemoryTable(Generic[T]):
 
 class InMemoryCentralInventoryRepository(CentralInventoryRepository):
     def __init__(self) -> None:
-        self.sites = _MemoryTable(lambda item: item.site_id)
-        self.clusters = _MemoryTable(lambda item: item.cluster_id)
-        self.agents = _MemoryTable(lambda item: item.fingerprint)
-        self.environments = _MemoryTable(lambda item: item.environment_id)
-        self.status = _MemoryTable(lambda item: item.fingerprint)
+        self.sites: _MemoryTable[Site] = _MemoryTable(lambda item: item.site_id)
+        self.clusters: _MemoryTable[Cluster] = _MemoryTable(lambda item: item.cluster_id)
+        self.agents: _MemoryTable[Agent] = _MemoryTable(lambda item: item.fingerprint)
+        self.environments: _MemoryTable[Environment] = _MemoryTable(lambda item: item.environment_id)
+        self.status: _MemoryTable[AgentStatus] = _MemoryTable(lambda item: item.fingerprint)
         self.environments.create(Environment(environment_id="production", name="production"))
 
     def create_site(self, site: Site) -> Site:

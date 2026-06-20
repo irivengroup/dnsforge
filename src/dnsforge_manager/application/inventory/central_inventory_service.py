@@ -24,7 +24,7 @@ class CentralInventoryService:
                 site_id=str(payload["site_id"]),
                 name=str(payload.get("name", payload["site_id"])),
                 description=str(payload.get("description", "")),
-                labels={str(k): str(v) for k, v in dict(payload.get("labels", {})).items()},
+                labels=_labels(payload.get("labels", {})),
             )
         )
 
@@ -39,7 +39,7 @@ class CentralInventoryService:
                 site=str(payload.get("site", "default")),
                 environment=str(payload.get("environment", "production")),
                 description=str(payload.get("description", "")),
-                labels={str(k): str(v) for k, v in dict(payload.get("labels", {})).items()},
+                labels=_labels(payload.get("labels", {})),
             )
         )
 
@@ -55,7 +55,7 @@ class CentralInventoryService:
             site=str(payload.get("site", "default")),
             cluster=None if payload.get("cluster") is None else str(payload.get("cluster")),
             status=AgentReadiness(str(payload.get("status", AgentReadiness.WARNING.value))),
-            labels={str(k): str(v) for k, v in dict(payload.get("labels", {})).items()},
+            labels=_labels(payload.get("labels", {})),
         )
         registered = self.repository.register_agent(agent)
         self.repository.set_agent_status(
@@ -99,3 +99,11 @@ class CentralInventoryService:
                 state.value: sum(1 for item in statuses if item.readiness == state) for state in AgentReadiness
             },
         }
+
+
+def _labels(value: object) -> dict[str, str]:
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise ValueError("labels must be a mapping")
+    return {str(key): str(item) for key, item in value.items()}

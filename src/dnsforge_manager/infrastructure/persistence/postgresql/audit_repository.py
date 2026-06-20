@@ -22,7 +22,7 @@ class PostgreSQLManagerAuditRepository:
     def list(self) -> tuple[ManagerAuditEvent, ...]:
         cursor = self.connection.cursor()
         cursor.execute("SELECT payload FROM manager_audit_events ORDER BY event_id")
-        return tuple(ManagerAuditEvent(**_payload(row)) for row in cursor.fetchall())
+        return tuple(_event_from_payload(_payload(row)) for row in cursor.fetchall())
 
 
 def _payload(row: object) -> dict[str, object]:
@@ -35,3 +35,17 @@ def _payload(row: object) -> dict[str, object]:
     if isinstance(value, dict):
         return value
     raise TypeError("unsupported PostgreSQL payload row")
+
+
+def _event_from_payload(payload: dict[str, object]) -> ManagerAuditEvent:
+    metadata = payload.get("metadata", {})
+    if not isinstance(metadata, dict):
+        raise ValueError("manager audit event metadata must be a mapping")
+    return ManagerAuditEvent(
+        actor=str(payload["actor"]),
+        action=str(payload["action"]),
+        target=str(payload["target"]),
+        result=str(payload["result"]),
+        timestamp=str(payload.get("timestamp", "")),
+        metadata={str(key): value for key, value in metadata.items()},
+    )

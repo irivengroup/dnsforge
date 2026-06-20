@@ -321,3 +321,8 @@ DNSForge 12.9.0 adds release gates for upgrade and migration certification:
 - `proxy-hybrid -> proxy-forwarder`
 
 The certification baseline remains RHEL/Rocky/Alma 8+, Ubuntu 22.04+, Debian 10+, and SUSE/SLES 12+.
+
+
+## DNSForge Manager Agent Trust Framework
+
+DNSForge Manager supports centralized agent enrollment, approval, revocation and token rotation while DNSForge remains the local BIND agent.

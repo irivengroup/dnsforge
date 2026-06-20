@@ -1,5 +1,22 @@
 # Changelog
 
+## 14.3.0
+
+### Added
+
+- Agent Trust Framework for DNSForge Manager.
+- Explicit DDD aggregates: TrustedAgent, AgentCertificate and EnrollmentRequest.
+- Manager trust API endpoints: `/trust/enroll`, `/trust/approve`, `/trust/revoke`, `/trust/rotate-token`.
+- Manager CLI commands: `dnsforge-manager trust list`, `enrollments`, `enroll`, `approve`, `revoke`, `rotate-token`.
+- JSON trust repository retained as the default persistence adapter.
+
+### Preserved
+
+- DNSForge remains the local BIND management agent.
+- DNSForge Manager remains the central orchestrator.
+- Central Inventory v14.2.0 remains intact.
+- No `dist/` directory is included in release archives.
+
 ## 14.2.0 - Central Inventory
 
 - Added Manager Central Inventory as the source of truth for Sites, Clusters, Agents, Environments and Agent Status.

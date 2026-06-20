@@ -37,6 +37,25 @@ def build_parser() -> argparse.ArgumentParser:
     environment = inventory_sub.add_parser("environment", help="List inventory environments")
     environment_sub = environment.add_subparsers(dest="inventory_action", required=True)
     environment_sub.add_parser("list", help="List environments")
+
+    trust = sub.add_parser("trust", help="Manage DNSForge agent trust")
+    trust_sub = trust.add_subparsers(dest="trust_action", required=True)
+    trust_sub.add_parser("list", help="List trusted agents")
+    trust_sub.add_parser("enrollments", help="List enrollment requests")
+    enroll = trust_sub.add_parser("enroll", help="Create an agent enrollment request")
+    enroll.add_argument("--hostname", required=True)
+    enroll.add_argument("--version", required=True)
+    enroll.add_argument("--profile", required=True)
+    enroll.add_argument("--public-key", default="")
+    enroll.add_argument("--fingerprint")
+    enroll.add_argument("--site", default="default")
+    enroll.add_argument("--cluster")
+    approve = trust_sub.add_parser("approve", help="Approve an agent enrollment request")
+    approve.add_argument("--request-id", required=True)
+    revoke = trust_sub.add_parser("revoke", help="Revoke a trusted agent")
+    revoke.add_argument("--fingerprint", required=True)
+    rotate = trust_sub.add_parser("rotate-token", help="Rotate a trusted agent token")
+    rotate.add_argument("--fingerprint", required=True)
     return parser
 
 
@@ -70,6 +89,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "inventory":
         print(json.dumps(_dispatch_inventory(app, args), sort_keys=True))
+        return 0
+    if args.command == "trust":
+        print(json.dumps(_dispatch_trust(app, args), sort_keys=True))
         return 0
     return 2
 
@@ -110,6 +132,32 @@ def _dispatch_inventory(app: object, args: argparse.Namespace) -> dict[str, obje
     if args.inventory_object == "environment":
         return app.inventory_environments()  # type: ignore[attr-defined]
     raise ValueError(f"unsupported inventory command: {args.inventory_object}")
+
+
+def _dispatch_trust(app: object, args: argparse.Namespace) -> dict[str, object]:
+    if args.trust_action == "list":
+        return app.trusted_agents()  # type: ignore[attr-defined]
+    if args.trust_action == "enrollments":
+        return app.trust_enrollments()  # type: ignore[attr-defined]
+    if args.trust_action == "enroll":
+        return app.enroll_agent(  # type: ignore[attr-defined]
+            {
+                "hostname": args.hostname,
+                "version": args.version,
+                "profile": args.profile,
+                "public_key": args.public_key,
+                "fingerprint": args.fingerprint,
+                "site": args.site,
+                "cluster": args.cluster,
+            }
+        )
+    if args.trust_action == "approve":
+        return app.approve_agent_enrollment(args.request_id)  # type: ignore[attr-defined]
+    if args.trust_action == "revoke":
+        return app.revoke_trusted_agent(args.fingerprint)  # type: ignore[attr-defined]
+    if args.trust_action == "rotate-token":
+        return app.rotate_trusted_agent_token(args.fingerprint)  # type: ignore[attr-defined]
+    raise ValueError(f"unsupported trust command: {args.trust_action}")
 
 
 if __name__ == "__main__":

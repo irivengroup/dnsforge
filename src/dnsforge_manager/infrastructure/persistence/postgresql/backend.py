@@ -14,4 +14,5 @@ class PostgreSQLPersistenceBackend:
         self.config = config
 
     def is_ready(self) -> bool:
-        return self.config.dsn.startswith("postgresql://")
+        dsn = self.config.dsn
+        return dsn is not None and dsn.startswith("postgresql://")

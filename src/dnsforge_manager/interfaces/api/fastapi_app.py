@@ -45,6 +45,12 @@ class FastAPIUnavailableApp:
             RouteSpec("GET", "/inventory/environments"),
             RouteSpec("GET", "/inventory/agent-status"),
             RouteSpec("POST", "/inventory/agent-status"),
+            RouteSpec("GET", "/trust/enrollments"),
+            RouteSpec("GET", "/trust/agents"),
+            RouteSpec("POST", "/trust/enroll"),
+            RouteSpec("POST", "/trust/approve"),
+            RouteSpec("POST", "/trust/revoke"),
+            RouteSpec("POST", "/trust/rotate-token"),
         ]
 
 
@@ -174,5 +180,29 @@ def create_fastapi_app(core: ManagerApplication | None = None) -> Any:
     @app.post("/inventory/agent-status")
     def update_inventory_agent_status(payload: dict[str, Any]) -> dict[str, Any]:
         return manager.update_inventory_agent_status(payload)
+
+    @app.get("/trust/enrollments")
+    def list_trust_enrollments() -> dict[str, Any]:
+        return manager.trust_enrollments()
+
+    @app.get("/trust/agents")
+    def list_trusted_agents() -> dict[str, Any]:
+        return manager.trusted_agents()
+
+    @app.post("/trust/enroll")
+    def enroll_agent(payload: dict[str, Any]) -> dict[str, Any]:
+        return manager.enroll_agent(payload)
+
+    @app.post("/trust/approve")
+    def approve_agent_enrollment(payload: dict[str, Any]) -> dict[str, Any]:
+        return manager.approve_agent_enrollment(str(payload["request_id"]))
+
+    @app.post("/trust/revoke")
+    def revoke_trusted_agent(payload: dict[str, Any]) -> dict[str, Any]:
+        return manager.revoke_trusted_agent(str(payload["fingerprint"]))
+
+    @app.post("/trust/rotate-token")
+    def rotate_trusted_agent_token(payload: dict[str, Any]) -> dict[str, Any]:
+        return manager.rotate_trusted_agent_token(str(payload["fingerprint"]))
 
     return app
