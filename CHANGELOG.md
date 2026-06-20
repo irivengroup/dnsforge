@@ -1,5 +1,5 @@
 
-## v14.5.6 - BIND Extranet NIC Naming
+## 14.5.6 - BIND Extranet NIC Naming
 
 - Renamed `BIND_EXTERNET_NICNAME` to `BIND_EXTRANET_NICNAME` across generated setup profiles, validators, interface resolution, tests and documentation.
 - Kept deprecated `BIND_EXTERNET_NICNAME` as read-only migration compatibility input; generated `setup.conf` now emits only `BIND_EXTRANET_NICNAME`.
