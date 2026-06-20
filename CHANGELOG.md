@@ -1,5 +1,12 @@
 # Changelog
 
+## 14.5.5 - Distribution-aware setup defaults
+
+- Fix SetupProfileGenerator type aliases without relying on typing.TypeAlias for Python 3.9 compatibility.
+- Derive DNSSEC_KEY_DIRECTORY from the detected native BIND layout instead of hard-coding /var/named/dnssec.
+- Add BindLayout.dnssec_key_dir for Red Hat, Debian/Ubuntu and SUSE profile generation.
+- Keep profile setup resources removed and verify no code consumes dnsforge.infrastructure.profile.resources.
+
 ## v14.5.4 - Setup Profile mypy/resource cleanup
 
 - Fix SetupProfileGenerator type aliases for Python 3.9/mypy compatibility.
@@ -67,6 +74,13 @@
 
 # Changelog
 
+## 14.5.5 - Distribution-aware setup defaults
+
+- Fix SetupProfileGenerator type aliases without relying on typing.TypeAlias for Python 3.9 compatibility.
+- Derive DNSSEC_KEY_DIRECTORY from the detected native BIND layout instead of hard-coding /var/named/dnssec.
+- Add BindLayout.dnssec_key_dir for Red Hat, Debian/Ubuntu and SUSE profile generation.
+- Keep profile setup resources removed and verify no code consumes dnsforge.infrastructure.profile.resources.
+
 ## 14.0.0 - Maintenance Release Verification
 
 - Added maintenance release verification documentation for the 13.0.x branch.
@@ -114,6 +128,13 @@
 - Integrated GA readiness into CI and product gate.
 
 # Changelog
+
+## 14.5.5 - Distribution-aware setup defaults
+
+- Fix SetupProfileGenerator type aliases without relying on typing.TypeAlias for Python 3.9 compatibility.
+- Derive DNSSEC_KEY_DIRECTORY from the detected native BIND layout instead of hard-coding /var/named/dnssec.
+- Add BindLayout.dnssec_key_dir for Red Hat, Debian/Ubuntu and SUSE profile generation.
+- Keep profile setup resources removed and verify no code consumes dnsforge.infrastructure.profile.resources.
 
 ## 12.10.3 - Operational Acceptance Sprint 3
 - Extended readiness checks with JSON output contract.
@@ -381,6 +402,13 @@
 
 # Changelog
 
+## 14.5.5 - Distribution-aware setup defaults
+
+- Fix SetupProfileGenerator type aliases without relying on typing.TypeAlias for Python 3.9 compatibility.
+- Derive DNSSEC_KEY_DIRECTORY from the detected native BIND layout instead of hard-coding /var/named/dnssec.
+- Add BindLayout.dnssec_key_dir for Red Hat, Debian/Ubuntu and SUSE profile generation.
+- Keep profile setup resources removed and verify no code consumes dnsforge.infrastructure.profile.resources.
+
 ## 12.8.0 - Enterprise CI Matrix Hardening
 
 - Added minimum supported platform certification policy.
@@ -427,6 +455,13 @@
 - Added regression coverage ensuring missing BIND tools fail under `GITHUB_ACTIONS=true`.
 
 # Changelog
+
+## 14.5.5 - Distribution-aware setup defaults
+
+- Fix SetupProfileGenerator type aliases without relying on typing.TypeAlias for Python 3.9 compatibility.
+- Derive DNSSEC_KEY_DIRECTORY from the detected native BIND layout instead of hard-coding /var/named/dnssec.
+- Add BindLayout.dnssec_key_dir for Red Hat, Debian/Ubuntu and SUSE profile generation.
+- Keep profile setup resources removed and verify no code consumes dnsforge.infrastructure.profile.resources.
 
 ## 12.8.0 - Enterprise CI Matrix Hardening
 
@@ -934,6 +969,13 @@ Plateforme de Déploiement et de Configuration DNS as a Service
 - Archive régénérée avec dossier racine `binddns-enterprise-redhat-v3.9`.
 
 # Changelog
+
+## 14.5.5 - Distribution-aware setup defaults
+
+- Fix SetupProfileGenerator type aliases without relying on typing.TypeAlias for Python 3.9 compatibility.
+- Derive DNSSEC_KEY_DIRECTORY from the detected native BIND layout instead of hard-coding /var/named/dnssec.
+- Add BindLayout.dnssec_key_dir for Red Hat, Debian/Ubuntu and SUSE profile generation.
+- Keep profile setup resources removed and verify no code consumes dnsforge.infrastructure.profile.resources.
 
 ## 12.8.0 - Enterprise CI Matrix Hardening
 

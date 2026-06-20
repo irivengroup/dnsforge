@@ -28,7 +28,7 @@ dnssec-validation auto;
 ```bash
 ENABLE_DNSSEC="no"
 DNSSEC_POLICY_NAME="binddns-default"
-DNSSEC_KEY_DIRECTORY="/var/named/dnssec"
+DNSSEC_KEY_DIRECTORY="<layout-data-dir>/dnssec"
 DNSSEC_SIGNING_MODE="policy"
 ```
 
@@ -43,7 +43,7 @@ Contrôler :
 ```bash
 cat src/render/dns-authoritative/<node>/etc/named/dnssec/dnssec-policy.conf
 cat src/render/dns-authoritative/<node>/etc/named/dnssec/dnssec-options.conf
-ls -ld src/render/dns-authoritative/<node>/var/named/dnssec
+ls -ld src/render/dns-authoritative/<node><layout-data-dir>/dnssec
 ```
 
 ## Activer DNSSEC sur une zone
@@ -88,7 +88,7 @@ rndc dnssec -status <ZONE>
 ou inspecter les clés générées dans :
 
 ```text
-/var/named/dnssec
+<layout-data-dir>/dnssec
 ```
 
 ## Points d'attention

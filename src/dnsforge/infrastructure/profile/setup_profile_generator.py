@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TypeAlias, Union
+from typing import Union
 
 from dnsforge.domain.profile.model import ConfigurationProfile
+from dnsforge.infrastructure.bind.layout import BindLayout, BindLayoutDetector
 from dnsforge.infrastructure.network.interface_resolver import InterfaceAddressResolver
 
-SetupValue: TypeAlias = Union[str, bool, None]
-SetupSection: TypeAlias = Mapping[str, SetupValue]
+SetupValue = Union[str, bool, None]
+SetupSection = Mapping[str, SetupValue]
 DEFAULT_SETUP_PLACEHOLDER = "CHANGE_ME_BASE64"
 
 
@@ -50,7 +51,7 @@ class SetupProfileGenerator:
         "RRL_ERRORS_PER_SECOND": "5",
         "RRL_WINDOW": "5",
         "DNSSEC_POLICY_NAME": "binddns-default",
-        "DNSSEC_KEY_DIRECTORY": "/var/named/dnssec",
+        "DNSSEC_KEY_DIRECTORY": None,
         "DNSSEC_SIGNING_MODE": "policy",
         "BINDDNS_VERSION": "5.0",
         "ZONE_ACL_PUBLIC": "any;",
@@ -174,8 +175,13 @@ class SetupProfileGenerator:
         ),
     )
 
-    def __init__(self, resolver: InterfaceAddressResolver | None = None) -> None:
+    def __init__(
+        self,
+        resolver: InterfaceAddressResolver | None = None,
+        bind_layout: BindLayout | None = None,
+    ) -> None:
         self.resolver = resolver or InterfaceAddressResolver()
+        self.bind_layout = bind_layout or BindLayoutDetector().detect()
 
     def generate(
         self,
@@ -205,6 +211,7 @@ class SetupProfileGenerator:
                 "ROLE": profile.role,
                 "NODE_NAME": node,
                 "BIND_ADMIN_NICNAME": admin_nic,
+                "DNSSEC_KEY_DIRECTORY": str(self.bind_layout.dnssec_key_dir),
             }
         )
 

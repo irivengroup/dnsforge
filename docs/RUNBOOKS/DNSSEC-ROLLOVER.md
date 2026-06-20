@@ -30,7 +30,7 @@ Avec une politique BIND moderne, le rollover est piloté par la policy. Surveill
 
 ```bash
 rndc dnssec -status <ZONE>
-ls -l /var/named/dnssec
+ls -l <layout-data-dir>/dnssec
 journalctl -u named -f
 ```
 

@@ -4,6 +4,8 @@ from pathlib import Path
 
 from dnsforge.application.initialize.initialize_command import InitializeCommand
 from dnsforge.domain.profile.model import ConfigurationProfile
+from dnsforge.infrastructure.bind.layout import BindLayoutDetector
+from dnsforge.infrastructure.profile.setup_profile_generator import SetupProfileGenerator
 from dnsforge.infrastructure.filesystem.paths import ProjectPaths
 from dnsforge.infrastructure.profile.setup_template_service import ProfileSetupTemplateService
 
@@ -100,6 +102,27 @@ def test_setup_profile_generator_uses_layered_dictionaries() -> None:
     assert 'ENABLE_PROXY_MASTER_ZONES="yes"' in hybrid
     assert 'ENABLE_PROXY_MASTER_ZONES="no"' in forwarder
     assert 'TSIG_SECRET="CHANGE_ME_BASE64"' in authoritative
+
+
+def test_setup_profile_generator_uses_distribution_aware_dnssec_directory() -> None:
+    detector = BindLayoutDetector()
+
+    redhat = SetupProfileGenerator(bind_layout=detector.from_family("redhat"))
+    debian = SetupProfileGenerator(bind_layout=detector.from_family("debian"))
+    suse = SetupProfileGenerator(bind_layout=detector.from_family("suse"))
+
+    assert 'DNSSEC_KEY_DIRECTORY="/var/named/dnssec"' in redhat.generate(
+        ConfigurationProfile.AUTHORITATIVE,
+        "auth01",
+    )
+    assert 'DNSSEC_KEY_DIRECTORY="/var/lib/bind/dnssec"' in debian.generate(
+        ConfigurationProfile.AUTHORITATIVE,
+        "auth01",
+    )
+    assert 'DNSSEC_KEY_DIRECTORY="/var/lib/named/dnssec"' in suse.generate(
+        ConfigurationProfile.AUTHORITATIVE,
+        "auth01",
+    )
 
 
 def test_profile_resources_are_not_packaged_or_consumed() -> None:

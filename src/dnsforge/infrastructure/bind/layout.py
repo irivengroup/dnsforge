@@ -90,6 +90,11 @@ class BindLayout:
         return self.catalog_conf_dir / "catalog.zone"
 
     @property
+    def dnssec_key_dir(self) -> Path:
+        """Default writable DNSSEC key directory for this BIND layout."""
+        return self.data_dir / "dnssec"
+
+    @property
     def backup_paths(self) -> tuple[Path, ...]:
         paths = [
             self.named_conf,
