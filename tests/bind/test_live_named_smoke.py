@@ -179,9 +179,9 @@ def test_named_starts_generated_authoritative_configuration_under_timeout() -> N
     named_conf = root / layout.named_conf.relative_to("/")
 
     assert named_conf.exists(), f"generated named.conf not found after relocation: {named_conf}"
-    assert not str(named_conf).startswith("/tmp/"), (
-        f"live named smoke test must not use /tmp because host confinement profiles may deny it: {named_conf}"
-    )
+    assert not str(named_conf).startswith(
+        "/tmp/"
+    ), f"live named smoke test must not use /tmp because host confinement profiles may deny it: {named_conf}"
 
     try:
         completed = subprocess.run(

@@ -24,10 +24,7 @@ class CentralInventoryService:
                 site_id=str(payload["site_id"]),
                 name=str(payload.get("name", payload["site_id"])),
                 description=str(payload.get("description", "")),
-                labels={
-                    str(k): str(v)
-                    for k, v in dict(payload.get("labels", {})).items()
-                },
+                labels={str(k): str(v) for k, v in dict(payload.get("labels", {})).items()},
             )
         )
 
@@ -42,10 +39,7 @@ class CentralInventoryService:
                 site=str(payload.get("site", "default")),
                 environment=str(payload.get("environment", "production")),
                 description=str(payload.get("description", "")),
-                labels={
-                    str(k): str(v)
-                    for k, v in dict(payload.get("labels", {})).items()
-                },
+                labels={str(k): str(v) for k, v in dict(payload.get("labels", {})).items()},
             )
         )
 
@@ -102,9 +96,6 @@ class CentralInventoryService:
             "status": aggregate.value,
             "agents": [status.to_dict() for status in statuses],
             "summary": {
-                state.value: sum(
-                    1 for item in statuses if item.readiness == state
-                )
-                for state in AgentReadiness
+                state.value: sum(1 for item in statuses if item.readiness == state) for state in AgentReadiness
             },
         }

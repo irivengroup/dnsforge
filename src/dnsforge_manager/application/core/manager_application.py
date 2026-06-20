@@ -42,13 +42,9 @@ class ManagerApplication:
         self.dnsbeat_service = dnsbeat_service or DNSBeatService()
         self.rbac_service = rbac_service or RbacService()
         self.audit_repository = audit_repository or ManagerAuditRepository()
-        self.change_workflow = change_workflow or ManagerChangeWorkflow(
-            dnsbeat_service=self.dnsbeat_service
-        )
+        self.change_workflow = change_workflow or ManagerChangeWorkflow(dnsbeat_service=self.dnsbeat_service)
         self.node_client = node_client or RecordingDNSForgeNodeClient()
-        self.central_inventory = central_inventory or CentralInventoryService(
-            central_inventory_repository
-        )
+        self.central_inventory = central_inventory or CentralInventoryService(central_inventory_repository)
 
     def _require(self, role: str, permission: str) -> None:
         self.rbac_service.require(role, permission)
@@ -362,11 +358,7 @@ class ManagerApplication:
 
     def inventory_clusters(self, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:inventory:read")
-        return {
-            "clusters": [
-                cluster.to_dict() for cluster in self.central_inventory.list_clusters()
-            ]
-        }
+        return {"clusters": [cluster.to_dict() for cluster in self.central_inventory.list_clusters()]}
 
     def create_inventory_cluster(
         self,
@@ -408,12 +400,7 @@ class ManagerApplication:
 
     def inventory_environments(self, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:inventory:read")
-        return {
-            "environments": [
-                environment.to_dict()
-                for environment in self.central_inventory.list_environments()
-            ]
-        }
+        return {"environments": [environment.to_dict() for environment in self.central_inventory.list_environments()]}
 
     def inventory_agent_status(self, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:inventory:read")
