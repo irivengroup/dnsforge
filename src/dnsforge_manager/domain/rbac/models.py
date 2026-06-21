@@ -23,6 +23,10 @@ NODE_OPERATOR = ManagerPermission(
     "manager:nodes:operate",
     "Submit operations to DNSForge nodes",
 )
+AGENT_OPERATOR = ManagerPermission(
+    "manager:agent:operate",
+    "Execute DNSForge Agent API commands through the Manager control plane",
+)
 SYNC_READER = ManagerPermission("manager:sync:read", "Read DNSSync orchestration state")
 SYNC_OPERATOR = ManagerPermission(
     "manager:sync:operate",
@@ -65,6 +69,7 @@ MANAGER_ADMIN_ROLE = ManagerRole(
     permissions=(
         NODE_READER,
         NODE_OPERATOR,
+        AGENT_OPERATOR,
         SYNC_READER,
         SYNC_OPERATOR,
         SYNC_ADMIN,
@@ -87,6 +92,7 @@ MANAGER_OPERATOR_ROLE = ManagerRole(
     permissions=(
         NODE_READER,
         NODE_OPERATOR,
+        AGENT_OPERATOR,
         SYNC_READER,
         SYNC_OPERATOR,
         BEAT_READER,

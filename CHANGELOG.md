@@ -1,5 +1,14 @@
 ## 14.9.0
 
+
+## 15.0.0 - Agent API Control Plane
+
+- Added DNSForge Manager Agent API Control Plane for secure remote execution through DNSForge agents.
+- Added framework-neutral agent command service with request IDs, idempotency keys and normalized results.
+- Added Manager API routes for single-agent and cluster-scoped command execution.
+- Added `dnsforge-manager agent execute` and `dnsforge-manager agent execute-cluster`.
+- Kept Manager focused on consuming agent APIs; no local BIND file manipulation was introduced.
+
 ### Manager Core Stabilization
 
 - Removed the generic Change Management direction from the active Manager roadmap and kept Manager focused on secured BIND operations through DNSForge agents.

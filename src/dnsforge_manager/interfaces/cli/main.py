@@ -81,6 +81,25 @@ def build_parser() -> argparse.ArgumentParser:
     monitor_sub.add_parser("clusters", help="Show DNSBeat cluster health")
     monitor_sub.add_parser("alerts", help="Show DNSBeat alerts")
 
+    agent = sub.add_parser("agent", help="Execute DNSForge Agent API commands securely")
+    agent_sub = agent.add_subparsers(dest="agent_action", required=True)
+    execute = agent_sub.add_parser("execute", help="Execute one command on one DNSForge agent")
+    execute.add_argument("--node-id", required=True)
+    execute.add_argument("--action", required=True)
+    execute.add_argument("--operation", required=True)
+    execute.add_argument("--payload", default="{}")
+    execute.add_argument("--request-id")
+    execute.add_argument("--idempotency-key")
+    execute_cluster = agent_sub.add_parser(
+        "execute-cluster", help="Execute one command on all eligible agents in a cluster"
+    )
+    execute_cluster.add_argument("--cluster-id", required=True)
+    execute_cluster.add_argument("--action", required=True)
+    execute_cluster.add_argument("--operation", required=True)
+    execute_cluster.add_argument("--payload", default="{}")
+    execute_cluster.add_argument("--request-id")
+    execute_cluster.add_argument("--idempotency-key")
+
     dnssync = sub.add_parser("dnssync", help="Orchestrate DNSSync through DNSForge agents")
     dnssync_sub = dnssync.add_subparsers(dest="dnssync_action", required=True)
     dnssync_sub.add_parser("plans", help="List DNSSync plans")
@@ -199,6 +218,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "monitor":
         print(json.dumps(_dispatch_monitor(app, args), sort_keys=True))
+        return 0
+    if args.command == "agent":
+        print(json.dumps(_dispatch_agent(app, args), sort_keys=True))
         return 0
     if args.command == "trust":
         print(json.dumps(_dispatch_trust(app, args), sort_keys=True))
@@ -342,6 +364,30 @@ def _dispatch_trust(app: object, args: argparse.Namespace) -> dict[str, object]:
     if args.trust_action == "rotations":
         return app.trust_rotations(args.fingerprint)  # type: ignore[attr-defined]
     raise ValueError(f"unsupported trust command: {args.trust_action}")
+
+
+def _agent_payload(args: argparse.Namespace) -> dict[str, object]:
+    parsed = json.loads(args.payload)
+    if not isinstance(parsed, dict):
+        raise ValueError("--payload must be a JSON object")
+    payload: dict[str, object] = {
+        "action": args.action,
+        "operation": args.operation,
+        "payload": parsed,
+    }
+    if args.request_id:
+        payload["request_id"] = args.request_id
+    if args.idempotency_key:
+        payload["idempotency_key"] = args.idempotency_key
+    return payload
+
+
+def _dispatch_agent(app: object, args: argparse.Namespace) -> dict[str, object]:
+    if args.agent_action == "execute":
+        return app.agent_execute(args.node_id, _agent_payload(args))  # type: ignore[attr-defined]
+    if args.agent_action == "execute-cluster":
+        return app.agent_execute_cluster(args.cluster_id, _agent_payload(args))  # type: ignore[attr-defined]
+    raise ValueError(f"unsupported agent action: {args.agent_action}")
 
 
 if __name__ == "__main__":

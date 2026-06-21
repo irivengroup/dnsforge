@@ -8,12 +8,14 @@ from dnsforge_manager.domain.audit.models import ManagerAuditEvent
 from dnsforge_manager.infrastructure.audit.repository import ManagerAuditRepository
 from dnsforge_manager.domain.core.boundaries import PRODUCT_BOUNDARIES
 from dnsforge_manager.application.dnsbeat.dnsbeat_service import DNSBeatService
+from dnsforge_manager.application.agent_control.agent_api_service import AgentApiControlService
 from dnsforge_manager.domain.inventory.models import ManagedNode, NodeRole, NodeStatus
 from dnsforge_manager.application.inventory.node_registration_service import NodeRegistrationService
 from dnsforge_manager.application.inventory.central_inventory_service import CentralInventoryService
 from dnsforge_manager.application.security.agent_trust_service import AgentTrustService
 from dnsforge_manager.application.dnssync.dnssync_service import DNSSyncService
 from dnsforge_manager.domain.dnssync.models import DNSForgeOperation, SyncExecution, SyncMode, SyncPlan
+from dnsforge_manager.domain.agent_control.models import AgentApiCommand
 from dnsforge_manager.infrastructure.inventory.central_repository import CentralInventoryRepository
 from dnsforge_manager.application.rbac.rbac_service import RbacService
 from dnsforge_manager.infrastructure.dnssync.client import (
@@ -39,6 +41,7 @@ class ManagerApplication:
         central_inventory: CentralInventoryService | None = None,
         central_inventory_repository: CentralInventoryRepository | None = None,
         agent_trust_service: AgentTrustService | None = None,
+        agent_api_control: AgentApiControlService | None = None,
     ) -> None:
         self.registration_service = registration_service or NodeRegistrationService()
         self.dnsbeat_service = dnsbeat_service or DNSBeatService()
@@ -50,6 +53,7 @@ class ManagerApplication:
         self._dnssync_executions: list[SyncExecution] = []
         self.central_inventory = central_inventory or CentralInventoryService(central_inventory_repository)
         self.agent_trust_service = agent_trust_service or AgentTrustService()
+        self.agent_api_control = agent_api_control or AgentApiControlService()
 
     def _require(self, role: str, permission: str) -> None:
         self.rbac_service.require(role, permission)
@@ -639,6 +643,50 @@ class ManagerApplication:
         )
         self._audit(actor=actor, action="trust.certificate.rotate", target=fingerprint, result="rotated")
         return {"trusted_agent": agent.to_dict()}
+
+    def agent_execute(
+        self,
+        node_id: str,
+        payload: dict[str, Any],
+        *,
+        actor: str = "system",
+        role: str = "operator",
+    ) -> dict[str, Any]:
+        """Execute one DNSForge Agent API command on a single trusted node."""
+        self._require(role, "manager:agent:operate")
+        node = self.registration_service.get_node(node_id)
+        command = AgentApiCommand.from_payload(payload)
+        result = self.agent_api_control.execute(node, command)
+        self._audit(
+            actor=actor,
+            action=f"agent.{command.action.value}.{command.operation}",
+            target=node_id,
+            result="accepted" if result.accepted else "failed",
+            metadata={"request_id": command.request_id, "idempotency_key": command.idempotency_key},
+        )
+        return {"result": result.to_dict()}
+
+    def agent_execute_cluster(
+        self,
+        cluster_id: str,
+        payload: dict[str, Any],
+        *,
+        actor: str = "system",
+        role: str = "operator",
+    ) -> dict[str, Any]:
+        """Execute one DNSForge Agent API command on all eligible nodes in a cluster."""
+        self._require(role, "manager:agent:operate")
+        command = AgentApiCommand.from_payload(payload)
+        nodes = tuple(node for node in self.registration_service.list_nodes() if node.cluster_id == cluster_id)
+        results = self.agent_api_control.execute_many(nodes, command)
+        self._audit(
+            actor=actor,
+            action=f"agent.cluster.{command.action.value}.{command.operation}",
+            target=cluster_id,
+            result="accepted" if all(result.accepted for result in results) else "partial",
+            metadata={"request_id": command.request_id, "target_count": len(results)},
+        )
+        return {"results": [result.to_dict() for result in results]}
 
     def audit_events(self, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:audit:read")
