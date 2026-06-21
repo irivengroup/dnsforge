@@ -67,4 +67,19 @@ MANAGER_SCHEMA_MIGRATIONS: tuple[ManagerSchemaMigration, ...] = (
             "CREATE INDEX IF NOT EXISTS idx_agent_compliance_history_observed_at ON agent_compliance_history ((payload->>'observed_at'));",
         ),
     ),
+    ManagerSchemaMigration(
+        version="007",
+        description="manager change management orchestration",
+        statements=(
+            "CREATE TABLE IF NOT EXISTS change_requests (change_id TEXT PRIMARY KEY, payload JSONB NOT NULL);",
+            "CREATE TABLE IF NOT EXISTS change_approvals (event_id BIGSERIAL PRIMARY KEY, change_id TEXT NOT NULL, payload JSONB NOT NULL);",
+            "CREATE TABLE IF NOT EXISTS change_executions (event_id BIGSERIAL PRIMARY KEY, change_id TEXT NOT NULL, payload JSONB NOT NULL);",
+            "CREATE TABLE IF NOT EXISTS change_rollbacks (event_id BIGSERIAL PRIMARY KEY, change_id TEXT NOT NULL, payload JSONB NOT NULL);",
+            "CREATE INDEX IF NOT EXISTS idx_change_requests_status ON change_requests ((payload->>'status'));",
+            "CREATE INDEX IF NOT EXISTS idx_change_requests_target_scope ON change_requests ((payload->>'target_scope'));",
+            "CREATE INDEX IF NOT EXISTS idx_change_approvals_change_id ON change_approvals (change_id);",
+            "CREATE INDEX IF NOT EXISTS idx_change_executions_change_id ON change_executions (change_id);",
+            "CREATE INDEX IF NOT EXISTS idx_change_rollbacks_change_id ON change_rollbacks (change_id);",
+        ),
+    ),
 )

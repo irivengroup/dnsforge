@@ -12,6 +12,8 @@ from dnsforge_manager.domain.inventory.models import ManagedNode, NodeRole, Node
 from dnsforge_manager.application.inventory.node_registration_service import NodeRegistrationService
 from dnsforge_manager.application.inventory.central_inventory_service import CentralInventoryService
 from dnsforge_manager.application.security.agent_trust_service import AgentTrustService
+from dnsforge_manager.application.change_management.service import ChangeManagementService
+from dnsforge_manager.application.change_management.repository import ChangeManagementRepository
 from dnsforge_manager.infrastructure.inventory.central_repository import CentralInventoryRepository
 from dnsforge_manager.application.rbac.rbac_service import RbacService
 from dnsforge_manager.application.workflows.change_workflow import ManagerChangeWorkflow
@@ -39,6 +41,8 @@ class ManagerApplication:
         central_inventory: CentralInventoryService | None = None,
         central_inventory_repository: CentralInventoryRepository | None = None,
         agent_trust_service: AgentTrustService | None = None,
+        change_management: ChangeManagementService | None = None,
+        change_management_repository: ChangeManagementRepository | None = None,
     ) -> None:
         self.registration_service = registration_service or NodeRegistrationService()
         self.dnsbeat_service = dnsbeat_service or DNSBeatService()
@@ -48,6 +52,7 @@ class ManagerApplication:
         self.node_client = node_client or RecordingDNSForgeNodeClient()
         self.central_inventory = central_inventory or CentralInventoryService(central_inventory_repository)
         self.agent_trust_service = agent_trust_service or AgentTrustService()
+        self.change_management = change_management or ChangeManagementService(change_management_repository)
 
     def _require(self, role: str, permission: str) -> None:
         self.rbac_service.require(role, permission)
@@ -476,6 +481,83 @@ class ManagerApplication:
             metadata={"drift_count": status.drift_count},
         )
         return {"agent_compliance": status.to_dict()}
+
+    def change_management_changes(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:changes:read")
+        return {"changes": [change.to_dict() for change in self.change_management.list_changes()]}
+
+    def create_managed_change(
+        self,
+        payload: dict[str, Any],
+        *,
+        actor: str = "system",
+        role: str = "operator",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:changes:operate")
+        change = self.change_management.create_change(payload, requested_by=actor)
+        self._audit(actor=actor, action="change_management.create", target=change.change_id, result=change.status.value)
+        return {"change": change.to_dict()}
+
+    def managed_change(self, change_id: str, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:changes:read")
+        return self.change_management.status(change_id)
+
+    def review_managed_change(
+        self,
+        change_id: str,
+        *,
+        actor: str = "system",
+        role: str = "operator",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:changes:operate")
+        change = self.change_management.review_change(change_id, reviewer=actor)
+        self._audit(actor=actor, action="change_management.review", target=change_id, result=change.status.value)
+        return {"change": change.to_dict()}
+
+    def approve_managed_change(
+        self,
+        change_id: str,
+        *,
+        comment: str = "",
+        actor: str = "system",
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:changes:admin")
+        change = self.change_management.approve_change(change_id, approver=actor, comment=comment)
+        self._audit(actor=actor, action="change_management.approve", target=change_id, result=change.status.value)
+        return {"change": change.to_dict()}
+
+    def execute_managed_change(
+        self,
+        change_id: str,
+        *,
+        readiness: str = "READY",
+        trust: str = "TRUSTED",
+        compliance: str = "COMPLIANT",
+        actor: str = "system",
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:changes:admin")
+        execution = self.change_management.execute_change(
+            change_id,
+            actor=actor,
+            signals={"readiness": readiness, "trust": trust, "compliance": compliance},
+        )
+        self._audit(actor=actor, action="change_management.execute", target=change_id, result=execution.result.value)
+        return {"execution": execution.to_dict(), "change": self.change_management.get_change(change_id).to_dict()}
+
+    def rollback_managed_change(
+        self,
+        change_id: str,
+        *,
+        reason: str = "operator-request",
+        actor: str = "system",
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:changes:admin")
+        rollback = self.change_management.rollback_change(change_id, reason=reason, actor=actor)
+        self._audit(actor=actor, action="change_management.rollback", target=change_id, result="ROLLED_BACK")
+        return {"rollback": rollback.to_dict(), "change": self.change_management.get_change(change_id).to_dict()}
 
     def trust_enrollments(self, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:trust:read")

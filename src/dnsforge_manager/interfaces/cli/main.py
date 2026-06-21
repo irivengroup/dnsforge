@@ -58,6 +58,34 @@ def build_parser() -> argparse.ArgumentParser:
     update_compliance.add_argument("--last-checked", default="")
     update_compliance.add_argument("--message", default="")
 
+    change = sub.add_parser("change", help="Manage enterprise change requests")
+    change_sub = change.add_subparsers(dest="change_action", required=True)
+    change_sub.add_parser("list", help="List change requests")
+    create_change = change_sub.add_parser("create", help="Create a change request")
+    create_change.add_argument("--title", required=True)
+    create_change.add_argument("--description", default="")
+    create_change.add_argument(
+        "--target-scope", choices=("SITE", "CLUSTER", "AGENT", "ZONE", "CATALOG"), default="CLUSTER"
+    )
+    create_change.add_argument("--target-id", required=True)
+    create_change.add_argument("--operation", required=True)
+    create_change.add_argument("--payload", default="{}")
+    status_change = change_sub.add_parser("status", help="Show change status")
+    status_change.add_argument("--change-id", required=True)
+    review_change = change_sub.add_parser("review", help="Review a change request")
+    review_change.add_argument("--change-id", required=True)
+    approve_change = change_sub.add_parser("approve", help="Approve a change request")
+    approve_change.add_argument("--change-id", required=True)
+    approve_change.add_argument("--comment", default="")
+    execute_change = change_sub.add_parser("execute", help="Execute an approved change request")
+    execute_change.add_argument("--change-id", required=True)
+    execute_change.add_argument("--readiness", default="READY")
+    execute_change.add_argument("--trust", default="TRUSTED")
+    execute_change.add_argument("--compliance", default="COMPLIANT")
+    rollback_change = change_sub.add_parser("rollback", help="Rollback a completed or failed change request")
+    rollback_change.add_argument("--change-id", required=True)
+    rollback_change.add_argument("--reason", default="operator-request")
+
     trust = sub.add_parser("trust", help="Manage DNSForge agent trust")
     trust_sub = trust.add_subparsers(dest="trust_action", required=True)
     trust_sub.add_parser("list", help="List trusted agents")
@@ -127,10 +155,52 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "inventory":
         print(json.dumps(_dispatch_inventory(app, args), sort_keys=True))
         return 0
+    if args.command == "change":
+        print(json.dumps(_dispatch_change(app, args), sort_keys=True))
+        return 0
     if args.command == "trust":
         print(json.dumps(_dispatch_trust(app, args), sort_keys=True))
         return 0
     return 2
+
+
+def _json_payload(value: str) -> dict[str, object]:
+    payload = json.loads(value)
+    if not isinstance(payload, dict):
+        raise ValueError("change payload must be a JSON object")
+    return {str(key): item for key, item in payload.items()}
+
+
+def _dispatch_change(app: object, args: argparse.Namespace) -> dict[str, object]:
+    if args.change_action == "list":
+        return app.change_management_changes()  # type: ignore[attr-defined]
+    if args.change_action == "create":
+        return app.create_managed_change(  # type: ignore[attr-defined]
+            {
+                "title": args.title,
+                "description": args.description,
+                "target_scope": args.target_scope,
+                "target_id": args.target_id,
+                "operation": args.operation,
+                "payload": _json_payload(args.payload),
+            }
+        )
+    if args.change_action == "status":
+        return app.managed_change(args.change_id)  # type: ignore[attr-defined]
+    if args.change_action == "review":
+        return app.review_managed_change(args.change_id)  # type: ignore[attr-defined]
+    if args.change_action == "approve":
+        return app.approve_managed_change(args.change_id, comment=args.comment)  # type: ignore[attr-defined]
+    if args.change_action == "execute":
+        return app.execute_managed_change(  # type: ignore[attr-defined]
+            args.change_id,
+            readiness=args.readiness,
+            trust=args.trust,
+            compliance=args.compliance,
+        )
+    if args.change_action == "rollback":
+        return app.rollback_managed_change(args.change_id, reason=args.reason)  # type: ignore[attr-defined]
+    raise ValueError(f"unsupported change command: {args.change_action}")
 
 
 def _dispatch_inventory(app: object, args: argparse.Namespace) -> dict[str, object]:

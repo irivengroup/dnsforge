@@ -32,6 +32,9 @@ class FastAPIUnavailableApp:
             RouteSpec("POST", "/changes"),
             RouteSpec("GET", "/changes/{change_id}"),
             RouteSpec("POST", "/changes/{change_id}/dry-run"),
+            RouteSpec("POST", "/changes/{change_id}/review"),
+            RouteSpec("POST", "/changes/{change_id}/execute"),
+            RouteSpec("GET", "/changes/{change_id}/status"),
             RouteSpec("POST", "/changes/{change_id}/approve"),
             RouteSpec("POST", "/changes/{change_id}/reject"),
             RouteSpec("POST", "/changes/{change_id}/apply"),
@@ -210,6 +213,24 @@ def create_fastapi_app(core: ManagerApplication | None = None) -> Any:
     @app.get("/inventory/agent-compliance/report")
     def inventory_agent_compliance_report(fingerprint: str | None = None) -> dict[str, Any]:
         return manager.inventory_agent_compliance_report(fingerprint)
+
+    @app.get("/changes/{change_id}/status")
+    def managed_change_status(change_id: str) -> dict[str, Any]:
+        return manager.managed_change(change_id)
+
+    @app.post("/changes/{change_id}/review")
+    def review_managed_change(change_id: str) -> dict[str, Any]:
+        return manager.review_managed_change(change_id)
+
+    @app.post("/changes/{change_id}/execute")
+    def execute_managed_change(change_id: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+        signals = payload or {}
+        return manager.execute_managed_change(
+            change_id,
+            readiness=str(signals.get("readiness", "READY")),
+            trust=str(signals.get("trust", "TRUSTED")),
+            compliance=str(signals.get("compliance", "COMPLIANT")),
+        )
 
     @app.get("/trust/enrollments")
     def list_trust_enrollments() -> dict[str, Any]:

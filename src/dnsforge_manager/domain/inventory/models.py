@@ -173,7 +173,7 @@ class AgentComplianceStatus:
             compliance=ConfigurationComplianceState(
                 str(data.get("compliance", ConfigurationComplianceState.WARNING.value))
             ),
-            drift_count=int(data.get("drift_count", 0)),
+            drift_count=_as_int(data.get("drift_count", 0)),
             last_checked=str(data.get("last_checked", "")),
             message=str(data.get("message", "")),
             findings=findings_value,
@@ -208,11 +208,11 @@ class AgentComplianceEvent:
             compliance=ConfigurationComplianceState(
                 str(data.get("compliance", ConfigurationComplianceState.WARNING.value))
             ),
-            drift_count=int(data.get("drift_count", 0)),
+            drift_count=_as_int(data.get("drift_count", 0)),
             observed_at=str(data.get("observed_at", "")),
             previous_compliance=None if previous in (None, "") else ConfigurationComplianceState(str(previous)),
             previous_drift_count=(
-                None if data.get("previous_drift_count") is None else int(data.get("previous_drift_count", 0))
+                None if data.get("previous_drift_count") is None else _as_int(data.get("previous_drift_count", 0))
             ),
             message=str(data.get("message", "")),
             transition=bool(data.get("transition", False)),
@@ -321,3 +321,13 @@ class ManagedNode:
             trust_state=str(node_data.pop("trust_state", "pending")),
             labels={str(key): str(value) for key, value in labels.items()},
         )
+
+
+def _as_int(value: object, default: int = 0) -> int:
+    if value is None:
+        return default
+    if isinstance(value, int):
+        return value
+    if isinstance(value, (str, bytes, bytearray)):
+        return int(value)
+    raise TypeError("expected integer-compatible value")

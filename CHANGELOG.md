@@ -1,3 +1,11 @@
+## 15.0.0
+
+- Added DNSForge Manager Change Management & Orchestration bounded context.
+- Added ChangeRequest, ChangePlan, ChangeApproval, ChangeExecution and ChangeRollback domain models.
+- Added Manager change CLI commands for create, list, status, review, approve, execute and rollback.
+- Added execution gates for readiness, trust and compliance before Manager-orchestrated execution.
+- Added JSON-backed Change Management repository and v15 documentation.
+
 # Changelog
 
 ## 14.8.3
