@@ -1,3 +1,6 @@
-from dnsforge_manager.infrastructure.dnssync.client import DNSForgeNodeClient, RecordingDNSForgeNodeClient
+from __future__ import annotations
 
-__all__ = ["DNSForgeNodeClient", "RecordingDNSForgeNodeClient"]
+from dnsforge_manager.infrastructure.dnssync.client import DNSForgeNodeClient, RecordingDNSForgeNodeClient
+from dnsforge_manager.infrastructure.dnssync.repository import DNSSyncRepository
+
+__all__ = ["DNSForgeNodeClient", "DNSSyncRepository", "RecordingDNSForgeNodeClient"]

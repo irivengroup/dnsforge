@@ -37,6 +37,13 @@
 
 # Changelog
 
+## 15.1.0 - DNSSync Orchestration
+
+- Completed Manager DNSSync orchestration history through the Manager application service, CLI and API.
+- Added a dedicated DNSSync repository contract for plans and executions so JSON remains the default backend while PostgreSQL can scale execution history independently.
+- Added `/dnssync/history` and `dnsforge-manager dnssync history` for secure audit of plan/apply/rollback executions.
+- Preserved the Manager responsibility boundary: all DNS actions still execute through DNSForge Agent APIs only.
+
 ## 14.8.3
 
 - Added Manager compliance risk report aggregation.

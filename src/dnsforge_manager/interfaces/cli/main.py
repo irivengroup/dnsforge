@@ -117,6 +117,8 @@ def build_parser() -> argparse.ArgumentParser:
     _add_dnssync_operation_arguments(rollback)
     rollback.add_argument("--approved-plan-hash", required=True)
     dnssync_sub.add_parser("status", help="Show DNSSync orchestration status")
+    history = dnssync_sub.add_parser("history", help="Show DNSSync execution history")
+    history.add_argument("--cluster-id")
 
     trust = sub.add_parser("trust", help="Manage DNSForge agent trust")
     trust_sub = trust.add_subparsers(dest="trust_action", required=True)
@@ -314,6 +316,8 @@ def _dispatch_dnssync(app: object, args: argparse.Namespace) -> dict[str, object
         return app.rollback_dnssync(_dnssync_payload(args))  # type: ignore[attr-defined]
     if args.dnssync_action == "status":
         return app.dnssync_status()  # type: ignore[attr-defined]
+    if args.dnssync_action == "history":
+        return app.dnssync_history(args.cluster_id)  # type: ignore[attr-defined]
     raise ValueError(f"unsupported dnssync command: {args.dnssync_action}")
 
 

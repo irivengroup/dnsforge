@@ -41,3 +41,7 @@ CLI parity:
 1. Complete DNSBeat Monitoring with BIND, RNDC, DNSSEC, Catalog and Cluster health.
 2. Complete Enterprise RBAC with approver and auditor roles.
 3. Expand Inventory role taxonomy for hidden master, catalog publisher/subscriber and stealth secondary.
+
+## 15.1.0 DNSSync Orchestration
+
+Status: implemented for plan, validate, dry-run, apply, rollback, status and history through Manager CLI/API. Execution remains routed through DNSForge Agent APIs.

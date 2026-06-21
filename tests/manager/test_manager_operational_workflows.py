@@ -54,4 +54,5 @@ def test_manager_dnssync_routes_exist_without_fastapi() -> None:
     assert "/dnssync/apply" in paths
     assert "/dnssync/rollback" in paths
     assert "/dnssync/status" in paths
+    assert "/dnssync/history" in paths
     assert "/changes" not in paths

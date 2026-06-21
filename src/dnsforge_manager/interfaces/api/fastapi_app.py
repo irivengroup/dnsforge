@@ -35,6 +35,7 @@ class FastAPIUnavailableApp:
             RouteSpec("POST", "/dnssync/apply"),
             RouteSpec("POST", "/dnssync/rollback"),
             RouteSpec("GET", "/dnssync/status"),
+            RouteSpec("GET", "/dnssync/history"),
             RouteSpec("POST", "/agents/{node_id}/execute"),
             RouteSpec("POST", "/agents/clusters/{cluster_id}/execute"),
             RouteSpec("GET", "/monitor/status"),
@@ -150,6 +151,10 @@ def create_fastapi_app(core: ManagerApplication | None = None) -> Any:
     @app.get("/dnssync/status")
     def dnssync_status() -> dict[str, Any]:
         return manager.dnssync_status()
+
+    @app.get("/dnssync/history")
+    def dnssync_history(cluster_id: str | None = None) -> dict[str, Any]:
+        return manager.dnssync_history(cluster_id)
 
     @app.post("/agents/{node_id}/execute")
     def execute_agent_command(node_id: str, payload: dict[str, Any]) -> dict[str, Any]:

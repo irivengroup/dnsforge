@@ -22,6 +22,7 @@ from dnsforge_manager.infrastructure.dnssync.client import (
     DNSForgeNodeClient,
     RecordingDNSForgeNodeClient,
 )
+from dnsforge_manager.infrastructure.dnssync.repository import DNSSyncRepository
 
 
 class ManagerApplication:
@@ -42,6 +43,7 @@ class ManagerApplication:
         central_inventory_repository: CentralInventoryRepository | None = None,
         agent_trust_service: AgentTrustService | None = None,
         agent_api_control: AgentApiControlService | None = None,
+        dnssync_repository: DNSSyncRepository | None = None,
     ) -> None:
         self.registration_service = registration_service or NodeRegistrationService()
         self.dnsbeat_service = dnsbeat_service or DNSBeatService()
@@ -49,8 +51,7 @@ class ManagerApplication:
         self.audit_repository = audit_repository or ManagerAuditRepository()
         self.dnssync_service = dnssync_service or DNSSyncService()
         self.node_client = node_client or RecordingDNSForgeNodeClient()
-        self._dnssync_plans: dict[str, SyncPlan] = {}
-        self._dnssync_executions: list[SyncExecution] = []
+        self.dnssync_repository = dnssync_repository or DNSSyncRepository()
         self.central_inventory = central_inventory or CentralInventoryService(central_inventory_repository)
         self.agent_trust_service = agent_trust_service or AgentTrustService()
         self.agent_api_control = agent_api_control or AgentApiControlService()
@@ -277,7 +278,7 @@ class ManagerApplication:
 
     def dnssync_plans(self, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:sync:read")
-        return {"plans": [self._serialize_sync_plan(plan) for plan in self._dnssync_plans.values()]}
+        return {"plans": [self._serialize_sync_plan(plan) for plan in self.dnssync_repository.list_plans()]}
 
     def create_dnssync_plan(
         self,
@@ -289,7 +290,7 @@ class ManagerApplication:
         self._require(role, "manager:sync:operate")
         mode = SyncMode(str(payload.get("mode", SyncMode.DRY_RUN.value)))
         plan = self._build_dnssync_plan(payload, mode)
-        self._dnssync_plans[plan.plan_hash] = plan
+        self.dnssync_repository.save_plan(plan)
         self._audit(
             actor=actor,
             action="dnssync.plan",
@@ -308,7 +309,7 @@ class ManagerApplication:
         self._require(role, "manager:sync:operate")
         plan_hash = payload.get("plan_hash")
         if plan_hash is not None:
-            valid = str(plan_hash) in self._dnssync_plans
+            valid = self.dnssync_repository.get_plan(str(plan_hash)) is not None
             return {"valid": valid, "plan_hash": str(plan_hash)}
         plan = self._build_dnssync_plan(payload, SyncMode.DRY_RUN)
         self._audit(actor=actor, action="dnssync.validate", target=plan.cluster_id, result="valid")
@@ -323,9 +324,9 @@ class ManagerApplication:
     ) -> dict[str, Any]:
         self._require(role, "manager:sync:operate")
         plan = self._build_dnssync_plan(payload, SyncMode.DRY_RUN)
-        self._dnssync_plans[plan.plan_hash] = plan
+        self.dnssync_repository.save_plan(plan)
         execution = self.dnssync_service.dry_run(plan)
-        self._dnssync_executions.append(execution)
+        self.dnssync_repository.save_execution(execution)
         self._audit(
             actor=actor,
             action="dnssync.dry_run",
@@ -344,7 +345,7 @@ class ManagerApplication:
     ) -> dict[str, Any]:
         self._require(role, "manager:sync:admin")
         plan = self._build_dnssync_plan(payload, SyncMode.APPLY)
-        self._dnssync_plans[plan.plan_hash] = plan
+        self.dnssync_repository.save_plan(plan)
         execution = self.dnssync_service.execute(
             plan,
             self.node_client,
@@ -352,7 +353,7 @@ class ManagerApplication:
             if payload.get("approved_plan_hash") is None
             else str(payload["approved_plan_hash"]),
         )
-        self._dnssync_executions.append(execution)
+        self.dnssync_repository.save_execution(execution)
         self._audit(
             actor=actor,
             action="dnssync.apply",
@@ -371,7 +372,7 @@ class ManagerApplication:
     ) -> dict[str, Any]:
         self._require(role, "manager:sync:admin")
         plan = self._build_dnssync_plan(payload, SyncMode.ROLLBACK)
-        self._dnssync_plans[plan.plan_hash] = plan
+        self.dnssync_repository.save_plan(plan)
         execution = self.dnssync_service.execute(
             plan,
             self.node_client,
@@ -379,7 +380,7 @@ class ManagerApplication:
             if payload.get("approved_plan_hash") is None
             else str(payload["approved_plan_hash"]),
         )
-        self._dnssync_executions.append(execution)
+        self.dnssync_repository.save_execution(execution)
         self._audit(
             actor=actor,
             action="dnssync.rollback",
@@ -392,8 +393,20 @@ class ManagerApplication:
     def dnssync_status(self, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:sync:read")
         return {
-            "plans": [self._serialize_sync_plan(plan) for plan in self._dnssync_plans.values()],
-            "executions": [self._serialize_sync_execution(execution) for execution in self._dnssync_executions],
+            "plans": [self._serialize_sync_plan(plan) for plan in self.dnssync_repository.list_plans()],
+            "executions": [
+                self._serialize_sync_execution(execution)
+                for execution in self.dnssync_repository.list_executions()
+            ],
+        }
+
+    def dnssync_history(self, cluster_id: str | None = None, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:sync:read")
+        return {
+            "executions": [
+                self._serialize_sync_execution(execution)
+                for execution in self.dnssync_repository.list_executions(cluster_id=cluster_id)
+            ]
         }
 
     def inventory_sites(self, *, role: str = "viewer") -> dict[str, Any]:
