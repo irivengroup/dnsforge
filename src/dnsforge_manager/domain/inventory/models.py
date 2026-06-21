@@ -19,6 +19,67 @@ class NodeRole(str, Enum):
     AUTHORITATIVE = "authoritative"
     PROXY_FORWARDER = "proxy-forwarder"
     PROXY_HYBRID = "proxy-hybrid"
+    CATALOG_PUBLISHER = "catalog-publisher"
+    CATALOG_SUBSCRIBER = "catalog-subscriber"
+    HIDDEN_MASTER = "hidden-master"
+    STEALTH_SECONDARY = "stealth-secondary"
+
+
+@dataclass(frozen=True)
+class InventoryRole:
+    role_id: str
+    name: str
+    description: str
+    bind_capabilities: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, object]:
+        return asdict(self)
+
+
+INVENTORY_ROLES: tuple[InventoryRole, ...] = (
+    InventoryRole(
+        role_id=NodeRole.AUTHORITATIVE.value,
+        name="Authoritative",
+        description="Authoritative BIND node serving master or slave zones.",
+        bind_capabilities=("zones", "dnssec", "catalog-consume"),
+    ),
+    InventoryRole(
+        role_id=NodeRole.PROXY_FORWARDER.value,
+        name="Proxy Forwarder",
+        description="Forwarding proxy node for recursive or upstream forwarding flows.",
+        bind_capabilities=("forwarding", "views", "acl"),
+    ),
+    InventoryRole(
+        role_id=NodeRole.PROXY_HYBRID.value,
+        name="Proxy Hybrid",
+        description="Hybrid proxy node combining forwarding and selected authoritative zones.",
+        bind_capabilities=("forwarding", "zones", "views", "acl"),
+    ),
+    InventoryRole(
+        role_id=NodeRole.CATALOG_PUBLISHER.value,
+        name="Catalog Publisher",
+        description="Node publishing BIND catalog zones for member synchronization.",
+        bind_capabilities=("catalog-publish", "zones"),
+    ),
+    InventoryRole(
+        role_id=NodeRole.CATALOG_SUBSCRIBER.value,
+        name="Catalog Subscriber",
+        description="Node subscribing to catalog zones and materializing member zones.",
+        bind_capabilities=("catalog-consume", "zones"),
+    ),
+    InventoryRole(
+        role_id=NodeRole.HIDDEN_MASTER.value,
+        name="Hidden Master",
+        description="Non-public authoritative source node for protected zone transfers.",
+        bind_capabilities=("zones", "dnssec", "transfer-source"),
+    ),
+    InventoryRole(
+        role_id=NodeRole.STEALTH_SECONDARY.value,
+        name="Stealth Secondary",
+        description="Secondary authoritative node not directly advertised to clients.",
+        bind_capabilities=("zones", "transfer-target", "catalog-consume"),
+    ),
+)
 
 
 class NodeStatus(str, Enum):
@@ -254,13 +315,15 @@ class Agent:
     hostname: str
     version: str
     profile: str
-    site: str
+    role: NodeRole = NodeRole.AUTHORITATIVE
+    site: str = "default"
     cluster: str | None = None
     status: AgentReadiness = AgentReadiness.WARNING
     labels: dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, object]:
         data = asdict(self)
+        data["role"] = self.role.value
         data["status"] = self.status.value
         return data
 
@@ -274,11 +337,21 @@ class Agent:
             hostname=str(data.get("hostname", data["fingerprint"])),
             version=str(data.get("version", "")),
             profile=str(data.get("profile", "")),
+            role=NodeRole(str(data.get("role", _role_from_profile(str(data.get("profile", ""))).value))),
             site=str(data.get("site", "default")),
             cluster=None if data.get("cluster") is None else str(data.get("cluster")),
             status=AgentReadiness(str(data.get("status", AgentReadiness.WARNING.value))),
             labels={str(k): str(v) for k, v in labels.items()},
         )
+
+
+def _role_from_profile(profile: str) -> NodeRole:
+    normalized = profile.strip().lower()
+    if normalized in {role.value for role in NodeRole}:
+        return NodeRole(normalized)
+    if normalized == "proxy":
+        return NodeRole.PROXY_HYBRID
+    return NodeRole.AUTHORITATIVE
 
 
 @dataclass(frozen=True)

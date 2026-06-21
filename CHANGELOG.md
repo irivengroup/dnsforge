@@ -1,3 +1,14 @@
+## 14.9.0
+
+### Manager Core Stabilization
+
+- Removed the generic Change Management direction from the active Manager roadmap and kept Manager focused on secured BIND operations through DNSForge agents.
+- Completed Central Inventory role coverage for enterprise BIND topologies: authoritative, proxy-forwarder, proxy-hybrid, catalog-publisher, catalog-subscriber, hidden-master and stealth-secondary.
+- Added `dnsforge-manager inventory role list` and the matching Manager API route `GET /inventory/roles`.
+- Added explicit inventory agent role registration while preserving profile-based defaulting.
+- Completed Enterprise RBAC role set with approver and auditor roles, without `manager:changes:*` permissions.
+- Prepared the next Agent API Control Plane milestone by documenting that Manager actions must route through secured DNSForge Agent APIs.
+
 
 ## 14.8.5
 

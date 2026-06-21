@@ -459,6 +459,10 @@ class ManagerApplication:
         self._require(role, "manager:inventory:read")
         return {"environments": [environment.to_dict() for environment in self.central_inventory.list_environments()]}
 
+    def inventory_roles(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:inventory:read")
+        return {"roles": list(self.central_inventory.list_roles())}
+
     def inventory_agent_status(self, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:inventory:read")
         return self.central_inventory.aggregate_readiness()

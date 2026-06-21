@@ -30,6 +30,18 @@ def build_parser() -> argparse.ArgumentParser:
     register.add_argument("--hostname", required=True)
     register.add_argument("--version", required=True)
     register.add_argument("--profile", required=True)
+    register.add_argument(
+        "--role",
+        choices=(
+            "authoritative",
+            "proxy-forwarder",
+            "proxy-hybrid",
+            "catalog-publisher",
+            "catalog-subscriber",
+            "hidden-master",
+            "stealth-secondary",
+        ),
+    )
     register.add_argument("--site", default="default")
     register.add_argument("--cluster")
     register.add_argument("--status", choices=("READY", "WARNING", "FAILED"), default="WARNING")
@@ -37,6 +49,10 @@ def build_parser() -> argparse.ArgumentParser:
     environment = inventory_sub.add_parser("environment", help="List inventory environments")
     environment_sub = environment.add_subparsers(dest="inventory_action", required=True)
     environment_sub.add_parser("list", help="List environments")
+
+    role = inventory_sub.add_parser("role", help="List canonical DNSForge agent roles")
+    role_sub = role.add_subparsers(dest="inventory_action", required=True)
+    role_sub.add_parser("list", help="List canonical agent roles")
 
     compliance = inventory_sub.add_parser("compliance", help="Manage inventory agent compliance")
     compliance_sub = compliance.add_subparsers(dest="inventory_action", required=True)
@@ -218,6 +234,7 @@ def _dispatch_inventory(app: object, args: argparse.Namespace) -> dict[str, obje
                 "hostname": args.hostname,
                 "version": args.version,
                 "profile": args.profile,
+                "role": args.role or args.profile,
                 "site": args.site,
                 "cluster": args.cluster,
                 "status": args.status,
@@ -225,6 +242,8 @@ def _dispatch_inventory(app: object, args: argparse.Namespace) -> dict[str, obje
         )
     if args.inventory_object == "environment":
         return app.inventory_environments()  # type: ignore[attr-defined]
+    if args.inventory_object == "role":
+        return app.inventory_roles()  # type: ignore[attr-defined]
     if args.inventory_object == "compliance":
         if args.inventory_action == "list":
             return app.inventory_agent_compliance()  # type: ignore[attr-defined]

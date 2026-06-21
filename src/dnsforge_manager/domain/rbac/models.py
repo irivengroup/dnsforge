@@ -47,6 +47,19 @@ INVENTORY_WRITER = ManagerPermission(
     "Create Central Inventory objects and update agent status",
 )
 
+COMPLIANCE_READER = ManagerPermission(
+    "manager:compliance:read",
+    "Read Manager compliance aggregation and drift reports",
+)
+COMPLIANCE_OPERATOR = ManagerPermission(
+    "manager:compliance:operate",
+    "Submit DNS compliance repair operations through DNSForge agents",
+)
+TRUST_APPROVER = ManagerPermission(
+    "manager:trust:approve",
+    "Approve DNSForge agent enrollments and certificate rotations",
+)
+
 MANAGER_ADMIN_ROLE = ManagerRole(
     name="admin",
     permissions=(
@@ -63,6 +76,9 @@ MANAGER_ADMIN_ROLE = ManagerRole(
         AUDIT_READER,
         INVENTORY_READER,
         INVENTORY_WRITER,
+        COMPLIANCE_READER,
+        COMPLIANCE_OPERATOR,
+        TRUST_APPROVER,
     ),
 )
 
@@ -77,12 +93,56 @@ MANAGER_OPERATOR_ROLE = ManagerRole(
         TRUST_READER,
         INVENTORY_READER,
         INVENTORY_WRITER,
+        COMPLIANCE_READER,
+        COMPLIANCE_OPERATOR,
+    ),
+)
+
+MANAGER_APPROVER_ROLE = ManagerRole(
+    name="approver",
+    permissions=(
+        NODE_READER,
+        SYNC_READER,
+        SYNC_ADMIN,
+        BEAT_READER,
+        TRUST_READER,
+        TRUST_APPROVER,
+        AUDIT_READER,
+        INVENTORY_READER,
+        COMPLIANCE_READER,
+    ),
+)
+
+MANAGER_AUDITOR_ROLE = ManagerRole(
+    name="auditor",
+    permissions=(
+        NODE_READER,
+        SYNC_READER,
+        BEAT_READER,
+        TRUST_READER,
+        AUDIT_READER,
+        INVENTORY_READER,
+        COMPLIANCE_READER,
     ),
 )
 
 MANAGER_VIEWER_ROLE = ManagerRole(
     name="viewer",
-    permissions=(NODE_READER, SYNC_READER, BEAT_READER, AUDIT_READER, TRUST_READER, INVENTORY_READER),
+    permissions=(
+        NODE_READER,
+        SYNC_READER,
+        BEAT_READER,
+        AUDIT_READER,
+        TRUST_READER,
+        INVENTORY_READER,
+        COMPLIANCE_READER,
+    ),
 )
 
-MANAGER_ROLES = (MANAGER_ADMIN_ROLE, MANAGER_OPERATOR_ROLE, MANAGER_VIEWER_ROLE)
+MANAGER_ROLES = (
+    MANAGER_ADMIN_ROLE,
+    MANAGER_OPERATOR_ROLE,
+    MANAGER_APPROVER_ROLE,
+    MANAGER_AUDITOR_ROLE,
+    MANAGER_VIEWER_ROLE,
+)

@@ -10,6 +10,8 @@ from dnsforge_manager.domain.inventory.models import (
     AgentComplianceTrend,
     AgentReadiness,
     AgentStatus,
+    INVENTORY_ROLES,
+    NodeRole,
     Cluster,
     ConfigurationComplianceState,
     Environment,
@@ -59,6 +61,7 @@ class CentralInventoryService:
             hostname=str(payload["hostname"]),
             version=str(payload["version"]),
             profile=str(payload["profile"]),
+            role=NodeRole(str(payload.get("role", payload.get("profile", "authoritative")))),
             site=str(payload.get("site", "default")),
             cluster=None if payload.get("cluster") is None else str(payload.get("cluster")),
             status=AgentReadiness(str(payload.get("status", AgentReadiness.WARNING.value))),
@@ -84,6 +87,9 @@ class CentralInventoryService:
 
     def list_environments(self) -> tuple[Environment, ...]:
         return self.repository.list_environments()
+
+    def list_roles(self) -> tuple[dict[str, object], ...]:
+        return tuple(role.to_dict() for role in INVENTORY_ROLES)
 
     def update_agent_status(self, payload: dict[str, object]) -> AgentStatus:
         return self.repository.set_agent_status(AgentStatus.from_dict(payload))

@@ -1,5 +1,7 @@
 from dnsforge_manager.domain.rbac.models import (
     MANAGER_ADMIN_ROLE,
+    MANAGER_APPROVER_ROLE,
+    MANAGER_AUDITOR_ROLE,
     MANAGER_OPERATOR_ROLE,
     MANAGER_ROLES,
     MANAGER_VIEWER_ROLE,
@@ -9,6 +11,8 @@ from dnsforge_manager.domain.rbac.models import (
 
 __all__ = [
     "MANAGER_ADMIN_ROLE",
+    "MANAGER_APPROVER_ROLE",
+    "MANAGER_AUDITOR_ROLE",
     "MANAGER_OPERATOR_ROLE",
     "MANAGER_ROLES",
     "MANAGER_VIEWER_ROLE",
