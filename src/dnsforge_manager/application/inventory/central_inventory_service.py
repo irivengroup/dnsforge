@@ -191,6 +191,8 @@ class CentralInventoryService:
             if fingerprint is None or item.fingerprint == fingerprint
             if item.compliance in (ConfigurationComplianceState.DRIFTED, ConfigurationComplianceState.FAILED)
         ]
+        trend_summary = trends.get("summary", {})
+        recurrent_drift_agents = trend_summary.get("recurrent_drift", 0) if isinstance(trend_summary, dict) else 0
         return {
             "schema": "dnsforge.manager-compliance-report.v1",
             "aggregate": aggregate,
@@ -201,7 +203,7 @@ class CentralInventoryService:
                     1 for item in drifted_agents if item.compliance == ConfigurationComplianceState.FAILED
                 ),
                 "total_drift_count": sum(item.drift_count for item in drifted_agents),
-                "recurrent_drift_agents": trends["summary"]["recurrent_drift"],
+                "recurrent_drift_agents": recurrent_drift_agents,
             },
         }
 

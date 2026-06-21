@@ -77,6 +77,7 @@ def test_postgresql_scale_policy_contains_large_dataset_indexes() -> None:
     assert "idx_manager_audit_events_payload_target" in joined
     assert batched(tuple(range(5)), 2) == ((0, 1), (2, 3), (4,))
 
+
 import asyncio
 import pytest
 

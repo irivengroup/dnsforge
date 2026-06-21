@@ -17,7 +17,9 @@ class DNSBeatService:
         if not node.requires_dnsforge_agent():
             raise ValueError("DNSBeat only monitors registered DNSForge agents")
         if node.status == NodeStatus.DISABLED:
-            return NodeHealthSample(node.node_id, node.status, 0, "disabled", None, "unknown", _failed_components("disabled"))
+            return NodeHealthSample(
+                node.node_id, node.status, 0, "disabled", None, "unknown", _failed_components("disabled")
+            )
         if node.status == NodeStatus.UNREACHABLE:
             return NodeHealthSample(
                 node.node_id,

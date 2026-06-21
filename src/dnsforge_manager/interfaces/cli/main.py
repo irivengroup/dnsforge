@@ -58,7 +58,6 @@ def build_parser() -> argparse.ArgumentParser:
     update_compliance.add_argument("--last-checked", default="")
     update_compliance.add_argument("--message", default="")
 
-
     monitor = sub.add_parser("monitor", help="Monitor DNSForge-managed BIND fleet with DNSBeat")
     monitor_sub = monitor.add_subparsers(dest="monitor_action", required=True)
     monitor_sub.add_parser("status", help="Show DNSBeat fleet status")
@@ -146,6 +145,7 @@ def _dnssync_payload(args: argparse.Namespace, *, mode: str | None = None) -> di
     if getattr(args, "approved_plan_hash", None):
         payload["approved_plan_hash"] = args.approved_plan_hash
     return payload
+
 
 def _add_inventory_resource(subparsers: argparse._SubParsersAction, name: str, id_name: str) -> None:
     resource = subparsers.add_parser(name, help=f"Manage inventory {name}s")

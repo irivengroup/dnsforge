@@ -344,7 +344,9 @@ class ManagerApplication:
         execution = self.dnssync_service.execute(
             plan,
             self.node_client,
-            approved_plan_hash=None if payload.get("approved_plan_hash") is None else str(payload["approved_plan_hash"]),
+            approved_plan_hash=None
+            if payload.get("approved_plan_hash") is None
+            else str(payload["approved_plan_hash"]),
         )
         self._dnssync_executions.append(execution)
         self._audit(
@@ -369,7 +371,9 @@ class ManagerApplication:
         execution = self.dnssync_service.execute(
             plan,
             self.node_client,
-            approved_plan_hash=None if payload.get("approved_plan_hash") is None else str(payload["approved_plan_hash"]),
+            approved_plan_hash=None
+            if payload.get("approved_plan_hash") is None
+            else str(payload["approved_plan_hash"]),
         )
         self._dnssync_executions.append(execution)
         self._audit(

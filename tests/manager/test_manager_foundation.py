@@ -3,7 +3,12 @@ from __future__ import annotations
 from dnsforge_manager.application.core.manager_application import create_app
 from dnsforge_manager.application.dnssync.dnssync_service import DNSSyncService
 from dnsforge_manager.application.inventory.node_registration_service import NodeRegistrationService
-from dnsforge_manager.domain.core import DNSBEAT_BOUNDARY, DNSFORGE_BOUNDARY, DNSFORGE_MANAGER_BOUNDARY, DNSSYNC_BOUNDARY
+from dnsforge_manager.domain.core import (
+    DNSBEAT_BOUNDARY,
+    DNSFORGE_BOUNDARY,
+    DNSFORGE_MANAGER_BOUNDARY,
+    DNSSYNC_BOUNDARY,
+)
 from dnsforge_manager.domain.dnssync import DNSForgeOperation
 from dnsforge_manager.domain.inventory import ManagedNode, NodeRole
 from dnsforge_manager.infrastructure.dnssync import RecordingDNSForgeNodeClient

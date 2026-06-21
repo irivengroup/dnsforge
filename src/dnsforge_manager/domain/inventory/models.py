@@ -5,6 +5,16 @@ from enum import Enum
 from typing import Any
 
 
+def _int_value(value: object, default: int = 0) -> int:
+    if value is None:
+        return default
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        return int(value)
+    return default
+
+
 class NodeRole(str, Enum):
     AUTHORITATIVE = "authoritative"
     PROXY_FORWARDER = "proxy-forwarder"
@@ -173,7 +183,7 @@ class AgentComplianceStatus:
             compliance=ConfigurationComplianceState(
                 str(data.get("compliance", ConfigurationComplianceState.WARNING.value))
             ),
-            drift_count=int(data.get("drift_count", 0)),
+            drift_count=_int_value(data.get("drift_count", 0)),
             last_checked=str(data.get("last_checked", "")),
             message=str(data.get("message", "")),
             findings=findings_value,
@@ -208,11 +218,11 @@ class AgentComplianceEvent:
             compliance=ConfigurationComplianceState(
                 str(data.get("compliance", ConfigurationComplianceState.WARNING.value))
             ),
-            drift_count=int(data.get("drift_count", 0)),
+            drift_count=_int_value(data.get("drift_count", 0)),
             observed_at=str(data.get("observed_at", "")),
             previous_compliance=None if previous in (None, "") else ConfigurationComplianceState(str(previous)),
             previous_drift_count=(
-                None if data.get("previous_drift_count") is None else int(data.get("previous_drift_count", 0))
+                None if data.get("previous_drift_count") is None else _int_value(data.get("previous_drift_count", 0))
             ),
             message=str(data.get("message", "")),
             transition=bool(data.get("transition", False)),
