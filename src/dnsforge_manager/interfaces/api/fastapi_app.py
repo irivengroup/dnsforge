@@ -28,17 +28,17 @@ class FastAPIUnavailableApp:
             RouteSpec("GET", "/nodes/{node_id}/status"),
             RouteSpec("GET", "/nodes/{node_id}/readiness"),
             RouteSpec("GET", "/audit"),
-            RouteSpec("GET", "/changes"),
-            RouteSpec("POST", "/changes"),
-            RouteSpec("GET", "/changes/{change_id}"),
-            RouteSpec("POST", "/changes/{change_id}/dry-run"),
-            RouteSpec("POST", "/changes/{change_id}/review"),
-            RouteSpec("POST", "/changes/{change_id}/execute"),
-            RouteSpec("GET", "/changes/{change_id}/status"),
-            RouteSpec("POST", "/changes/{change_id}/approve"),
-            RouteSpec("POST", "/changes/{change_id}/reject"),
-            RouteSpec("POST", "/changes/{change_id}/apply"),
-            RouteSpec("POST", "/changes/{change_id}/rollback"),
+            RouteSpec("GET", "/dnssync/plans"),
+            RouteSpec("POST", "/dnssync/plans"),
+            RouteSpec("POST", "/dnssync/validate"),
+            RouteSpec("POST", "/dnssync/dry-run"),
+            RouteSpec("POST", "/dnssync/apply"),
+            RouteSpec("POST", "/dnssync/rollback"),
+            RouteSpec("GET", "/dnssync/status"),
+            RouteSpec("GET", "/monitor/status"),
+            RouteSpec("GET", "/monitor/agents"),
+            RouteSpec("GET", "/monitor/clusters"),
+            RouteSpec("GET", "/monitor/alerts"),
             RouteSpec("GET", "/inventory/sites"),
             RouteSpec("POST", "/inventory/sites"),
             RouteSpec("GET", "/inventory/clusters"),
@@ -120,43 +120,49 @@ def create_fastapi_app(core: ManagerApplication | None = None) -> Any:
     def audit_events() -> dict[str, Any]:
         return manager.audit_events()
 
-    @app.get("/changes")
-    def list_changes() -> dict[str, Any]:
-        return manager.changes()
+    @app.get("/dnssync/plans")
+    def list_dnssync_plans() -> dict[str, Any]:
+        return manager.dnssync_plans()
 
-    @app.post("/changes")
-    def create_change(payload: dict[str, Any]) -> dict[str, Any]:
-        return manager.create_change(payload)
+    @app.post("/dnssync/plans")
+    def create_dnssync_plan(payload: dict[str, Any]) -> dict[str, Any]:
+        return manager.create_dnssync_plan(payload)
 
-    @app.get("/changes/{change_id}")
-    def get_change(change_id: str) -> dict[str, Any]:
-        return manager.change(change_id)
+    @app.post("/dnssync/validate")
+    def validate_dnssync_plan(payload: dict[str, Any]) -> dict[str, Any]:
+        return manager.validate_dnssync_plan(payload)
 
-    @app.post("/changes/{change_id}/dry-run")
-    def dry_run_change(change_id: str) -> dict[str, Any]:
-        return manager.dry_run_change(change_id)
+    @app.post("/dnssync/dry-run")
+    def dry_run_dnssync(payload: dict[str, Any]) -> dict[str, Any]:
+        return manager.dry_run_dnssync(payload)
 
-    @app.post("/changes/{change_id}/approve")
-    def approve_change(change_id: str) -> dict[str, Any]:
-        return manager.approve_change(change_id)
+    @app.post("/dnssync/apply")
+    def apply_dnssync(payload: dict[str, Any]) -> dict[str, Any]:
+        return manager.apply_dnssync(payload)
 
-    @app.post("/changes/{change_id}/reject")
-    def reject_change(change_id: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
-        return manager.reject_change(change_id, reason=None if payload is None else str(payload.get("reason", "")))
+    @app.post("/dnssync/rollback")
+    def rollback_dnssync(payload: dict[str, Any]) -> dict[str, Any]:
+        return manager.rollback_dnssync(payload)
 
-    @app.post("/changes/{change_id}/apply")
-    def apply_change(change_id: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
-        return manager.apply_change(
-            change_id,
-            approved_plan_hash=None if payload is None else str(payload.get("approved_plan_hash", "")),
-        )
+    @app.get("/dnssync/status")
+    def dnssync_status() -> dict[str, Any]:
+        return manager.dnssync_status()
 
-    @app.post("/changes/{change_id}/rollback")
-    def rollback_change(change_id: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
-        return manager.rollback_change(
-            change_id,
-            approved_plan_hash=None if payload is None else str(payload.get("approved_plan_hash", "")),
-        )
+    @app.get("/monitor/status")
+    def monitor_status() -> dict[str, Any]:
+        return manager.monitor_status()
+
+    @app.get("/monitor/agents")
+    def monitor_agents() -> dict[str, Any]:
+        return manager.monitor_agents()
+
+    @app.get("/monitor/clusters")
+    def monitor_clusters() -> dict[str, Any]:
+        return manager.monitor_clusters()
+
+    @app.get("/monitor/alerts")
+    def monitor_alerts() -> dict[str, Any]:
+        return manager.monitor_alerts()
 
     @app.get("/inventory/sites")
     def list_inventory_sites() -> dict[str, Any]:
@@ -213,24 +219,6 @@ def create_fastapi_app(core: ManagerApplication | None = None) -> Any:
     @app.get("/inventory/agent-compliance/report")
     def inventory_agent_compliance_report(fingerprint: str | None = None) -> dict[str, Any]:
         return manager.inventory_agent_compliance_report(fingerprint)
-
-    @app.get("/changes/{change_id}/status")
-    def managed_change_status(change_id: str) -> dict[str, Any]:
-        return manager.managed_change(change_id)
-
-    @app.post("/changes/{change_id}/review")
-    def review_managed_change(change_id: str) -> dict[str, Any]:
-        return manager.review_managed_change(change_id)
-
-    @app.post("/changes/{change_id}/execute")
-    def execute_managed_change(change_id: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
-        signals = payload or {}
-        return manager.execute_managed_change(
-            change_id,
-            readiness=str(signals.get("readiness", "READY")),
-            trust=str(signals.get("trust", "TRUSTED")),
-            compliance=str(signals.get("compliance", "COMPLIANT")),
-        )
 
     @app.get("/trust/enrollments")
     def list_trust_enrollments() -> dict[str, Any]:

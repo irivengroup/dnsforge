@@ -39,8 +39,8 @@ SECURITY_TEST_SNIPPETS = {
     ),
     "test_manager_agent_integration.py": (
         "RecordingDNSForgeNodeClient",
-        "dry_run_change",
-        "apply_change",
+        "dry_run_dnssync",
+        "apply_dnssync",
         "approved_plan_hash",
     ),
 }

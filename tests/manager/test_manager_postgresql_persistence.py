@@ -7,10 +7,8 @@ import pytest
 from dnsforge_manager.domain.audit.models import ManagerAuditEvent
 from dnsforge_manager.domain.inventory.models import ManagedNode, NodeRole, NodeStatus
 from dnsforge_manager.domain.persistence import ManagerPersistenceConfig, PersistenceBackend
-from dnsforge_manager.domain.workflows.models import ChangeRequestStatus, ManagerChangeRequest
 from dnsforge_manager.infrastructure.persistence import PostgreSQLPersistenceBackend
 from dnsforge_manager.infrastructure.persistence.postgresql import (
-    PostgreSQLChangeRequestRepository,
     PostgreSQLManagerAuditRepository,
     PostgreSQLNodeInventoryRepository,
     PostgreSQLSchemaMigrator,
@@ -30,8 +28,6 @@ class FakeCursor:
             return
         if "manager_nodes" in statement:
             self._execute_keyed("nodes", parameters)
-        elif "manager_change_requests" in statement:
-            self._execute_keyed("changes", parameters)
         elif "manager_audit_events" in statement:
             if statement.startswith("INSERT"):
                 self.audit.append(str(parameters[0]))
@@ -59,7 +55,7 @@ class FakeCursor:
 
 class FakeConnection:
     def __init__(self) -> None:
-        self.database = {"nodes": {}, "changes": {}}
+        self.database = {"nodes": {}}
         self.audit: list[str] = []
         self.commits = 0
         self.statements: list[str] = []
@@ -117,37 +113,6 @@ def test_postgresql_inventory_repository_rejects_duplicate_register():
 
     with pytest.raises(ValueError, match="already registered"):
         repository.register(node)
-
-
-def test_postgresql_change_repository_updates_status():
-    repository = PostgreSQLChangeRequestRepository(FakeConnection())
-    change = ManagerChangeRequest(
-        change_id="chg-1",
-        cluster_id="cluster-a",
-        operation="zone.create",
-        payload={"zone": "example.test"},
-    )
-
-    repository.save(change)
-    repository.update_status("chg-1", ChangeRequestStatus.APPROVED, approved_by="admin")
-
-    assert repository.get("chg-1").status is ChangeRequestStatus.APPROVED
-    assert repository.list()[0].approved_by == "admin"
-
-
-def test_postgresql_change_repository_rejects_unknown_status_field():
-    repository = PostgreSQLChangeRequestRepository(FakeConnection())
-    repository.save(
-        ManagerChangeRequest(
-            change_id="chg-1",
-            cluster_id="cluster-a",
-            operation="zone.create",
-            payload={},
-        )
-    )
-
-    with pytest.raises(ValueError, match="unsupported"):
-        repository.update_status("chg-1", ChangeRequestStatus.FAILED, invalid=True)
 
 
 def test_postgresql_audit_repository_appends_events():

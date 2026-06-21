@@ -3,15 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from dnsforge_manager.application.core.manager_application import create_app
-from dnsforge_manager.interfaces.api.fastapi_app import create_fastapi_app
-from dnsforge_manager.domain.dnssync import SyncMode
-from dnsforge_manager.infrastructure.dnssync import RecordingDNSForgeNodeClient
 from dnsforge_manager.application.inventory.node_registration_service import NodeRegistrationService
 from dnsforge_manager.domain.inventory import ManagedNode, NodeRole, NodeStatus
-from dnsforge_manager.infrastructure.inventory import JsonNodeInventoryRepository
 from dnsforge_manager.domain.rbac import MANAGER_ADMIN_ROLE, MANAGER_OPERATOR_ROLE, MANAGER_VIEWER_ROLE
-from dnsforge_manager.application.workflows.change_workflow import ManagerChangeWorkflow
-from dnsforge_manager.domain.workflows.models import ManagerChangeRequest
+from dnsforge_manager.infrastructure.inventory import JsonNodeInventoryRepository
+from dnsforge_manager.interfaces.api.fastapi_app import create_fastapi_app
 
 
 def test_manager_api_registers_and_reads_node() -> None:
@@ -39,6 +35,8 @@ def test_manager_api_route_contract_exists_without_requiring_fastapi() -> None:
     assert "/nodes" in paths
     assert "/nodes/{node_id}" in paths
     assert "/nodes/{node_id}/status" in paths
+    assert "/dnssync/dry-run" in paths
+    assert "/changes" not in paths
 
 
 def test_json_inventory_persists_nodes(tmp_path: Path) -> None:
@@ -53,25 +51,31 @@ def test_json_inventory_persists_nodes(tmp_path: Path) -> None:
     assert reloaded.set_status("dns01", NodeStatus.ACTIVE).status == NodeStatus.ACTIVE
 
 
-def test_dnssync_workflow_supports_dry_run_apply_and_rollback() -> None:
-    nodes = (
-        ManagedNode("dns01", "dns01", "https://dns01:1073", NodeRole.AUTHORITATIVE, cluster_id="cluster-a"),
-        ManagedNode("dns02", "dns02", "https://dns02:1073", NodeRole.AUTHORITATIVE, cluster_id="cluster-a"),
-    )
-    workflow = ManagerChangeWorkflow()
-    request = ManagerChangeRequest("cluster-a", "zone.create", {"zone": "example.com"})
-    dry_run = workflow.dry_run_cluster_change(request, nodes)
-    assert dry_run.mode == SyncMode.DRY_RUN
-    assert dry_run.accepted is True
+def test_dnssync_application_supports_dry_run_apply_and_rollback() -> None:
+    app = create_app()
+    for node_id in ("dns01", "dns02"):
+        app.register_node(
+            {
+                "node_id": node_id,
+                "name": node_id,
+                "api_endpoint": f"https://{node_id}:1073",
+                "role": "authoritative",
+                "cluster_id": "cluster-a",
+            }
+        )
+        app.approve_node(node_id)
+        app.set_node_status(node_id, "active")
 
-    client = RecordingDNSForgeNodeClient()
-    applied = workflow.submit_cluster_change(request, nodes, client)
-    assert applied.mode == SyncMode.APPLY
-    assert [node_id for node_id, _ in client.operations] == ["dns01", "dns02"]
+    payload = {"cluster_id": "cluster-a", "operation": "zone.create", "payload": {"zone": "example.com"}}
+    dry_run = app.dry_run_dnssync(payload)["execution"]
+    assert dry_run["mode"] == "dry-run"
+    assert dry_run["accepted"] is True
 
-    rolled_back = workflow.rollback_cluster_change(request, nodes, client)
-    assert rolled_back.mode == SyncMode.ROLLBACK
-    assert client.operations[-1][1].operation == "rollback.zone.create"
+    applied = app.apply_dnssync({**payload, "approved_plan_hash": dry_run["plan_hash"]})["execution"]
+    assert applied["mode"] == "apply"
+
+    rolled_back = app.rollback_dnssync({**payload, "approved_plan_hash": dry_run["plan_hash"]})["execution"]
+    assert rolled_back["mode"] == "rollback"
 
 
 def test_rbac_minimal_roles_are_stable() -> None:
@@ -81,3 +85,4 @@ def test_rbac_minimal_roles_are_stable() -> None:
     assert MANAGER_ADMIN_ROLE.allows("manager:rbac:admin") is True
     assert MANAGER_OPERATOR_ROLE.allows("manager:sync:operate") is True
     assert MANAGER_VIEWER_ROLE.allows("manager:sync:operate") is False
+    assert MANAGER_VIEWER_ROLE.allows("manager:sync:read") is True

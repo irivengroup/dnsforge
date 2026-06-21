@@ -12,12 +12,10 @@ from dnsforge_manager.domain.inventory.models import ManagedNode, NodeRole, Node
 from dnsforge_manager.application.inventory.node_registration_service import NodeRegistrationService
 from dnsforge_manager.application.inventory.central_inventory_service import CentralInventoryService
 from dnsforge_manager.application.security.agent_trust_service import AgentTrustService
-from dnsforge_manager.application.change_management.service import ChangeManagementService
-from dnsforge_manager.application.change_management.repository import ChangeManagementRepository
+from dnsforge_manager.application.dnssync.dnssync_service import DNSSyncService
+from dnsforge_manager.domain.dnssync.models import DNSForgeOperation, SyncExecution, SyncMode, SyncPlan
 from dnsforge_manager.infrastructure.inventory.central_repository import CentralInventoryRepository
 from dnsforge_manager.application.rbac.rbac_service import RbacService
-from dnsforge_manager.application.workflows.change_workflow import ManagerChangeWorkflow
-from dnsforge_manager.domain.workflows.models import ManagerChangeRequest
 from dnsforge_manager.infrastructure.dnssync.client import (
     DNSForgeNodeClient,
     RecordingDNSForgeNodeClient,
@@ -36,23 +34,22 @@ class ManagerApplication:
         dnsbeat_service: DNSBeatService | None = None,
         rbac_service: RbacService | None = None,
         audit_repository: ManagerAuditRepository | None = None,
-        change_workflow: ManagerChangeWorkflow | None = None,
+        dnssync_service: DNSSyncService | None = None,
         node_client: DNSForgeNodeClient | None = None,
         central_inventory: CentralInventoryService | None = None,
         central_inventory_repository: CentralInventoryRepository | None = None,
         agent_trust_service: AgentTrustService | None = None,
-        change_management: ChangeManagementService | None = None,
-        change_management_repository: ChangeManagementRepository | None = None,
     ) -> None:
         self.registration_service = registration_service or NodeRegistrationService()
         self.dnsbeat_service = dnsbeat_service or DNSBeatService()
         self.rbac_service = rbac_service or RbacService()
         self.audit_repository = audit_repository or ManagerAuditRepository()
-        self.change_workflow = change_workflow or ManagerChangeWorkflow(dnsbeat_service=self.dnsbeat_service)
+        self.dnssync_service = dnssync_service or DNSSyncService()
         self.node_client = node_client or RecordingDNSForgeNodeClient()
+        self._dnssync_plans: dict[str, SyncPlan] = {}
+        self._dnssync_executions: list[SyncExecution] = []
         self.central_inventory = central_inventory or CentralInventoryService(central_inventory_repository)
         self.agent_trust_service = agent_trust_service or AgentTrustService()
-        self.change_management = change_management or ChangeManagementService(change_management_repository)
 
     def _require(self, role: str, permission: str) -> None:
         self.rbac_service.require(role, permission)
@@ -183,7 +180,7 @@ class ManagerApplication:
         return {
             "node_id": node.node_id,
             "status": node.status.value,
-            "dnsbeat": asdict(sample),
+            "dnsbeat": sample.to_dict(),
             "readiness": self._agent_readiness(node.node_id),
         }
 
@@ -191,6 +188,48 @@ class ManagerApplication:
         self._require(role, "manager:dnsbeat:read")
         node = self.registration_service.get_node(node_id)
         return {"node_id": node.node_id, "readiness": self._agent_readiness(node.node_id)}
+
+    def monitor_status(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:dnsbeat:read")
+        samples = self.dnsbeat_service.collect_fleet_health(self.registration_service.list_nodes())
+        status = "READY"
+        if any(sample.score == 0 for sample in samples):
+            status = "FAILED"
+        elif any(sample.score < 100 for sample in samples):
+            status = "WARNING"
+        return {"status": status, "agents": [sample.to_dict() for sample in samples]}
+
+    def monitor_agents(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:dnsbeat:read")
+        samples = self.dnsbeat_service.collect_fleet_health(self.registration_service.list_nodes())
+        return {"agents": [sample.to_dict() for sample in samples]}
+
+    def monitor_clusters(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:dnsbeat:read")
+        nodes = self.registration_service.list_nodes()
+        cluster_ids = sorted({node.cluster_id for node in nodes if node.cluster_id})
+        return {
+            "clusters": [
+                self.dnsbeat_service.collect_cluster_health(str(cluster_id), nodes).to_dict()
+                for cluster_id in cluster_ids
+            ]
+        }
+
+    def monitor_alerts(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:dnsbeat:read")
+        alerts: list[dict[str, object]] = []
+        for sample in self.dnsbeat_service.collect_fleet_health(self.registration_service.list_nodes()):
+            for component in sample.components:
+                if component.status != "READY":
+                    alerts.append(
+                        {
+                            "node_id": sample.node_id,
+                            "component": component.component,
+                            "status": component.status,
+                            "message": component.message,
+                        }
+                    )
+        return {"alerts": alerts}
 
     def set_node_status(
         self, node_id: str, status: str, *, actor: str = "system", role: str = "operator"
@@ -200,148 +239,154 @@ class ManagerApplication:
         self._audit(actor=actor, action="node.status", target=node_id, result=status)
         return {"node": node.to_dict()}
 
-    def changes(self, *, role: str = "viewer") -> dict[str, Any]:
-        self._require(role, "manager:changes:read")
-        return {"changes": [change.to_dict() for change in self.change_workflow.list_changes()]}
+    def _serialize_sync_plan(self, plan: SyncPlan) -> dict[str, Any]:
+        return {
+            "cluster_id": plan.cluster_id,
+            "operation": plan.operation.operation,
+            "payload": plan.operation.payload,
+            "mode": plan.mode.value,
+            "plan_hash": plan.plan_hash,
+            "dry_run_required": plan.dry_run_required,
+            "targets": [node.to_dict() for node in plan.target_nodes],
+        }
 
-    def create_change(
+    def _serialize_sync_execution(self, execution: SyncExecution) -> dict[str, Any]:
+        return {
+            "cluster_id": execution.cluster_id,
+            "mode": execution.mode.value,
+            "plan_hash": execution.plan_hash,
+            "accepted": execution.accepted,
+            "results": [result.__dict__ for result in execution.results],
+        }
+
+    def _build_dnssync_plan(self, payload: dict[str, Any], mode: SyncMode) -> SyncPlan:
+        operation = DNSForgeOperation(
+            operation=str(payload["operation"]),
+            payload=dict(payload.get("payload", {})),
+        )
+        return self.dnssync_service.build_cluster_plan(
+            cluster_id=str(payload["cluster_id"]),
+            operation=operation,
+            nodes=self.registration_service.list_nodes(),
+            mode=mode,
+        )
+
+    def dnssync_plans(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:sync:read")
+        return {"plans": [self._serialize_sync_plan(plan) for plan in self._dnssync_plans.values()]}
+
+    def create_dnssync_plan(
         self,
         payload: dict[str, Any],
         *,
         actor: str = "system",
         role: str = "operator",
     ) -> dict[str, Any]:
-        self._require(role, "manager:changes:operate")
-        change = ManagerChangeRequest(
-            cluster_id=str(payload["cluster_id"]),
-            operation=str(payload["operation"]),
-            payload=dict(payload.get("payload", {})),
-            created_by=actor,
-        )
-        created = self.change_workflow.create_change(change)
+        self._require(role, "manager:sync:operate")
+        mode = SyncMode(str(payload.get("mode", SyncMode.DRY_RUN.value)))
+        plan = self._build_dnssync_plan(payload, mode)
+        self._dnssync_plans[plan.plan_hash] = plan
         self._audit(
             actor=actor,
-            action="change.create",
-            target=created.change_id,
-            result=created.status.value,
+            action="dnssync.plan",
+            target=plan.cluster_id,
+            result=plan.plan_hash,
         )
-        return {"change": created.to_dict()}
+        return {"plan": self._serialize_sync_plan(plan)}
 
-    def change(self, change_id: str, *, role: str = "viewer") -> dict[str, Any]:
-        self._require(role, "manager:changes:read")
-        return {"change": self.change_workflow.get_change(change_id).to_dict()}
-
-    def dry_run_change(
+    def validate_dnssync_plan(
         self,
-        change_id: str,
+        payload: dict[str, Any],
         *,
         actor: str = "system",
         role: str = "operator",
     ) -> dict[str, Any]:
-        self._require(role, "manager:changes:operate")
-        execution = self.change_workflow.dry_run_change(
-            change_id,
-            self.registration_service.list_nodes(),
-        )
+        self._require(role, "manager:sync:operate")
+        plan_hash = payload.get("plan_hash")
+        if plan_hash is not None:
+            valid = str(plan_hash) in self._dnssync_plans
+            return {"valid": valid, "plan_hash": str(plan_hash)}
+        plan = self._build_dnssync_plan(payload, SyncMode.DRY_RUN)
+        self._audit(actor=actor, action="dnssync.validate", target=plan.cluster_id, result="valid")
+        return {"valid": True, "plan": self._serialize_sync_plan(plan)}
+
+    def dry_run_dnssync(
+        self,
+        payload: dict[str, Any],
+        *,
+        actor: str = "system",
+        role: str = "operator",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:sync:operate")
+        plan = self._build_dnssync_plan(payload, SyncMode.DRY_RUN)
+        self._dnssync_plans[plan.plan_hash] = plan
+        execution = self.dnssync_service.dry_run(plan)
+        self._dnssync_executions.append(execution)
         self._audit(
             actor=actor,
-            action="change.dry_run",
-            target=change_id,
+            action="dnssync.dry_run",
+            target=plan.cluster_id,
             result="accepted" if execution.accepted else "failed",
             metadata={"plan_hash": execution.plan_hash},
         )
+        return {"execution": self._serialize_sync_execution(execution)}
+
+    def apply_dnssync(
+        self,
+        payload: dict[str, Any],
+        *,
+        actor: str = "system",
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:sync:admin")
+        plan = self._build_dnssync_plan(payload, SyncMode.APPLY)
+        self._dnssync_plans[plan.plan_hash] = plan
+        execution = self.dnssync_service.execute(
+            plan,
+            self.node_client,
+            approved_plan_hash=None if payload.get("approved_plan_hash") is None else str(payload["approved_plan_hash"]),
+        )
+        self._dnssync_executions.append(execution)
+        self._audit(
+            actor=actor,
+            action="dnssync.apply",
+            target=plan.cluster_id,
+            result="accepted" if execution.accepted else "failed",
+            metadata={"plan_hash": execution.plan_hash},
+        )
+        return {"execution": self._serialize_sync_execution(execution)}
+
+    def rollback_dnssync(
+        self,
+        payload: dict[str, Any],
+        *,
+        actor: str = "system",
+        role: str = "admin",
+    ) -> dict[str, Any]:
+        self._require(role, "manager:sync:admin")
+        plan = self._build_dnssync_plan(payload, SyncMode.ROLLBACK)
+        self._dnssync_plans[plan.plan_hash] = plan
+        execution = self.dnssync_service.execute(
+            plan,
+            self.node_client,
+            approved_plan_hash=None if payload.get("approved_plan_hash") is None else str(payload["approved_plan_hash"]),
+        )
+        self._dnssync_executions.append(execution)
+        self._audit(
+            actor=actor,
+            action="dnssync.rollback",
+            target=plan.cluster_id,
+            result="accepted" if execution.accepted else "failed",
+            metadata={"plan_hash": execution.plan_hash},
+        )
+        return {"execution": self._serialize_sync_execution(execution)}
+
+    def dnssync_status(self, *, role: str = "viewer") -> dict[str, Any]:
+        self._require(role, "manager:sync:read")
         return {
-            "execution": {
-                "cluster_id": execution.cluster_id,
-                "mode": execution.mode.value,
-                "plan_hash": execution.plan_hash,
-                "accepted": execution.accepted,
-                "results": [result.__dict__ for result in execution.results],
-            }
+            "plans": [self._serialize_sync_plan(plan) for plan in self._dnssync_plans.values()],
+            "executions": [self._serialize_sync_execution(execution) for execution in self._dnssync_executions],
         }
-
-    def approve_change(
-        self,
-        change_id: str,
-        *,
-        actor: str = "system",
-        role: str = "admin",
-    ) -> dict[str, Any]:
-        self._require(role, "manager:changes:admin")
-        change = self.change_workflow.approve_change(change_id, actor=actor)
-        self._audit(
-            actor=actor,
-            action="change.approve",
-            target=change_id,
-            result=change.status.value,
-        )
-        return {"change": change.to_dict()}
-
-    def reject_change(
-        self,
-        change_id: str,
-        *,
-        reason: str | None = None,
-        actor: str = "system",
-        role: str = "admin",
-    ) -> dict[str, Any]:
-        self._require(role, "manager:changes:admin")
-        change = self.change_workflow.reject_change(change_id, reason=reason)
-        self._audit(
-            actor=actor,
-            action="change.reject",
-            target=change_id,
-            result=change.status.value,
-        )
-        return {"change": change.to_dict()}
-
-    def apply_change(
-        self,
-        change_id: str,
-        *,
-        approved_plan_hash: str | None = None,
-        actor: str = "system",
-        role: str = "admin",
-    ) -> dict[str, Any]:
-        self._require(role, "manager:changes:admin")
-        execution = self.change_workflow.apply_change(
-            change_id,
-            self.registration_service.list_nodes(),
-            self.node_client,
-            approved_plan_hash=approved_plan_hash,
-        )
-        self._audit(
-            actor=actor,
-            action="change.apply",
-            target=change_id,
-            result="accepted" if execution.accepted else "failed",
-            metadata={"plan_hash": execution.plan_hash},
-        )
-        return {"change": self.change_workflow.get_change(change_id).to_dict()}
-
-    def rollback_change(
-        self,
-        change_id: str,
-        *,
-        approved_plan_hash: str | None = None,
-        actor: str = "system",
-        role: str = "admin",
-    ) -> dict[str, Any]:
-        self._require(role, "manager:changes:admin")
-        execution = self.change_workflow.rollback_change(
-            change_id,
-            self.registration_service.list_nodes(),
-            self.node_client,
-            approved_plan_hash=approved_plan_hash,
-        )
-        self._audit(
-            actor=actor,
-            action="change.rollback",
-            target=change_id,
-            result="accepted" if execution.accepted else "failed",
-            metadata={"plan_hash": execution.plan_hash},
-        )
-        return {"change": self.change_workflow.get_change(change_id).to_dict()}
 
     def inventory_sites(self, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:inventory:read")
@@ -481,83 +526,6 @@ class ManagerApplication:
             metadata={"drift_count": status.drift_count},
         )
         return {"agent_compliance": status.to_dict()}
-
-    def change_management_changes(self, *, role: str = "viewer") -> dict[str, Any]:
-        self._require(role, "manager:changes:read")
-        return {"changes": [change.to_dict() for change in self.change_management.list_changes()]}
-
-    def create_managed_change(
-        self,
-        payload: dict[str, Any],
-        *,
-        actor: str = "system",
-        role: str = "operator",
-    ) -> dict[str, Any]:
-        self._require(role, "manager:changes:operate")
-        change = self.change_management.create_change(payload, requested_by=actor)
-        self._audit(actor=actor, action="change_management.create", target=change.change_id, result=change.status.value)
-        return {"change": change.to_dict()}
-
-    def managed_change(self, change_id: str, *, role: str = "viewer") -> dict[str, Any]:
-        self._require(role, "manager:changes:read")
-        return self.change_management.status(change_id)
-
-    def review_managed_change(
-        self,
-        change_id: str,
-        *,
-        actor: str = "system",
-        role: str = "operator",
-    ) -> dict[str, Any]:
-        self._require(role, "manager:changes:operate")
-        change = self.change_management.review_change(change_id, reviewer=actor)
-        self._audit(actor=actor, action="change_management.review", target=change_id, result=change.status.value)
-        return {"change": change.to_dict()}
-
-    def approve_managed_change(
-        self,
-        change_id: str,
-        *,
-        comment: str = "",
-        actor: str = "system",
-        role: str = "admin",
-    ) -> dict[str, Any]:
-        self._require(role, "manager:changes:admin")
-        change = self.change_management.approve_change(change_id, approver=actor, comment=comment)
-        self._audit(actor=actor, action="change_management.approve", target=change_id, result=change.status.value)
-        return {"change": change.to_dict()}
-
-    def execute_managed_change(
-        self,
-        change_id: str,
-        *,
-        readiness: str = "READY",
-        trust: str = "TRUSTED",
-        compliance: str = "COMPLIANT",
-        actor: str = "system",
-        role: str = "admin",
-    ) -> dict[str, Any]:
-        self._require(role, "manager:changes:admin")
-        execution = self.change_management.execute_change(
-            change_id,
-            actor=actor,
-            signals={"readiness": readiness, "trust": trust, "compliance": compliance},
-        )
-        self._audit(actor=actor, action="change_management.execute", target=change_id, result=execution.result.value)
-        return {"execution": execution.to_dict(), "change": self.change_management.get_change(change_id).to_dict()}
-
-    def rollback_managed_change(
-        self,
-        change_id: str,
-        *,
-        reason: str = "operator-request",
-        actor: str = "system",
-        role: str = "admin",
-    ) -> dict[str, Any]:
-        self._require(role, "manager:changes:admin")
-        rollback = self.change_management.rollback_change(change_id, reason=reason, actor=actor)
-        self._audit(actor=actor, action="change_management.rollback", target=change_id, result="ROLLED_BACK")
-        return {"rollback": rollback.to_dict(), "change": self.change_management.get_change(change_id).to_dict()}
 
     def trust_enrollments(self, *, role: str = "viewer") -> dict[str, Any]:
         self._require(role, "manager:trust:read")

@@ -13,7 +13,6 @@ def main() -> int:
     required = [
         ROOT / "docs" / "MANAGER_POSTGRESQL_PERSISTENCE.md",
         ROOT / "src" / "dnsforge_manager" / "infrastructure" / "persistence" / "postgresql" / "inventory_repository.py",
-        ROOT / "src" / "dnsforge_manager" / "infrastructure" / "persistence" / "postgresql" / "change_repository.py",
         ROOT / "src" / "dnsforge_manager" / "infrastructure" / "persistence" / "postgresql" / "audit_repository.py",
         ROOT / "src" / "dnsforge_manager" / "infrastructure" / "persistence" / "postgresql" / "migrator.py",
     ]

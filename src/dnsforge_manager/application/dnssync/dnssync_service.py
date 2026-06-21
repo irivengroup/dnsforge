@@ -10,10 +10,14 @@ from dnsforge_manager.domain.dnssync.models import (
 )
 from dnsforge_manager.domain.inventory.models import ManagedNode, NodeStatus
 from dnsforge_manager.infrastructure.dnssync.client import DNSForgeNodeClient
+from dnsforge_manager.infrastructure.concurrency import ParallelExecutor
 
 
 class DNSSyncService:
-    """Manager sub-module that orchestrates changes through DNSForge agents only."""
+    """Manager sub-module that orchestrates DNS operations through DNSForge agents only."""
+
+    def __init__(self, executor: ParallelExecutor | None = None) -> None:
+        self.executor = executor or ParallelExecutor()
 
     def build_cluster_plan(
         self,
@@ -35,7 +39,10 @@ class DNSSyncService:
         return SyncPlan(cluster_id=cluster_id, operation=operation, target_nodes=targets, mode=mode)
 
     def dry_run(self, plan: SyncPlan) -> SyncExecution:
-        results = tuple(DNSForgeOperationResult(node.node_id, True, "dry-run") for node in plan.target_nodes)
+        results = self.executor.map_ordered(
+            plan.target_nodes,
+            lambda node: DNSForgeOperationResult(node.node_id, True, "dry-run"),
+        )
         return SyncExecution(
             cluster_id=plan.cluster_id, results=results, mode=SyncMode.DRY_RUN, plan_hash=plan.plan_hash
         )
@@ -59,5 +66,33 @@ class DNSSyncService:
                 operation=f"rollback.{plan.operation.operation}",
                 payload={**plan.operation.payload, "rollback_plan_hash": plan.plan_hash},
             )
-        results = tuple(client.submit(node.node_id, operation) for node in plan.target_nodes)
+        results = self.executor.map_ordered(
+            plan.target_nodes,
+            lambda node: client.submit(node.node_id, operation),
+        )
+        return SyncExecution(cluster_id=plan.cluster_id, results=results, mode=plan.mode, plan_hash=plan.plan_hash)
+
+    async def execute_async(
+        self,
+        plan: SyncPlan,
+        client: DNSForgeNodeClient,
+        *,
+        approved_plan_hash: str | None = None,
+    ) -> SyncExecution:
+        if plan.mode == SyncMode.DRY_RUN:
+            return self.dry_run(plan)
+        if plan.dry_run_required and approved_plan_hash != plan.plan_hash:
+            raise PermissionError("DNSSync apply/rollback requires an approved dry-run plan hash")
+        for node in plan.target_nodes:
+            AgentTrustService.assert_trusted(node)
+        operation = plan.operation
+        if plan.mode == SyncMode.ROLLBACK:
+            operation = DNSForgeOperation(
+                operation=f"rollback.{plan.operation.operation}",
+                payload={**plan.operation.payload, "rollback_plan_hash": plan.plan_hash},
+            )
+        results = await self.executor.amap_ordered(
+            plan.target_nodes,
+            lambda node: client.submit(node.node_id, operation),
+        )
         return SyncExecution(cluster_id=plan.cluster_id, results=results, mode=plan.mode, plan_hash=plan.plan_hash)

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any, cast
-
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -187,7 +185,6 @@ class CentralInventoryService:
     def build_agent_compliance_report(self, fingerprint: str | None = None) -> dict[str, object]:
         aggregate = self.aggregate_compliance()
         trends = self.summarize_agent_compliance_trends(fingerprint)
-        trend_summary = cast(dict[str, object], trends["summary"])
         drifted_agents = [
             item
             for item in self.repository.list_agent_compliance()
@@ -204,7 +201,7 @@ class CentralInventoryService:
                     1 for item in drifted_agents if item.compliance == ConfigurationComplianceState.FAILED
                 ),
                 "total_drift_count": sum(item.drift_count for item in drifted_agents),
-                "recurrent_drift_agents": trend_summary["recurrent_drift"],
+                "recurrent_drift_agents": trends["summary"]["recurrent_drift"],
             },
         }
 

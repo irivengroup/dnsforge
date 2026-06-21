@@ -44,8 +44,8 @@ All DNSForge commands require root/sudo except `dnsforge version`.
 ## Manager security
 
 - Viewer is read-only.
-- Operator creates controlled change requests.
-- Admin approves and applies changes.
+- Operator creates DNSSync dry-run plans.
+- Admin applies DNSSync plans after approved dry-run hash validation.
 - DNSSync apply requires a prior dry-run plan hash.
 
 

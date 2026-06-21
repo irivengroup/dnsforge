@@ -58,33 +58,31 @@ def build_parser() -> argparse.ArgumentParser:
     update_compliance.add_argument("--last-checked", default="")
     update_compliance.add_argument("--message", default="")
 
-    change = sub.add_parser("change", help="Manage enterprise change requests")
-    change_sub = change.add_subparsers(dest="change_action", required=True)
-    change_sub.add_parser("list", help="List change requests")
-    create_change = change_sub.add_parser("create", help="Create a change request")
-    create_change.add_argument("--title", required=True)
-    create_change.add_argument("--description", default="")
-    create_change.add_argument(
-        "--target-scope", choices=("SITE", "CLUSTER", "AGENT", "ZONE", "CATALOG"), default="CLUSTER"
-    )
-    create_change.add_argument("--target-id", required=True)
-    create_change.add_argument("--operation", required=True)
-    create_change.add_argument("--payload", default="{}")
-    status_change = change_sub.add_parser("status", help="Show change status")
-    status_change.add_argument("--change-id", required=True)
-    review_change = change_sub.add_parser("review", help="Review a change request")
-    review_change.add_argument("--change-id", required=True)
-    approve_change = change_sub.add_parser("approve", help="Approve a change request")
-    approve_change.add_argument("--change-id", required=True)
-    approve_change.add_argument("--comment", default="")
-    execute_change = change_sub.add_parser("execute", help="Execute an approved change request")
-    execute_change.add_argument("--change-id", required=True)
-    execute_change.add_argument("--readiness", default="READY")
-    execute_change.add_argument("--trust", default="TRUSTED")
-    execute_change.add_argument("--compliance", default="COMPLIANT")
-    rollback_change = change_sub.add_parser("rollback", help="Rollback a completed or failed change request")
-    rollback_change.add_argument("--change-id", required=True)
-    rollback_change.add_argument("--reason", default="operator-request")
+
+    monitor = sub.add_parser("monitor", help="Monitor DNSForge-managed BIND fleet with DNSBeat")
+    monitor_sub = monitor.add_subparsers(dest="monitor_action", required=True)
+    monitor_sub.add_parser("status", help="Show DNSBeat fleet status")
+    monitor_sub.add_parser("agents", help="Show DNSBeat agent health")
+    monitor_sub.add_parser("clusters", help="Show DNSBeat cluster health")
+    monitor_sub.add_parser("alerts", help="Show DNSBeat alerts")
+
+    dnssync = sub.add_parser("dnssync", help="Orchestrate DNSSync through DNSForge agents")
+    dnssync_sub = dnssync.add_subparsers(dest="dnssync_action", required=True)
+    dnssync_sub.add_parser("plans", help="List DNSSync plans")
+    plan = dnssync_sub.add_parser("plan", help="Create a DNSSync plan")
+    _add_dnssync_operation_arguments(plan)
+    validate = dnssync_sub.add_parser("validate", help="Validate a DNSSync plan or payload")
+    validate.add_argument("--plan-hash")
+    _add_dnssync_operation_arguments(validate, required=False)
+    dry_run = dnssync_sub.add_parser("dry-run", help="Dry-run a DNSSync operation")
+    _add_dnssync_operation_arguments(dry_run)
+    apply = dnssync_sub.add_parser("apply", help="Apply a DNSSync operation")
+    _add_dnssync_operation_arguments(apply)
+    apply.add_argument("--approved-plan-hash", required=True)
+    rollback = dnssync_sub.add_parser("rollback", help="Rollback a DNSSync operation")
+    _add_dnssync_operation_arguments(rollback)
+    rollback.add_argument("--approved-plan-hash", required=True)
+    dnssync_sub.add_parser("status", help="Show DNSSync orchestration status")
 
     trust = sub.add_parser("trust", help="Manage DNSForge agent trust")
     trust_sub = trust.add_subparsers(dest="trust_action", required=True)
@@ -124,6 +122,31 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _add_dnssync_operation_arguments(parser: argparse.ArgumentParser, *, required: bool = True) -> None:
+    parser.add_argument("--cluster-id", required=required)
+    parser.add_argument("--operation", required=required)
+    parser.add_argument("--payload", default="{}", help="JSON object payload submitted to DNSForge agents")
+
+
+def _dnssync_payload(args: argparse.Namespace, *, mode: str | None = None) -> dict[str, object]:
+    payload: dict[str, object] = {}
+    if getattr(args, "cluster_id", None):
+        payload["cluster_id"] = args.cluster_id
+    if getattr(args, "operation", None):
+        payload["operation"] = args.operation
+    if getattr(args, "payload", None):
+        parsed = json.loads(args.payload)
+        if not isinstance(parsed, dict):
+            raise ValueError("--payload must be a JSON object")
+        payload["payload"] = parsed
+    if mode is not None:
+        payload["mode"] = mode
+    if getattr(args, "plan_hash", None):
+        payload["plan_hash"] = args.plan_hash
+    if getattr(args, "approved_plan_hash", None):
+        payload["approved_plan_hash"] = args.approved_plan_hash
+    return payload
+
 def _add_inventory_resource(subparsers: argparse._SubParsersAction, name: str, id_name: str) -> None:
     resource = subparsers.add_parser(name, help=f"Manage inventory {name}s")
     resource_sub = resource.add_subparsers(dest="inventory_action", required=True)
@@ -155,52 +178,16 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "inventory":
         print(json.dumps(_dispatch_inventory(app, args), sort_keys=True))
         return 0
-    if args.command == "change":
-        print(json.dumps(_dispatch_change(app, args), sort_keys=True))
+    if args.command == "dnssync":
+        print(json.dumps(_dispatch_dnssync(app, args), sort_keys=True))
+        return 0
+    if args.command == "monitor":
+        print(json.dumps(_dispatch_monitor(app, args), sort_keys=True))
         return 0
     if args.command == "trust":
         print(json.dumps(_dispatch_trust(app, args), sort_keys=True))
         return 0
     return 2
-
-
-def _json_payload(value: str) -> dict[str, object]:
-    payload = json.loads(value)
-    if not isinstance(payload, dict):
-        raise ValueError("change payload must be a JSON object")
-    return {str(key): item for key, item in payload.items()}
-
-
-def _dispatch_change(app: object, args: argparse.Namespace) -> dict[str, object]:
-    if args.change_action == "list":
-        return app.change_management_changes()  # type: ignore[attr-defined]
-    if args.change_action == "create":
-        return app.create_managed_change(  # type: ignore[attr-defined]
-            {
-                "title": args.title,
-                "description": args.description,
-                "target_scope": args.target_scope,
-                "target_id": args.target_id,
-                "operation": args.operation,
-                "payload": _json_payload(args.payload),
-            }
-        )
-    if args.change_action == "status":
-        return app.managed_change(args.change_id)  # type: ignore[attr-defined]
-    if args.change_action == "review":
-        return app.review_managed_change(args.change_id)  # type: ignore[attr-defined]
-    if args.change_action == "approve":
-        return app.approve_managed_change(args.change_id, comment=args.comment)  # type: ignore[attr-defined]
-    if args.change_action == "execute":
-        return app.execute_managed_change(  # type: ignore[attr-defined]
-            args.change_id,
-            readiness=args.readiness,
-            trust=args.trust,
-            compliance=args.compliance,
-        )
-    if args.change_action == "rollback":
-        return app.rollback_managed_change(args.change_id, reason=args.reason)  # type: ignore[attr-defined]
-    raise ValueError(f"unsupported change command: {args.change_action}")
 
 
 def _dispatch_inventory(app: object, args: argparse.Namespace) -> dict[str, object]:
@@ -257,6 +244,36 @@ def _dispatch_inventory(app: object, args: argparse.Namespace) -> dict[str, obje
             }
         )
     raise ValueError(f"unsupported inventory command: {args.inventory_object}")
+
+
+def _dispatch_monitor(app: object, args: argparse.Namespace) -> dict[str, object]:
+    if args.monitor_action == "status":
+        return app.monitor_status()  # type: ignore[attr-defined]
+    if args.monitor_action == "agents":
+        return app.monitor_agents()  # type: ignore[attr-defined]
+    if args.monitor_action == "clusters":
+        return app.monitor_clusters()  # type: ignore[attr-defined]
+    if args.monitor_action == "alerts":
+        return app.monitor_alerts()  # type: ignore[attr-defined]
+    raise ValueError(f"unsupported monitor command: {args.monitor_action}")
+
+
+def _dispatch_dnssync(app: object, args: argparse.Namespace) -> dict[str, object]:
+    if args.dnssync_action == "plans":
+        return app.dnssync_plans()  # type: ignore[attr-defined]
+    if args.dnssync_action == "plan":
+        return app.create_dnssync_plan(_dnssync_payload(args, mode="dry-run"))  # type: ignore[attr-defined]
+    if args.dnssync_action == "validate":
+        return app.validate_dnssync_plan(_dnssync_payload(args))  # type: ignore[attr-defined]
+    if args.dnssync_action == "dry-run":
+        return app.dry_run_dnssync(_dnssync_payload(args))  # type: ignore[attr-defined]
+    if args.dnssync_action == "apply":
+        return app.apply_dnssync(_dnssync_payload(args))  # type: ignore[attr-defined]
+    if args.dnssync_action == "rollback":
+        return app.rollback_dnssync(_dnssync_payload(args))  # type: ignore[attr-defined]
+    if args.dnssync_action == "status":
+        return app.dnssync_status()  # type: ignore[attr-defined]
+    raise ValueError(f"unsupported dnssync command: {args.dnssync_action}")
 
 
 def _dispatch_trust(app: object, args: argparse.Namespace) -> dict[str, object]:

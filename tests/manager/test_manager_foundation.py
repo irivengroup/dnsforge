@@ -1,19 +1,12 @@
 from __future__ import annotations
 
 from dnsforge_manager.application.core.manager_application import create_app
-from dnsforge_manager.domain.core import (
-    DNSBEAT_BOUNDARY,
-    DNSFORGE_BOUNDARY,
-    DNSFORGE_MANAGER_BOUNDARY,
-    DNSSYNC_BOUNDARY,
-)
 from dnsforge_manager.application.dnssync.dnssync_service import DNSSyncService
-from dnsforge_manager.domain.dnssync import DNSForgeOperation
-from dnsforge_manager.infrastructure.dnssync import RecordingDNSForgeNodeClient
 from dnsforge_manager.application.inventory.node_registration_service import NodeRegistrationService
+from dnsforge_manager.domain.core import DNSBEAT_BOUNDARY, DNSFORGE_BOUNDARY, DNSFORGE_MANAGER_BOUNDARY, DNSSYNC_BOUNDARY
+from dnsforge_manager.domain.dnssync import DNSForgeOperation
 from dnsforge_manager.domain.inventory import ManagedNode, NodeRole
-from dnsforge_manager.application.workflows.change_workflow import ManagerChangeWorkflow
-from dnsforge_manager.domain.workflows.models import ManagerChangeRequest
+from dnsforge_manager.infrastructure.dnssync import RecordingDNSForgeNodeClient
 
 
 def test_product_boundaries_keep_bind_writes_local_to_dnsforge() -> None:
@@ -62,12 +55,22 @@ def test_dnssync_orchestrates_through_dnsforge_node_client() -> None:
     assert [node_id for node_id, _ in client.operations] == ["dns01", "dns02"]
 
 
-def test_manager_change_workflow_routes_changes_through_dnssync() -> None:
-    nodes = (ManagedNode("dns01", "dns01", "https://dns01:1073", NodeRole.AUTHORITATIVE, cluster_id="cluster-a"),)
+def test_manager_dnssync_routes_operations_through_agents() -> None:
     client = RecordingDNSForgeNodeClient()
-    request = ManagerChangeRequest(cluster_id="cluster-a", operation="catalog.sync", payload={"scope": "cluster"})
-    workflow = ManagerChangeWorkflow()
-    workflow.dry_run_cluster_change(request, nodes)
-    result = workflow.submit_cluster_change(request, nodes, client)
-    assert result.accepted is True
+    app = create_app()
+    app.node_client = client
+    app.register_node(
+        {
+            "node_id": "dns01",
+            "name": "dns01",
+            "api_endpoint": "https://dns01:1073",
+            "role": "authoritative",
+            "cluster_id": "cluster-a",
+        }
+    )
+    app.approve_node("dns01")
+    payload = {"cluster_id": "cluster-a", "operation": "catalog.sync", "payload": {"scope": "cluster"}}
+    dry_run = app.dry_run_dnssync(payload)["execution"]
+    result = app.apply_dnssync({**payload, "approved_plan_hash": dry_run["plan_hash"]})["execution"]
+    assert result["accepted"] is True
     assert client.operations[0][1].operation == "catalog.sync"

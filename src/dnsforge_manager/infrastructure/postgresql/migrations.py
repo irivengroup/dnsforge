@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from dnsforge_manager.infrastructure.persistence.postgresql.scale import MANAGER_SCALE_SQL
+
 
 @dataclass(frozen=True)
 class ManagerSchemaMigration:
@@ -21,10 +23,11 @@ MANAGER_SCHEMA_MIGRATIONS: tuple[ManagerSchemaMigration, ...] = (
     ),
     ManagerSchemaMigration(
         version="002",
-        description="manager change requests",
+        description="manager dnssync orchestration",
         statements=(
-            "CREATE TABLE IF NOT EXISTS manager_change_requests (change_id TEXT PRIMARY KEY, payload JSONB NOT NULL);",
-            "CREATE INDEX IF NOT EXISTS idx_manager_change_requests_status ON manager_change_requests ((payload->>'status'));",
+            "CREATE TABLE IF NOT EXISTS dnssync_plans (plan_hash TEXT PRIMARY KEY, payload JSONB NOT NULL);",
+            "CREATE TABLE IF NOT EXISTS dnssync_executions (execution_id TEXT PRIMARY KEY, payload JSONB NOT NULL);",
+            "CREATE INDEX IF NOT EXISTS idx_dnssync_plans_cluster ON dnssync_plans ((payload->>'cluster_id'));",
         ),
     ),
     ManagerSchemaMigration(
@@ -69,17 +72,7 @@ MANAGER_SCHEMA_MIGRATIONS: tuple[ManagerSchemaMigration, ...] = (
     ),
     ManagerSchemaMigration(
         version="007",
-        description="manager change management orchestration",
-        statements=(
-            "CREATE TABLE IF NOT EXISTS change_requests (change_id TEXT PRIMARY KEY, payload JSONB NOT NULL);",
-            "CREATE TABLE IF NOT EXISTS change_approvals (event_id BIGSERIAL PRIMARY KEY, change_id TEXT NOT NULL, payload JSONB NOT NULL);",
-            "CREATE TABLE IF NOT EXISTS change_executions (event_id BIGSERIAL PRIMARY KEY, change_id TEXT NOT NULL, payload JSONB NOT NULL);",
-            "CREATE TABLE IF NOT EXISTS change_rollbacks (event_id BIGSERIAL PRIMARY KEY, change_id TEXT NOT NULL, payload JSONB NOT NULL);",
-            "CREATE INDEX IF NOT EXISTS idx_change_requests_status ON change_requests ((payload->>'status'));",
-            "CREATE INDEX IF NOT EXISTS idx_change_requests_target_scope ON change_requests ((payload->>'target_scope'));",
-            "CREATE INDEX IF NOT EXISTS idx_change_approvals_change_id ON change_approvals (change_id);",
-            "CREATE INDEX IF NOT EXISTS idx_change_executions_change_id ON change_executions (change_id);",
-            "CREATE INDEX IF NOT EXISTS idx_change_rollbacks_change_id ON change_rollbacks (change_id);",
-        ),
+        description="manager large-scale query indexes",
+        statements=MANAGER_SCALE_SQL,
     ),
 )

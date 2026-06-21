@@ -1,10 +1,19 @@
-## 15.0.0
 
-- Added DNSForge Manager Change Management & Orchestration bounded context.
-- Added ChangeRequest, ChangePlan, ChangeApproval, ChangeExecution and ChangeRollback domain models.
-- Added Manager change CLI commands for create, list, status, review, approve, execute and rollback.
-- Added execution gates for readiness, trust and compliance before Manager-orchestrated execution.
-- Added JSON-backed Change Management repository and v15 documentation.
+## 14.8.5
+
+- Added Manager concurrency foundation with automatic worker sizing based on server characteristics.
+- DNSSync fan-out now executes through bounded multithreading while preserving deterministic result order.
+- Added async execution adapter for DNSSync fan-out.
+- Added DNSBeat Manager monitoring for BIND, RNDC, DNSSEC, Catalog, Cluster and Readiness components.
+- Added PostgreSQL large-dataset scale policy and indexes for inventory, DNSSync, compliance and audit paths.
+
+## 14.8.4
+
+- Removed generic Manager Change Management workflow layer from the 14.x branch.
+- Re-centered Manager orchestration on DNSSync, DNSBeat, Inventory, Trust, RBAC and Compliance.
+- Added Manager DNSSync plan, validate, dry-run, apply, rollback and status API/CLI surfaces.
+- Replaced PostgreSQL change-request schema references with DNSSync orchestration schema references.
+- Added roadmap alignment documentation for the remaining Manager 14.x objectives.
 
 # Changelog
 
